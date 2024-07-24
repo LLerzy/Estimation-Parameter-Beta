@@ -1,15 +1,35 @@
 ---
-title: "Untitled"
+title: "RandomSample"
 output: github_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE,echo=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+suppressPackageStartupMessages(source(file = "requiredfunctions.R"))
 ```
 
-## GitHub Documents
+## Distribución Condicional de X_1 dado X_2.
 
-This is an R Markdown format used for publishing markdown documents to GitHub. When you click the **Knit** button all R code chunks are run and a markdown file (.md) suitable for publishing to GitHub is generated.
+Se establecen los valores de hiperparámetros phi=(a1,b1,c1,d1) y se construye la gráfica de la distribución condicional de X_1 dado X_2.
+
+```{r, echo=TRUE, warning=FALSE}
+a1=2.2; b1=2.2; c1=2.2; d1=2.2
+Graph_Fc_X1(v1 = 0.05,"v=0.05",v2 = 0.10,"v=0.10",v3 = 0.20,"v=0.20",ae = a1,be = b1,ce = c1,de = d1)
+```
+
+### Monitoreo de convergencia método de simulación
+
+Function to monitor the acceptance rate and effective size for different values of variance (v_values) and precision (prop_prec) provided
+
+```{r warning=FALSE, echo=TRUE, results='hide'}
+Mon_Measure(N=10^4, prop_prec_values=seq(1, 20, by = 1), a=a1, b=b1, c=c1, d=d1, v_values=seq(0.01, 0.24, length.out = 10),thin = 5,burnin = 500)
+```
+
+Function to monitor the R-Hat for different values of variance (s_values) and precision (prop_prec) provided
+
+```{r , echo=TRUE,warning=FALSE,results='hide'}
+Mon_R_Hat(N=10^4, prop_prec_values=seq(1, 20, by = 1), a=a1, b=b1, c=c1, d=d1, v_values=seq(0.01, 0.24, length.out = 10),thin = 5,burnin = 500)
+```
 
 ## Including Code
 
