@@ -458,9 +458,8 @@ Graphs = function(dataset, nameaxisy, width = 10, lscatt = 0.05, uscatt = 0.05) 
     scale_shape_discrete(name = " ") + theme(plot.title = element_text(size = 11), legend.position = "top", legend.box = "horizontal")
   
   # Plots of histogram, trace, convergence control, and acf.
-  allgraphs = grid.arrange(hist, trace, mean_X1_X2, acfplot, 
-                           ncol = 2, nrow = 2, widths = c(4, 4), heights = c(2, 2), layout_matrix = rbind(c(1, 2), c(3, 4)))
-  return(allgraphs)
+  return(grid.arrange(hist, trace, mean_X1_X2, acfplot, 
+                      ncol = 2, nrow = 2, widths = c(4, 4), heights = c(2, 2), layout_matrix = rbind(c(1, 2), c(3, 4))))
 }
 
 ##########################################################
