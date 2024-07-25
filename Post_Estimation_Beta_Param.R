@@ -1,0 +1,315 @@
+###########################################################################
+#                                                                         #
+# Description:                                                            #
+# This document contains a set of routines aimed at estimating the shape  #
+# parameters of the Beta distribution for the variable X from a Bayesian  #
+# perspective. Although a new bivariate prior distribution and its        #
+# respective method for simulating random samples are utilized, the main  #
+# focus of the code is to develop a simulation study to monitor the       #
+# behavior of estimates obtained for these parameters. The routines       #
+# include empirical Bayesian and subjective approaches for hyperparameter #
+# estimation, using both bootstrap intervals and expert intervals         #
+# established with different biases and semi-amplitudes.                  #
+#                                                                         #
+# The primary procedures in this document include:                        #
+# 1. Configuration of empirical and subjective Bayesian approaches for    #
+#    hyperparameter estimation.                                           #
+# 2. Calculation of prior moments based on the given hyperparameters.     #
+# 3. Posterior estimation using importance sampling for the shape         #
+#    parameters of the beta distribution.                                 #
+# 4. Conducting simulation studies to compare and monitor the performance #
+#    of posterior estimates under different scenarios, sample sizes, and  #
+#    sets of hyperparameters.                                             #
+# 5. Visualization of results and comparison of hyperparameters.          #
+#                                                                         #
+# Author: Llerzy Torres Ome                                               #
+# Creation Date: July 24, 2024                                            #
+#                                                                         #
+# Notes:                                                                  #
+# 1. It is recommended to review and adapt each section according to the  #
+#    specific needs of each analysis.                                     #
+# 2. Ensure you understand each step before executing it to guarantee     #
+#    accurate results and avoid potential errors.                         #
+# 3. For any questions or suggestions, contact                            #
+#    llerzy.torres@correounivalle.edu.co                                  #
+#                                                                         #
+###########################################################################
+
+source(file = "requiredfunctions.R")
+
+# Define the three scenarios for the parameters alpha and beta of the beta distribution of the variable X.
+Vect_Alpha = c(0.5, 16, 3)
+Vect_Beta = c(0.5, 4, 12)
+Vect_mu = Vect_Alpha / (Vect_Alpha + Vect_Beta)  # Mean of the beta distribution of X.
+Vect_var = Vect_Alpha * Vect_Beta / ((Vect_Alpha + Vect_Beta)^2 * (Vect_Alpha + Vect_Beta + 1))  # Variance of the beta distribution of X.
+Vect_cv = sqrt(Vect_var) / Vect_mu  # Coefficient of variation of the beta distribution of X.
+
+# For the subjective approach, the quantile intervals for the expert are specified,
+# considering two bias values for the mean and the coefficient of variation, and one value for the semi-amplitude 
+# of the mean and variance.
+Vect_epsion_mu = c(0.01, 0.05)  # Bias of the midpoint of the expert interval for mu.
+Vect_delta_mu = c(0.07)  # Semi-amplitude of the expert interval for mu.
+Vect_epsion_cv = c(0.02, 0.06)  # Bias of the midpoint of the expert interval for cv.
+Vect_delta_cv = c(0.09)  # Semi-amplitude of the expert interval for cv.
+
+#######
+## Settings for the subjective approach.
+#######
+# Matrix of all combinations between the scenarios of the alpha and beta parameters, biases and amplitudes of the mean and the coefficient of variation.
+Param = matrix(data = NA, nrow = 10*3, ncol = 16, dimnames = list(NULL, c("Scenario", "Alpha", "Beta", "EpsionMu", "DeltaMu", "EpsionCv", "DeltaCv", "Va", "Vb", "Vc", "Vd", "Source", "LMu", "UMu", "LCV", "UCV")))
+Param = as.data.frame(Param)
+
+# Assigning scenarios and parameter values
+Param$Scenario = c(rep(1, 10), rep(2, 10), rep(3, 10))
+Param$Alpha = c(rep(Vect_Alpha[1], 10), rep(Vect_Alpha[2], 10), rep(Vect_Alpha[3], 10))
+Param$Beta = c(rep(Vect_Beta[1], 10), rep(Vect_Beta[2], 10), rep(Vect_Beta[3], 10))
+Param$EpsionMu = c(0, 0, rep(Vect_epsion_mu[1], 4), rep(Vect_epsion_mu[2], 4))
+Param$DeltaMu = Vect_delta_mu
+Param$EpsionCv = c(0, 0, rep(Vect_epsion_cv[1], 2), rep(Vect_epsion_cv[2], 2), rep(Vect_epsion_cv[1], 2), rep(Vect_epsion_cv[2], 2))
+Param$DeltaCv = Vect_delta_cv
+Param$Source = c("BM", "BT", "EM1", "ET1", "EM2", "ET2", "EM3", "ET3", "EM4", "ET4")
+
+# Limits of the expert quantile intervals for the mean of X, considering the biases and semi-amplitude.
+Param$LMu = Param$Alpha / (Param$Alpha + Param$Beta) + Param$EpsionMu - Param$DeltaMu
+Param$UMu = Param$Alpha / (Param$Alpha + Param$Beta) + Param$EpsionMu + Param$DeltaMu
+
+# Limits of the expert quantile intervals for the CV of X, considering the biases and semi-amplitude.
+Param$LCV = sqrt(Param$Alpha * Param$Beta / ((Param$Alpha + Param$Beta)^2 * (Param$Alpha + Param$Beta + 1))) / (Param$Alpha / (Param$Alpha + Param$Beta)) + Param$EpsionCv - Param$DeltaCv
+Param$UCV = sqrt(Param$Alpha * Param$Beta / ((Param$Alpha + Param$Beta)^2 * (Param$Alpha + Param$Beta + 1))) / (Param$Alpha / (Param$Alpha + Param$Beta)) + Param$EpsionCv + Param$DeltaCv
+
+
+#######
+## Configuration for the Empirical Bayes Approach
+#######
+# Suppose a sample of size 10 is available, from which the quantile intervals for mu and cv
+# are obtained using the subjective approach.
+
+# Initialize a matrix to store beta samples for different scenarios
+sim_beta <- matrix(nrow = 10, ncol = length(Vect_Alpha), dimnames = list(NULL, c("Scenario1", "Scenario2", "Scenario3")))
+set.seed(123)  # For reproducibility
+for (i in 1:length(Vect_Alpha)) {
+  sim_beta[, i] <- rbeta(10, shape1 = Vect_Alpha[i], shape2 = Vect_Beta[i])
+}
+
+# You can load the samples that were generated
+# sim_beta = read.xlsx(file.path("Results_Post_Estim/Spreadsheets", "SamplesBeta.xlsx"), sheet = "DataSamples", cols = c(2, 3, 4))
+sim_beta = as.data.frame(sim_beta)
+
+#####
+# Create a workbook object to save results for the Empirical Bayes approach.
+##
+titulo_xlsx = "SamplesBeta.xlsx"
+wb <- createWorkbook()
+addWorksheet(wb, "DataSamples")
+writeData(wb, sheet = "DataSamples", x = sim_beta, colNames = TRUE, rowNames = TRUE)
+saveWorkbook(wb, file = titulo_xlsx, overwrite = TRUE)
+#####
+
+#####
+## Obtaining hyperparameters for the Empirical Bayes approach and the subjective approach
+## considering expert intervals (with epsilon errors and amplitude 2delta).
+#####
+# The parameter n corresponds to the scenarios for the shape parameters of the beta distribution.
+# When n=0, it represents scenario 1. For n=1, it represents scenario 2, and for n=2, it represents scenario 3.
+# n_combi: takes values from 0 to 3 and represents the combinations between the epsilon errors of the mean and the cv.
+# bound_var: parameter that indicates the way in which the upper limit for the conditional variance of the mean is established.
+bound_var = "min"
+BoostrapIntervalsMu = NULL
+BoostrapIntervalsCv = NULL
+BoostrapIntervalsVar = NULL
+
+for (n in 0:2) {
+  hip_BM = hiperparameters(sim_beta[, n + 1], r_boostrap = 100, q_boostrap = c(0.025, 0.975), option_mu = "moments",
+                           sig_mu = 0, bound_var = bound_var,
+                           sig_var = 0.1, digits = 4, grpahs_boot = F)  # Bootstrap interval and Moments method.
+  
+  hip_BT = hiperparameters(sim_beta[, n + 1], r_boostrap = 100, q_boostrap = c(0.025, 0.975), option_mu = "tovar", 
+                           sig_mu = 0.1, bound_var = bound_var,
+                           sig_var = 0.1, digits = 4, grpahs_boot = F)  # Bootstrap interval and Tovar method.
+  
+  BoostrapIntervalsMu = rbind(BoostrapIntervalsMu, hip_BM$Q_mean, hip_BT$Q_mean)
+  BoostrapIntervalsCv = rbind(BoostrapIntervalsCv, hip_BM$Q_cv, hip_BT$Q_cv)
+  BoostrapIntervalsVar = rbind(BoostrapIntervalsVar, hip_BM$Q_var, hip_BT$Q_var)
+  
+  Param[10 * n + 1, c(8, 9)] = hip_BM$hiper_mean
+  Param[10 * n + 1, c(10, 11)] = c(hip_BM$hiper_var$a, hip_BM$hiper_var$b)  # Store in Param.
+  
+  Param[10 * n + 2, c(8, 9)] = c(hip_BT$hiper_mean$a, hip_BT$hiper_mean$b)
+  Param[10 * n + 2, c(10, 11)] = c(hip_BT$hiper_var$a, hip_BT$hiper_var$b)  # Store in Param.
+  
+  rm(hip_BM, hip_BT)
+  
+  for (n_combi in 0:3) {
+    hip_EM = hiperparameters(sim_beta[, (n + 1)], r_boostrap = 0, q_boostrap = c(0.025, 0.975), option_mu = "moments",
+                             sig_mu = 0, bound_var = bound_var,
+                             sig_var = 0.1, digits = 4, grpahs_boot = F, 
+                             Q_E_mu = c(Param$LMu[10 * n + 3 + 2 * n_combi], Param$UMu[10 * n + 3 + 2 * n_combi]), 
+                             Q_E_cv = c(Param$LCV[10 * n + 3 + 2 * n_combi], Param$UCV[10 * n + 3 + 2 * n_combi]))  # Expert interval and Moments method.
+    
+    hip_ET = hiperparameters(sim_beta[, (n + 1)], r_boostrap = 0, q_boostrap = c(0.025, 0.975), option_mu = "tovar",
+                             sig_mu = 0.1, bound_var = bound_var,
+                             sig_var = 0.1, digits = 4, grpahs_boot = F,
+                             Q_E_mu = c(Param$LMu[10 * n + 4 + 2 * n_combi], Param$UMu[10 * n + 4 + 2 * n_combi]), 
+                             Q_E_cv = c(Param$LCV[10 * n + 4 + 2 * n_combi], Param$UCV[10 * n + 4 + 2 * n_combi]))  # Expert interval and Tovar method.
+    
+    Param[10 * n + 3 + 2 * n_combi, c(8, 9)] = c(hip_EM$hiper_mean$a, hip_EM$hiper_mean$b)
+    Param[10 * n + 3 + 2 * n_combi, c(10, 11)] = c(hip_EM$hiper_var$a, hip_EM$hiper_var$b)  # Store in Param.
+    
+    Param[10 * n + 4 + 2 * n_combi, c(8, 9)] = c(hip_ET$hiper_mean$a, hip_ET$hiper_mean$b)
+    Param[10 * n + 4 + 2 * n_combi, c(10, 11)] = c(hip_ET$hiper_var$a, hip_ET$hiper_var$b)  # Store in Param.
+    
+    rm(hip_EM, hip_ET)
+  }
+}
+
+# Verify that in scenario 1 the value obtained for parameter c is greater than 2 to ensure the mean and variance exist.
+n = 0
+Param[(10 * n + 1):(10 * n + 1 + 9), ]
+# Param
+
+# Convert the matrices containing the hyperparameter values obtained from the Empirical Bayes approach to data frames.
+BoostrapIntervalsMu = as.data.frame(BoostrapIntervalsMu)
+BoostrapIntervalsCv = as.data.frame(BoostrapIntervalsCv)
+BoostrapIntervalsVar = as.data.frame(BoostrapIntervalsVar)
+BoostrapIntervalsMu = cbind(BoostrapIntervalsMu, BoostrapIntervalsVar, BoostrapIntervalsCv)
+names(BoostrapIntervalsMu) = c("LMu", "UMu", "LV", "UV", "LCv", "UCv")
+BoostrapIntervalsMu$Method = c("BM", "BT")
+
+###########################
+# Obtaining the moments of the prior distributions defined by each set of hyperparameters
+###########################
+rm(i, Param1)
+Measure_Prior_Distribution = NULL
+
+for (i in 1:30) {
+  Measure_Prior_Distribution = rbind(Measure_Prior_Distribution, Measure_Analy(Param$Va[i], Param$Vb[i], Param$Vc[i], Param$Vd[i], digits = 9))
+}
+Param1 = cbind(Param, Measure_Prior_Distribution)
+
+Param_Min = Param1
+Param_Min_boot = BoostrapIntervalsMu
+
+## Repeat the procedure from line 80, modifying bound_var = "mean" and save the results as:
+# Param_Mean = Param1
+# Param_Mean_boot = BoostrapIntervalsMu
+
+## Repeat the procedure from line 80, modifying bound_var = "max" and save the results as:
+# Param_Max = Param1
+# Param_Max_boot = BoostrapIntervalsMu
+
+## Analyzing the moments of the prior distributions, select those that best represent the simulated scenario.
+## Construct the matrix that contains the hyperparameters obtained with bound_var = "min" in scenario 2, hyperparameters generated by bound_var = "mean" in scenario 1, and
+## hyperparameters found by bound_var = "max" in scenario 3.
+Param = rbind(Param_Mean[which(Param_Mean$Scenario == 1), ],
+              Param_Min[which(Param_Min$Scenario == 2), ],
+              Param_Max[which(Param_Max$Scenario == 3), ])
+
+BoostrapIntervals = rbind(Param_Mean_boot[c(1, 2), ],
+                          Param_Min_boot[c(3, 4), ],
+                          Param_Max_boot[c(5, 6), ])
+
+#####
+# Create a workbook object to save hyperparameters and moments generated for each scenario and bound_var specification.
+##
+titulo_xlsx = "ParametrosSigMu01SigV01.xlsx"
+wb <- createWorkbook()
+# Add sheets and write data for each set of parameters and bootstrap intervals
+addWorksheet(wb, "ParametrosMin")
+writeData(wb, sheet = "ParametrosMin", x = Param_Min, colNames = TRUE, rowNames = TRUE)
+addWorksheet(wb, "ParaMinBoot")
+writeData(wb, sheet = "ParaMinBoot", x = Param_Min_boot, colNames = TRUE, rowNames = TRUE)
+addWorksheet(wb, "ParamMean")
+writeData(wb, sheet = "ParamMean", x = Param_Mean, colNames = TRUE, rowNames = TRUE)
+addWorksheet(wb, "ParamMeanBoot")
+writeData(wb, sheet = "ParamMeanBoot", x = Param_Mean_boot, colNames = TRUE, rowNames = TRUE)
+addWorksheet(wb, "ParamMax")
+writeData(wb, sheet = "ParamMax", x = Param_Max, colNames = TRUE, rowNames = TRUE)
+addWorksheet(wb, "ParamMaxBoot")
+writeData(wb, sheet = "ParamMaxBoot", x = Param_Max_boot, colNames = TRUE, rowNames = TRUE)
+addWorksheet(wb, "Param")
+writeData(wb, sheet = "Param", x = Param, colNames = TRUE, rowNames = TRUE)
+addWorksheet(wb, "IntervalBoot")
+writeData(wb, sheet = "IntervalBoot", x = BoostrapIntervals, colNames = TRUE, rowNames = TRUE)
+# Save the workbook with the specified title
+saveWorkbook(wb, file = titulo_xlsx, overwrite = TRUE)
+#####
+
+
+
+###########################
+# Using Importance Sampling to obtain
+# posterior estimates for the shape parameters of the beta distribution
+# using the new bivariate prior distribution, the sets of hyperparameters obtained and stored
+# in Param_Min, Param_Mean, Param_Max, Param.
+# For each sample size defined in n_sample, the Estudio_Sim function generates a prior distribution sample of size N1,
+# generates 1000 samples of the established sample size by n_sample, and with each sample, the posterior estimate
+# is obtained from the importance sampling.
+###########################
+
+# Number of cores to use
+numCores <- detectCores() - 1  # Use all but one to avoid saturating the machine
+cl <- makeCluster(numCores)
+registerDoParallel(cl, c("Estudio_Sim"))
+
+# Define the variables Resultados_name, Param, Vect_Alpha, Vect_Beta
+# Here you should define the variables used in the code
+Param = Param_Min  # Set of hyperparameters established for the prior distribution and obtained by choosing the bound_var parameter.
+n = 0  # Represents the scenario in question; n = 0 corresponds to scenario 1, n = 1 to scenario 2, and n = 2 to scenario 3.
+
+# Initialize the data frames
+Resultados_Escen_Alpha <- data.frame()
+Resultados_Escen_Beta <- data.frame()
+Resultados_Escen_Diff <- data.frame()
+Resultados_name = c("BM", "BT", "EM1", "ET1", "EM2", "ET2", "EM3", "ET3", "EM4", "ET4")
+
+# Parallelize the for loop
+Resultados_list <- foreach(n_hiper = 1:length(Resultados_name), .combine = 'c', .packages = c("betafunctions", "coda")) %dopar% {
+  Resultados_Escen <- Estudio_Sim(N1 = 10^4, N2 = 2, prop_prec = 3, a = Param$Va[n_hiper + 10 * n], b = Param$Vb[n_hiper + 10 * n], c = Param$Vc[n_hiper + 10 * n], d = Param$Vd[n_hiper + 10 * n],
+                                  thin1 = 1, X10_given = "random", dig_tol = 15, thin2 = 1, burnin = 2000, n_sample = c(seq(10, 50, 5), seq(100, 200, 50)),
+                                  alpha_real = Vect_Alpha[n + 1], beta_real = Vect_Beta[n + 1], N_Iter_Sim = 1000)
+  
+  Resultados_Escen$Result_Alpha$Source <- Resultados_name[n_hiper]
+  Resultados_Escen$Result_Beta$Source <- Resultados_name[n_hiper]
+  Resultados_Escen$Descriptive_Sample_Prior$Differences$Source <- Resultados_name[n_hiper]
+  
+  list(
+    Alpha = Resultados_Escen$Result_Alpha,
+    Beta = Resultados_Escen$Result_Beta,
+    Diff = Resultados_Escen$Descriptive_Sample_Prior$Differences
+  )
+}
+
+# Combine the results after the foreach loop
+for (result in seq_along(Resultados_list)) {
+  Resultados_Escen_Alpha <- rbind(Resultados_Escen_Alpha, Resultados_list[result]$Alpha)
+  Resultados_Escen_Beta <- rbind(Resultados_Escen_Beta, Resultados_list[result]$Beta)
+  Resultados_Escen_Diff <- rbind(Resultados_Escen_Diff, Resultados_list[result]$Diff)
+}
+
+# Stop the cluster
+stopCluster(cl)
+
+
+# The following graphs represent the scenario defined by the parameter n and the hiperparameters obtained by the choice of bound_var.
+# Posterior estimates obtained for the Alpha parameter of the Beta distribution of the variable X.
+Comparacion_hip(Resultados_Escen_Alpha, value_real = Vect_Alpha[n + 1], lim_x = c(10, 25, 50, 100, 150, 200),
+                title_text = " ", y_Text = "Alpha")
+# MinAlphaSigMu01SigV01ParEscen-3
+
+# Posterior estimates obtained for the Beta parameter of the Beta distribution of the variable X.
+Comparacion_hip(Resultados_Escen_Beta, value_real = Vect_Beta[n + 1], lim_x = c(10, 25, 50, 100, 150, 200),
+                title_text = " ", y_Text = "Beta")
+# MinBetaSigMu01SigV01Escen-3
+
+# Create a workbook object to save Escen results
+titulo_xlsx = "MinSigMu01SigV01Escen-3.xlsx"
+wb <- createWorkbook()
+addWorksheet(wb, "Parameters")
+writeData(wb, sheet = "Parameters", x = Param, colNames = TRUE, rowNames = TRUE)
+addWorksheet(wb, "Alpha")
+writeData(wb, sheet = "Alpha", x = Resultados_Escen_Alpha, colNames = TRUE, rowNames = TRUE)
+addWorksheet(wb, "Beta")
+writeData(wb, sheet = "Beta", x = Resultados_Escen_Beta, colNames = TRUE, rowNames = TRUE)
+addWorksheet(wb, "Difference")
+writeData(wb, sheet = "Difference", x = Resultados_Escen_Diff, colNames = TRUE, rowNames = TRUE)
+saveWorkbook(wb, file = titulo_xlsx, overwrite = TRUE)
