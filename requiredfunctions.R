@@ -13,7 +13,7 @@
 #                                                                         #
 # Functions included:                                                     #
 # 1. Prior: Defines the proposed prior probability density function.      #
-# 2. FC_X1_given_v: Full conditional distribution of X1 given X2 = v.     #
+# 2. FC_X1_Given_v: Full conditional distribution of X1 given X2 = v.     #
 # 3. Graph_Fc_X1: Plots the full conditional distribution for given       #
 #    parameter values.                                                    #
 # 4. Gen_FC_X1_X2: Metropolis-Hastings algorithm using random walks for   #
@@ -100,7 +100,7 @@ Prior=function(alph, bet, a, b, c, d) {
 # Full Conditional (FC) of X1 given X2 equals v
 # "(a,b,c,d)" is the vector of parameters
 # "X1" is within (0,1) and "X2=v" is less than X1(1-X1)
-FC_X1_given_v=function(X1, a, b, c, d, v) {
+FC_X1_Given_v=function(X1, a, b, c, d, v) {
   # Calculate the full conditional density of X1 given X2 = v
   # The original formula is:
   # result1 = X1^(a-c-d) * (1-X1)^(b-c-d) * (X1*(1-X1)-v)^(d-1)
@@ -117,13 +117,13 @@ FC_X1_given_v=function(X1, a, b, c, d, v) {
 Graph_Fc_X1=function(v1, v1name, v2, v2name, v3, v3name, ae, be, ce, de) {
   ggplot() + xlim(c(0, 1)) +
     # Plot FC for v1
-    geom_function(fun=function(X1) mapply(FC_X1_given_v, X1, a=ae, b=be, c=ce, d=de, v=v1), lwd=1,
+    geom_function(fun=function(X1) mapply(FC_X1_Given_v, X1, a=ae, b=be, c=ce, d=de, v=v1), lwd=1,
                   linetype=1, aes(col=v1name)) +
     # Plot FC for v2
-    geom_function(fun=function(X1) mapply(FC_X1_given_v, X1, a=ae, b=be, c=ce, d=de, v=v2), lwd=1,
+    geom_function(fun=function(X1) mapply(FC_X1_Given_v, X1, a=ae, b=be, c=ce, d=de, v=v2), lwd=1,
                   linetype=1, aes(col=v2name)) +
     # Plot FC for v3
-    geom_function(fun=function(X1) mapply(FC_X1_given_v, X1, a=ae, b=be, c=ce, d=de, v=v3), lwd=1,
+    geom_function(fun=function(X1) mapply(FC_X1_Given_v, X1, a=ae, b=be, c=ce, d=de, v=v3), lwd=1,
                   linetype=1, aes(col=v3name)) +
     labs(title="Full Conditional of X1 given X2",
          caption=substitute(
@@ -215,7 +215,7 @@ Gen_FC_X1_X2 <- function(N, prop_prec, a, b, c, d, v, option = "end", thin = 1, 
     }
     
     # Adaptive adjustment of the precision parameter during burn-in
-    if (k <= burnin && k %% 100 == 0) {
+    if (k <= burnin && k %% 100 == 0 && target_acceptance!=0) {
       acceptance_rate <- burnin_accepted / 100
       if (acceptance_rate < target_acceptance) {
         prop_prec <- prop_prec * 0.95
@@ -269,7 +269,7 @@ Mon_Measure = function(N, prop_prec_values, a, b, c, d, v_values, thin = 1, burn
   df <- data.frame()
   
   # Use foreach to iterate in parallel
-  results_list <- foreach(v = v_values, .combine = 'rbind', .export = c('Gen_FC_X1_X2', 'FC_X1_given_v'), 
+  results_list <- foreach(v = v_values, .combine = 'rbind', .export = c('Gen_FC_X1_X2', 'FC_X1_Given_v'), 
                           .packages = c('coda', 'betafunctions')) %dopar% {
                             tmp_df <- data.frame()
                             for (prop_prec in prop_prec_values) {
@@ -284,7 +284,7 @@ Mon_Measure = function(N, prop_prec_values, a, b, c, d, v_values, thin = 1, burn
   
   # Stop the cluster
   stopCluster(cl)
-  print((N - burnin) / thin)
+  #print((N - burnin) / thin)
   
   df <- rbind(df, results_list)
   
@@ -322,7 +322,7 @@ Mon_Measure = function(N, prop_prec_values, a, b, c, d, v_values, thin = 1, burn
          y = "Precision",
          fill = "Acceptance Rate")
   
-  return(list(plot_ESS, plot_AR))
+  grid.arrange(plot_ESS, plot_AR, nrow = 1, ncol = 2, layout_matrix = rbind(c(1, 2)))
 }
 
 #####
@@ -349,13 +349,13 @@ Mon_R_Hat = function(N, prop_prec_values, a, b, c, d, v_values, thin = 1, burnin
   df <- data.frame()
   
   # Use foreach to iterate in parallel
-  results_list <- foreach(v = v_values, .combine = 'rbind', .export = c('Gen_FC_X1_X2', 'FC_X1_given_v'), 
+  results_list <- foreach(v = v_values, .combine = 'rbind', .export = c('Gen_FC_X1_X2'), 
                           .packages = c('coda', 'betafunctions')) %dopar% {
                             tmp_df <- data.frame()
                             for (prop_prec in prop_prec_values) {
-                              sample1 = Gen_FC_X1_X2(N, prop_prec, a, b, c, d, v, option = "all", thin = 1, X10_given = "random", burnin)
-                              sample2 = Gen_FC_X1_X2(N, prop_prec, a, b, c, d, v, option = "all", thin = 1, X10_given = "random", burnin)
-                              sample3 = Gen_FC_X1_X2(N, prop_prec, a, b, c, d, v, option = "all", thin = 1, X10_given = "random", burnin)
+                              sample1 = Gen_FC_X1_X2(N, prop_prec, a, b, c, d, v, option = "all", thin=thin , X10_given = "random", burnin)
+                              sample2 = Gen_FC_X1_X2(N, prop_prec, a, b, c, d, v, option = "all", thin=thin , X10_given = "random", burnin)
+                              sample3 = Gen_FC_X1_X2(N, prop_prec, a, b, c, d, v, option = "all", thin=thin , X10_given = "random", burnin)
                               Gelm_Rud = gelman.diag(list(mcmc(sample1$thinned_chain), mcmc(sample2$thinned_chain),
                                                           mcmc(sample3$thinned_chain)))$psrf[1]
                               tmp_df <- rbind(tmp_df, data.frame(v = v, Precision = prop_prec, Gelman_Rubin = Gelm_Rud))
@@ -371,7 +371,7 @@ Mon_R_Hat = function(N, prop_prec_values, a, b, c, d, v_values, thin = 1, burnin
   # R-hat plot for v and precision values
   measure_quantile = quantile(df$Gelman_Rubin, probs = c(0.2, 0.94, 0.96, 0.98, 1))
   
-  plot_H = ggplot(df, aes(x = v, y = Precision, z = Gelman_Rubin)) +
+  ggplot(df, aes(x = v, y = Precision, z = Gelman_Rubin)) +
     geom_tile(aes(fill = Gelman_Rubin)) +
     scale_fill_gradientn(colors = c("red", "white", "blue"), 
                          values = scales::rescale(c(measure_quantile[[1]], mean(df$Gelman_Rubin), measure_quantile[[5]])),
@@ -385,7 +385,7 @@ Mon_R_Hat = function(N, prop_prec_values, a, b, c, d, v_values, thin = 1, burnin
          y = "Precision",
          fill = "R-hat")
   
-  return(list(plot_H))
+  #return(list(plot_H))
 }
 
 #####
@@ -453,13 +453,13 @@ Graphs = function(dataset, nameaxisy, width = 10, lscatt = 0.05, uscatt = 0.05) 
          else if(nameaxisy == "Y2") { expression(Y[2]^(t)) }
          else { substitute(va, list(va = as.name(nameaxisy))) }) +
     xlab("t") + geom_hline(yintercept = mean(dataset[, 1]), colour = "red", linetype = 2) +
-    geom_text(aes(l - l / 10, mean(dataset[, 1]), label = round(mean(dataset[, 1]), 3), vjust = -3), colour = "red") +
+    geom_text(aes(l - l / 10, mean(dataset[, 1]), label = round(mean(dataset[, 1]), 3), vjust = -2), colour = "red") +
     labs(title = "Convergence Control using Averaging", color = "Bounds") + 
     scale_shape_discrete(name = " ") + theme(plot.title = element_text(size = 11), legend.position = "top", legend.box = "horizontal")
   
   # Plots of histogram, trace, convergence control, and acf.
-  return(grid.arrange(hist, trace, mean_X1_X2, acfplot, 
-                      ncol = 2, nrow = 2, widths = c(4, 4), heights = c(2, 2), layout_matrix = rbind(c(1, 2), c(3, 4))))
+  grid.arrange(hist, trace, mean_X1_X2, acfplot, 
+                      ncol = 2, nrow = 2, widths = c(4, 4), heights = c(2, 2), layout_matrix = rbind(c(1, 2), c(3, 4)))
 }
 
 ##########################################################
