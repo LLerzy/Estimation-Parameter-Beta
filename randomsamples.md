@@ -127,10 +127,6 @@ quemado, tamaño de muestra efectiva, longitud de la cadena y el valor de
 la precisión después de ser ajustada. El periodo de ajuste corresponde
 al segmento de la cadena quemada.
 
-``` r
-data.frame("Acceptance Rate"=ExampleFC_X1_X2$acc_rate,"Acceptance Rate Post Burnin"=ExampleFC_X1_X2$acc_rate_pos_burnin, "ESS"=effectiveSize(ExampleFC_X1_X2$thinned_chain),"Length"=length(ExampleFC_X1_X2$thinned_chain), "Precision"=ExampleFC_X1_X2$precision)
-```
-
 ## Monitoreo de convergencia con semillas fijas
 
 Las muestras simuladas anteriormente consideraron que la semilla era
@@ -278,7 +274,7 @@ aleatorio $(X_1, X_2)$ con precisión 3, $\phi=(2.2,2.2,2.2,2.2)$,
 thin=1, y semilla aleatoria. Posteriormente se utiliza la función
 results_measure_diag para determinar los momentos numéricos, analíticos
 y la diferencia entre estos. En la implementación de esta función se
-utiliza un burnin=15000 y thin=7. Primero se presentan los resultados
+utiliza un burnin=15000 y thin=10. Primero se presentan los resultados
 numéricos de las medidas.
 
 ``` r
@@ -286,18 +282,27 @@ Example_Joint_Dist=Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec=3,a = a1,b = b1,c =
 
 results_measure_diag=Measure_Diagnostic(data1 = Example_Joint_Dist$X1,data2 = Example_Joint_Dist$X2, var ="transform", digits = 4, a = a1, b = b1, c = c1, d = d1, burnin = 15000, thin = 10)
 
-results_measure_diag$Numerical
+knitr::kable(results_measure_diag$Numerical, caption = "Resultados Numéricos", col.names = c("Mean[Y_1]", "Var[Y_1]", "ESS[Y_1]", "Mean[Y_2]", "Var[Y_2]", "ESS[Y_2]", "Cov", "Length"),digits = 3) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  column_spec(1:8, bold = TRUE, border_left = TRUE, border_right = TRUE) %>%
+  row_spec(0, bold = TRUE, color = "white", background = "black")
 ```
 
 Los resultados analíticos fueron:
 
 ``` r
-results_measure_diag$Analytical
+knitr::kable(results_measure_diag$Analytical, caption = "Resultados Analíticos", col.names = c("Mean[Y_1]", "Var[Y_1]", "ESS[Y_1]", "Mean[Y_2]", "Var[Y_2]", "ESS[Y_2]", "Cov", "Length"),digits = 3) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  column_spec(1:8, bold = TRUE, border_left = TRUE, border_right = TRUE) %>%
+  row_spec(0, bold = TRUE, color = "white", background = "black")
 ```
 
 La diferencia entre las medidas descriptivas numéricas y las analíticas
 son las siguientes:
 
 ``` r
-results_measure_diag$Differences
+knitr::kable(results_measure_diag$Differences, caption = "Diferencias entre Resultados Numéricos y Analíticos", col.names = c("Mean[Y_1]", "Var[Y_1]", "ESS[Y_1]", "Mean[Y_2]", "Var[Y_2]", "ESS[Y_2]", "Cov", "Length"),digits = 3) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  column_spec(1:8, bold = TRUE, border_left = TRUE, border_right = TRUE) %>%
+  row_spec(0, bold = TRUE, color = "white", background = "black")
 ```
