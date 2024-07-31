@@ -34,7 +34,7 @@
 #     given data samples.                                                 #
 # 12. Measure_Analy: Computes analytical results for the proposed prior   #
 #     distribution.                                                       #
-# 13. Hiperparameters: Obtains hyperparameters using empirical Bayes and  #
+# 13. Hyperparameters: Obtains hyperparameters using empirical Bayes and  #
 #     subjective approaches.                                              #
 # 14. Est_Post: Posterior estimation for alpha and beta parameters of the #
 #     beta distribution using importance sampling.                        #
@@ -42,7 +42,7 @@
 #     estimates using different hyperparameters and sample sizes.         #
 # 16. Individual_Graphs: Creates individual graphs to monitor posterior   #
 #     estimates using bias and MSE as indicators.                         #
-# 17. Comparacion_Hiper: Compares joint functions for different hyperparam- #
+# 17. Comparison_Hyper: Compares joint functions for different hyperparam- #
 #     eter sets.                                                          #
 #                                                                         #
 # Notes:                                                                  #
@@ -620,7 +620,7 @@ Measure_Analy = function(a, b, c, d, digits) {
 # graphs_boot: logical indicator to generate a histogram, T or F.
 # Q_E_mu and Q_E_cv: quantiles for the mean and variance obtained from the expert.
 
-Hiperparameters = function(ssample, r_boostrap = 100, q_boostrap = c(0.025, 0.975), option_mu = "moments", 
+Hyperparameters = function(ssample, r_boostrap = 100, q_boostrap = c(0.025, 0.975), option_mu = "moments", 
                            sig_mu = 0.05, bound_var = "max", sig_var = 0.05, digits = 4, 
                            graphs_boot = F, Q_E_mu = 0, Q_E_cv = 0) {
   if (r_boostrap != 0) {
@@ -860,7 +860,7 @@ Individual_Graphs = function(Data, lim_x, value_real, y_text, title_text) {
 ####
 # Comparison of joint functions
 ####
-Comparacion_Hiper = function(data, value_real, lim_x, title_text, y_Text) {
+Comparison_Hyper = function(data, value_real, lim_x, title_text, y_Text) {
   # Mean
   Comparacion_Mean = ggplot(data, aes(x = SampleSize, y = Mean, color = Method, shape = Method, linetype = Method)) +
     geom_line() +

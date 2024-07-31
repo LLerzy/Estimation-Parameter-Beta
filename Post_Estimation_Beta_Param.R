@@ -119,11 +119,11 @@ BoostrapIntervalsCv = NULL
 BoostrapIntervalsVar = NULL
 
 for (n in 0:2) {
-  hip_BM = hiperparameters(sim_beta[, n + 1], r_boostrap = 100, q_boostrap = c(0.025, 0.975), option_mu = "moments",
+  hip_BM = Hyperparameters(sim_beta[, n + 1], r_boostrap = 100, q_boostrap = c(0.025, 0.975), option_mu = "moments",
                            sig_mu = 0, bound_var = bound_var,
                            sig_var = 0.1, digits = 4, grpahs_boot = F)  # Bootstrap interval and Moments method.
   
-  hip_BT = hiperparameters(sim_beta[, n + 1], r_boostrap = 100, q_boostrap = c(0.025, 0.975), option_mu = "tovar", 
+  hip_BT = Hyperparameters(sim_beta[, n + 1], r_boostrap = 100, q_boostrap = c(0.025, 0.975), option_mu = "tovar", 
                            sig_mu = 0.1, bound_var = bound_var,
                            sig_var = 0.1, digits = 4, grpahs_boot = F)  # Bootstrap interval and Tovar method.
   
@@ -140,13 +140,13 @@ for (n in 0:2) {
   rm(hip_BM, hip_BT)
   
   for (n_combi in 0:3) {
-    hip_EM = hiperparameters(sim_beta[, (n + 1)], r_boostrap = 0, q_boostrap = c(0.025, 0.975), option_mu = "moments",
+    hip_EM = Hyperparameters(sim_beta[, (n + 1)], r_boostrap = 0, q_boostrap = c(0.025, 0.975), option_mu = "moments",
                              sig_mu = 0, bound_var = bound_var,
                              sig_var = 0.1, digits = 4, grpahs_boot = F, 
                              Q_E_mu = c(Param$LMu[10 * n + 3 + 2 * n_combi], Param$UMu[10 * n + 3 + 2 * n_combi]), 
                              Q_E_cv = c(Param$LCV[10 * n + 3 + 2 * n_combi], Param$UCV[10 * n + 3 + 2 * n_combi]))  # Expert interval and Moments method.
     
-    hip_ET = hiperparameters(sim_beta[, (n + 1)], r_boostrap = 0, q_boostrap = c(0.025, 0.975), option_mu = "tovar",
+    hip_ET = Hyperparameters(sim_beta[, (n + 1)], r_boostrap = 0, q_boostrap = c(0.025, 0.975), option_mu = "tovar",
                              sig_mu = 0.1, bound_var = bound_var,
                              sig_var = 0.1, digits = 4, grpahs_boot = F,
                              Q_E_mu = c(Param$LMu[10 * n + 4 + 2 * n_combi], Param$UMu[10 * n + 4 + 2 * n_combi]), 
@@ -251,65 +251,65 @@ numCores <- detectCores() - 1  # Use all but one to avoid saturating the machine
 cl <- makeCluster(numCores)
 registerDoParallel(cl, c("Sim_study"))
 
-# Define the variables Resultados_name, Param, Vect_Alpha, Vect_Beta
+# Define the variables Method_name, Param, Vect_Alpha, Vect_Beta
 # Here you should define the variables used in the code
 Param = Parameters_Min  # Set of hyperparameters established for the prior distribution and obtained by choosing the bound_var parameter.
 n = 0  # Represents the scenario in question; n = 0 corresponds to scenario 1, n = 1 to scenario 2, and n = 2 to scenario 3.
 
 # Initialize the data frames
-Resultados_Escen_Alpha <- data.frame()
-Resultados_Escen_Beta <- data.frame()
-Resultados_Escen_Diff <- data.frame()
-Resultados_name = c("BM", "BT", "EM1", "ET1", "EM2", "ET2", "EM3", "ET3", "EM4", "ET4")
+Results_Scen_Alpha <- data.frame()
+Results_Scen_Beta <- data.frame()
+Results_Scen_Diff <- data.frame()
+Method_name = c("BM", "BT", "EM1", "ET1", "EM2", "ET2", "EM3", "ET3", "EM4", "ET4")
 
 # Parallelize the for loop
-Resultados_list <- foreach(n_hiper = 1:length(Resultados_name), .combine = 'c', .packages = c("betafunctions", "coda")) %dopar% {
-  Resultados_Escen <- Sim_study(N1 = 10^4, N2 = 2, prop_prec = 3, a = Param$Va[n_hiper + 10 * n], b = Param$Vb[n_hiper + 10 * n], c = Param$Vc[n_hiper + 10 * n], d = Param$Vd[n_hiper + 10 * n],
+Results_list <- foreach(n_hiper = 1:length(Method_name), .combine = 'c', .packages = c("betafunctions", "coda")) %dopar% {
+  Results_Scen <- Sim_study(N1 = 10^4, N2 = 2, prop_prec = 3, a = Param$Va[n_hiper + 10 * n], b = Param$Vb[n_hiper + 10 * n], c = Param$Vc[n_hiper + 10 * n], d = Param$Vd[n_hiper + 10 * n],
                                   thin1 = 1, X10_given = "random", dig_tol = 15, thin2 = 1, burnin = 2000, n_sample = c(seq(10, 50, 5), seq(100, 200, 50)),
                                   alpha_real = Vect_Alpha[n + 1], beta_real = Vect_Beta[n + 1], N_Iter_Sim = 1000)
   
-  Resultados_Escen$Result_Alpha$Method <- Resultados_name[n_hiper]
-  Resultados_Escen$Result_Beta$Method <- Resultados_name[n_hiper]
-  Resultados_Escen$Descriptive_Sample_Prior$Differences$Method <- Resultados_name[n_hiper]
+  Results_Scen$Result_Alpha$Method <- Method_name[n_hiper]
+  Results_Scen$Result_Beta$Method <- Method_name[n_hiper]
+  Results_Scen$Descriptive_Sample_Prior$Differences$Method <- Method_name[n_hiper]
   
   list(
-    Alpha = Resultados_Escen$Result_Alpha,
-    Beta = Resultados_Escen$Result_Beta,
-    Diff = Resultados_Escen$Descriptive_Sample_Prior$Differences
+    Alpha = Results_Scen$Result_Alpha,
+    Beta = Results_Scen$Result_Beta,
+    Diff = Results_Scen$Descriptive_Sample_Prior$Differences
   )
 }
 
 # Combine the results after the foreach loop
-for (result in seq_along(Resultados_list)) {
-  Resultados_Escen_Alpha <- rbind(Resultados_Escen_Alpha, Resultados_list[result]$Alpha)
-  Resultados_Escen_Beta <- rbind(Resultados_Escen_Beta, Resultados_list[result]$Beta)
-  Resultados_Escen_Diff <- rbind(Resultados_Escen_Diff, Resultados_list[result]$Diff)
+for (result in seq_along(Results_list)) {
+  Results_Scen_Alpha <- rbind(Results_Scen_Alpha, Results_list[result]$Alpha)
+  Results_Scen_Beta <- rbind(Results_Scen_Beta, Results_list[result]$Beta)
+  Results_Scen_Diff <- rbind(Results_Scen_Diff, Results_list[result]$Diff)
 }
 
 # Stop the cluster
 stopCluster(cl)
 
 
-# The following graphs represent the scenario defined by the parameter n and the hiperparameters obtained by the choice of bound_var.
+# The following graphs represent the scenario defined by the parameter n and the Hyperparameters obtained by the choice of bound_var.
 # Posterior estimates obtained for the Alpha parameter of the Beta distribution of the variable X.
-Comparacion_hip(Resultados_Escen_Alpha, value_real = Vect_Alpha[n + 1], lim_x = c(10, 25, 50, 100, 150, 200),
+Comparison_Hyper(Results_Scen_Alpha, value_real = Vect_Alpha[n + 1], lim_x = c(10, 25, 50, 100, 150, 200),
                 title_text = " ", y_Text = "Alpha")
-# MinAlphaSigMu01SigV01Escen-3
+# MinAlphaSigMu01SigV01Scen-3
 
 # Posterior estimates obtained for the Beta parameter of the Beta distribution of the variable X.
-Comparacion_hip(Resultados_Escen_Beta, value_real = Vect_Beta[n + 1], lim_x = c(10, 25, 50, 100, 150, 200),
+Comparison_Hyper(Results_Scen_Beta, value_real = Vect_Beta[n + 1], lim_x = c(10, 25, 50, 100, 150, 200),
                 title_text = " ", y_Text = "Beta")
-# MinBetaSigMu01SigV01Escen-3
+# MinBetaSigMu01SigV01Scen-3
 
-# Create a workbook object to save Escen results
-titulo_xlsx = "MinSigMu01SigV01Escen-3.xlsx"
+# Create a workbook object to save Scen results
+titulo_xlsx = "MinSigMu01SigV01Scen-3.xlsx"
 wb <- createWorkbook()
 addWorksheet(wb, "Parameters")
 writeData(wb, sheet = "Parameters", x = Param, colNames = TRUE, rowNames = TRUE)
 addWorksheet(wb, "Alpha")
-writeData(wb, sheet = "Alpha", x = Resultados_Escen_Alpha, colNames = TRUE, rowNames = TRUE)
+writeData(wb, sheet = "Alpha", x = Results_Scen_Alpha, colNames = TRUE, rowNames = TRUE)
 addWorksheet(wb, "Beta")
-writeData(wb, sheet = "Beta", x = Resultados_Escen_Beta, colNames = TRUE, rowNames = TRUE)
+writeData(wb, sheet = "Beta", x = Results_Scen_Beta, colNames = TRUE, rowNames = TRUE)
 addWorksheet(wb, "Difference")
-writeData(wb, sheet = "Difference", x = Resultados_Escen_Diff, colNames = TRUE, rowNames = TRUE)
+writeData(wb, sheet = "Difference", x = Results_Scen_Diff, colNames = TRUE, rowNames = TRUE)
 saveWorkbook(wb, file = titulo_xlsx, overwrite = TRUE)
