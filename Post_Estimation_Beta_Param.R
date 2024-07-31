@@ -241,7 +241,7 @@ saveWorkbook(wb, file = titulo_xlsx, overwrite = TRUE)
 # posterior estimates for the shape parameters of the beta distribution
 # using the new bivariate prior distribution, the sets of hyperparameters obtained and stored
 # in Parameters_Min, Parameters_Mean, Parameters_Max, Param.
-# For each sample size defined in n_sample, the Estudio_Sim function generates a prior distribution sample of size N1,
+# For each sample size defined in n_sample, the Sim_study function generates a prior distribution sample of size N1,
 # generates 1000 samples of the established sample size by n_sample, and with each sample, the posterior estimate
 # is obtained from the importance sampling.
 ###########################
@@ -249,7 +249,7 @@ saveWorkbook(wb, file = titulo_xlsx, overwrite = TRUE)
 # Number of cores to use
 numCores <- detectCores() - 1  # Use all but one to avoid saturating the machine
 cl <- makeCluster(numCores)
-registerDoParallel(cl, c("Estudio_Sim"))
+registerDoParallel(cl, c("Sim_study"))
 
 # Define the variables Resultados_name, Param, Vect_Alpha, Vect_Beta
 # Here you should define the variables used in the code
@@ -264,7 +264,7 @@ Resultados_name = c("BM", "BT", "EM1", "ET1", "EM2", "ET2", "EM3", "ET3", "EM4",
 
 # Parallelize the for loop
 Resultados_list <- foreach(n_hiper = 1:length(Resultados_name), .combine = 'c', .packages = c("betafunctions", "coda")) %dopar% {
-  Resultados_Escen <- Estudio_Sim(N1 = 10^4, N2 = 2, prop_prec = 3, a = Param$Va[n_hiper + 10 * n], b = Param$Vb[n_hiper + 10 * n], c = Param$Vc[n_hiper + 10 * n], d = Param$Vd[n_hiper + 10 * n],
+  Resultados_Escen <- Sim_study(N1 = 10^4, N2 = 2, prop_prec = 3, a = Param$Va[n_hiper + 10 * n], b = Param$Vb[n_hiper + 10 * n], c = Param$Vc[n_hiper + 10 * n], d = Param$Vd[n_hiper + 10 * n],
                                   thin1 = 1, X10_given = "random", dig_tol = 15, thin2 = 1, burnin = 2000, n_sample = c(seq(10, 50, 5), seq(100, 200, 50)),
                                   alpha_real = Vect_Alpha[n + 1], beta_real = Vect_Beta[n + 1], N_Iter_Sim = 1000)
   

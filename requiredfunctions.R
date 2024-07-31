@@ -38,7 +38,7 @@
 #     subjective approaches.                                              #
 # 14. Est_Post: Posterior estimation for alpha and beta parameters of the #
 #     beta distribution using importance sampling.                        #
-# 15. Estudio_Sim: Conducts simulation studies to compare posterior       #
+# 15. Sim_study: Conducts simulation studies to compare posterior       #
 #     estimates using different hyperparameters and sample sizes.         #
 # 16. Individual_Graphs: Creates individual graphs to monitor posterior   #
 #     estimates using bias and MSE as indicators.                         #
@@ -756,7 +756,7 @@ Est_Post = function(ssample, N, N_FC, Precision, a, b, c, d, thin1, thin2, burni
 # alpha_real and beta_real are the true values used to set the simulation scenario.
 # N_Iter_Sim: Number of times the estimation is repeated for each sample size.
 
-Estudio_Sim = function(N, N_FC, prop_prec, a, b, c, d, thin1, X10_given = "random", dig_tol = 15, thin2, burnin, n_sample, alpha_real, beta_real, N_Iter_Sim) {
+Sim_study = function(N, N_FC, prop_prec, a, b, c, d, thin1, X10_given = "random", dig_tol = 15, thin2, burnin, n_sample, alpha_real, beta_real, N_Iter_Sim) {
   
   # Generate prior sample
   Sample_Prior_Hip = Gen_Joint_Dist(N1 = N, N2 = N_FC, prop_prec = 3, a, b, c, d, thin = thin1, X10_given = "random", dig_tol = dig_tol)
