@@ -862,7 +862,7 @@ Individual_Graphs = function(Data, lim_x, value_real, y_text, title_text) {
 ####
 Comparacion_Hiper = function(data, value_real, lim_x, title_text, y_Text) {
   # Mean
-  Comparacion_Mean = ggplot(data, aes(x = SampleSize, y = Mean, color = Source, shape = Source, linetype = Source)) +
+  Comparacion_Mean = ggplot(data, aes(x = SampleSize, y = Mean, color = Method, shape = Method, linetype = Method)) +
     geom_line() +
     geom_point(size = 2) +
     labs(title = title_text,
@@ -876,7 +876,7 @@ Comparacion_Hiper = function(data, value_real, lim_x, title_text, y_Text) {
     scale_linetype_manual(values = c("solid", "dashed", "dotted", "dotdash", "longdash", "twodash", "twodash", "dotted", "solid", "dashed"))
   
   # Bias
-  Comparacion_Bias = ggplot(data, aes(x = SampleSize, y = Bias, color = Source, shape = Source, linetype = Source)) +
+  Comparacion_Bias = ggplot(data, aes(x = SampleSize, y = Bias, color = Method, shape = Method, linetype = Method)) +
     geom_line() +
     geom_point() +
     labs(title = " ",
@@ -889,7 +889,7 @@ Comparacion_Hiper = function(data, value_real, lim_x, title_text, y_Text) {
     scale_linetype_manual(values = c("solid", "dashed", "dotted", "dotdash", "longdash", "twodash", "twodash", "dotted", "solid", "dashed"))
   
   # MSE
-  Comparacion_Mse = ggplot(data, aes(x = SampleSize, y = MSE, color = Source, shape = Source, linetype = Source)) +
+  Comparacion_Mse = ggplot(data, aes(x = SampleSize, y = MSE, color = Method, shape = Method, linetype = Method)) +
     geom_line() +
     geom_point() +
     labs(title = " ",
