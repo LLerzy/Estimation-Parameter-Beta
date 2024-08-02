@@ -113,7 +113,7 @@ saveWorkbook(wb, file = titulo_xlsx, overwrite = TRUE)
 # When n=0, it represents scenario 1. For n=1, it represents scenario 2, and for n=2, it represents scenario 3.
 # n_combi: takes values from 0 to 3 and represents the combinations between the epsilon errors of the mean and the cv.
 # bound_var: parameter that indicates the way in which the upper limit for the conditional variance of the mean is established.
-bound_var = "min"
+bound_var = "max"
 BoostrapIntervalsMu = NULL
 BoostrapIntervalsCv = NULL
 BoostrapIntervalsVar = NULL
@@ -121,11 +121,11 @@ BoostrapIntervalsVar = NULL
 for (n in 0:2) {
   hip_BM = Hyperparameters(sim_beta[, n + 1], r_boostrap = 100, q_boostrap = c(0.025, 0.975), option_mu = "moments",
                            sig_mu = 0, bound_var = bound_var,
-                           sig_var = 0.1, digits = 4, grpahs_boot = F)  # Bootstrap interval and Moments method.
+                           sig_var = 0.15, digits = 4, graphs_boot = F)  # Bootstrap interval and Moments method.
   
   hip_BT = Hyperparameters(sim_beta[, n + 1], r_boostrap = 100, q_boostrap = c(0.025, 0.975), option_mu = "tovar", 
-                           sig_mu = 0.1, bound_var = bound_var,
-                           sig_var = 0.1, digits = 4, grpahs_boot = F)  # Bootstrap interval and Tovar method.
+                           sig_mu = 0.20, bound_var = bound_var,
+                           sig_var = 0.15, digits = 4, graphs_boot = F)  # Bootstrap interval and Tovar method.
   
   BoostrapIntervalsMu = rbind(BoostrapIntervalsMu, hip_BM$Q_mean, hip_BT$Q_mean)
   BoostrapIntervalsCv = rbind(BoostrapIntervalsCv, hip_BM$Q_cv, hip_BT$Q_cv)
@@ -142,13 +142,13 @@ for (n in 0:2) {
   for (n_combi in 0:3) {
     hip_EM = Hyperparameters(sim_beta[, (n + 1)], r_boostrap = 0, q_boostrap = c(0.025, 0.975), option_mu = "moments",
                              sig_mu = 0, bound_var = bound_var,
-                             sig_var = 0.1, digits = 4, grpahs_boot = F, 
+                             sig_var = 0.15, digits = 4, graphs_boot = F, 
                              Q_E_mu = c(Param$LMu[10 * n + 3 + 2 * n_combi], Param$UMu[10 * n + 3 + 2 * n_combi]), 
                              Q_E_cv = c(Param$LCV[10 * n + 3 + 2 * n_combi], Param$UCV[10 * n + 3 + 2 * n_combi]))  # Expert interval and Moments method.
     
     hip_ET = Hyperparameters(sim_beta[, (n + 1)], r_boostrap = 0, q_boostrap = c(0.025, 0.975), option_mu = "tovar",
-                             sig_mu = 0.1, bound_var = bound_var,
-                             sig_var = 0.1, digits = 4, grpahs_boot = F,
+                             sig_mu = 0.20, bound_var = bound_var,
+                             sig_var = 0.15, digits = 4, graphs_boot = F,
                              Q_E_mu = c(Param$LMu[10 * n + 4 + 2 * n_combi], Param$UMu[10 * n + 4 + 2 * n_combi]), 
                              Q_E_cv = c(Param$LCV[10 * n + 4 + 2 * n_combi], Param$UCV[10 * n + 4 + 2 * n_combi]))  # Expert interval and Tovar method.
     
@@ -253,7 +253,8 @@ registerDoParallel(cl, c("Sim_study"))
 
 # Define the variables Method_name, Param, Vect_Alpha, Vect_Beta
 # Here you should define the variables used in the code
-Param = Parameters_Min  # Set of hyperparameters established for the prior distribution and obtained by choosing the bound_var parameter.
+#Param = Parameters_Min  # Set of hyperparameters established for the prior distribution and obtained by choosing the bound_var parameter.
+Param = Param
 n = 0  # Represents the scenario in question; n = 0 corresponds to scenario 1, n = 1 to scenario 2, and n = 2 to scenario 3.
 
 # Initialize the data frames
@@ -264,7 +265,7 @@ Method_name = c("BM", "BT", "EM1", "ET1", "EM2", "ET2", "EM3", "ET3", "EM4", "ET
 
 # Parallelize the for loop
 Results_list <- foreach(n_hiper = 1:length(Method_name), .combine = 'c', .packages = c("betafunctions", "coda")) %dopar% {
-  Results_Scen <- Sim_study(N1 = 10^4, N2 = 2, prop_prec = 3, a = Param$Va[n_hiper + 10 * n], b = Param$Vb[n_hiper + 10 * n], c = Param$Vc[n_hiper + 10 * n], d = Param$Vd[n_hiper + 10 * n],
+  Results_Scen <- Sim_study(N = 10^4, N_FC = 2, prop_prec = 3, a = Param$Va[n_hiper + 10 * n], b = Param$Vb[n_hiper + 10 * n], c = Param$Vc[n_hiper + 10 * n], d = Param$Vd[n_hiper + 10 * n],
                                   thin1 = 1, X10_given = "random", dig_tol = 15, thin2 = 1, burnin = 2000, n_sample = c(seq(10, 50, 5), seq(100, 200, 50)),
                                   alpha_real = Vect_Alpha[n + 1], beta_real = Vect_Beta[n + 1], N_Iter_Sim = 1000)
   
