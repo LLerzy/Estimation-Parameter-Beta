@@ -647,7 +647,7 @@ Hyperparameters = function(ssample, r_boostrap = 100, q_boostrap = c(0.025, 0.97
   # Interval for the mean
   #############################
   if (option_mu == "moments") {
-    portion = (mean(quantile_mu) * (1 - mean(quantile_mu)) / ((quantile_mu[[2]] - quantile_mu[[1]]) / 4) - 1)
+    portion = (mean(quantile_mu) * (1 - mean(quantile_mu)) / ((quantile_mu[[2]] - quantile_mu[[1]]) / 4)^2 - 1)
     hiper_mean = data.frame("a" = mean(quantile_mu) * portion, "b" = (1 - mean(quantile_mu)) * portion)
   } else if (option_mu == "tovar") {
     hiper_mean = Mtovar_vs2(quantile_mu[[1]], quantile_mu[[2]], 0, 1, sig_mu)
@@ -719,21 +719,23 @@ Est_Post = function(ssample, N, N_FC, Precision, a, b, c, d, thin1, thin2, burni
   x0 = prod(ssample)
   y0 = prod(1 - ssample)
   
-  marginalike = sum(exp((sample_alpha - 1) * log(x0) + (sample_beta - 1) * log(y0) + log(Prior(sample_alpha, sample_beta, a, b, c, d)) -
-                          length(ssample) * log(beta(sample_alpha, sample_beta))))
+  zeta=exp((sample_alpha-1)*log(x0)+(sample_beta-1)*log(y0)-(length(ssample))*log(beta(sample_alpha,sample_beta)))
   
-  meanpalph = sum(exp((sample_alpha - 1) * log(x0) + (sample_beta - 1) * log(y0) + log(sample_alpha) +
-                        log(Prior(sample_alpha, sample_beta, a, b, c, d)) -
-                        length(ssample) * log(beta(sample_alpha, sample_beta)) - log(marginalike)))
+  marginalike=sum(zeta)/length(sample_beta)
   
-  meanpbet = sum(exp((sample_alpha - 1) * log(x0) + (sample_beta - 1) * log(y0) + log(sample_beta) +
-                       log(Prior(sample_alpha, sample_beta, a, b, c, d)) -
-                       length(ssample) * log(beta(sample_alpha, sample_beta)) - log(marginalike)))
+  meanpalpha=sum(zeta*exp(log(sample_alpha)-log(marginalike)))
+  varpalpha=sum(zeta*exp(2*log(sample_alpha)-log(marginalike)))-meanpalpha^2
+  
+  meanpbeta=sum(zeta*exp(log(sample_beta)-log(marginalike))) 
+  varpbeta=sum(zeta*exp(2*log(sample_beta)-log(marginalike)))-meanpbeta^2
+  
+  covalphabeta=sum(zeta*exp(log(sample_alpha)+log(sample_beta)-log(marginalike))) - meanpalpha*meanpbeta
   
   Descriptivo = Measure_Diagnostic(data1 = Example_Joint_Dist$X1, data2 = Example_Joint_Dist$X2, var = "transform",
                                    digits = 4, burnin, thin = thin2, a, b, c, d)
-  return(list(EstPost = data.frame(Prior_Lik = marginalike, P_A = meanpalph, P_B = meanpbet), Descriptivo = Descriptivo,
-              SA = sample_alpha, SB = sample_beta, SX1 = Example_Joint_Dist$X1, SX2 = Example_Joint_Dist$X2))
+  return(list(EstPost=data.frame(Prior_Lik=marginalike,P_A=meanpalpha,P_B=meanpbeta,VP_A=varpalpha,VP_B=varpbeta,CP_AB=covalphabeta),
+              Descriptivo=Descriptivo,
+              SA=sample_alpha,SB=sample_beta,SX1=Example_Joint_Dist$X1,SX2=Example_Joint_Dist$X2))
 }
 
 
@@ -779,17 +781,23 @@ Sim_study = function(N, N_FC, prop_prec, a, b, c, d, thin1, X10_given = "random"
       sampe_prueba = rbeta(n_sample[j], alpha_real, beta_real)
       x0 = prod(sampe_prueba)
       y0 = prod(1 - sampe_prueba)
-      marginalike = sum(exp((sample_alpha - 1) * log(x0) + (sample_beta - 1) * log(y0) +
-                              log(Prior(sample_alpha, sample_beta, a, b, c, d)) -
-                              length(sampe_prueba) * log(beta(sample_alpha, sample_beta))))
+      #marginalike = sum(exp((sample_alpha - 1) * log(x0) + (sample_beta - 1) * log(y0) +
+      #                        log(Prior(sample_alpha, sample_beta, a, b, c, d)) -
+      #                        length(sampe_prueba) * log(beta(sample_alpha, sample_beta))))
       
-      Iter_Alpha[i] = sum(exp((sample_alpha - 1) * log(x0) + (sample_beta - 1) * log(y0) + log(sample_alpha) +
-                                log(Prior(sample_alpha, sample_beta, a, b, c, d)) -
-                                length(sampe_prueba) * log(beta(sample_alpha, sample_beta)) - log(marginalike)))
+      zeta=exp((sample_alpha-1)*log(x0)+(sample_beta-1)*log(y0)-(n_sample[j])*log(beta(sample_alpha,sample_beta)))
+      marginalike=sum(zeta)#/length(sample_beta)
       
-      Iter_Beta[i] = sum(exp((sample_alpha - 1) * log(x0) + (sample_beta - 1) * log(y0) + log(sample_beta) +
-                               log(Prior(sample_alpha, sample_beta, a, b, c, d)) -
-                               length(sampe_prueba) * log(beta(sample_alpha, sample_beta)) - log(marginalike)))
+      Iter_Alpha[i] = sum(zeta*exp(log(sample_alpha)-log(marginalike)))
+      
+      #sum(exp((sample_alpha - 1) * log(x0) + (sample_beta - 1) * log(y0) + log(sample_alpha) +
+      #                          log(Prior(sample_alpha, sample_beta, a, b, c, d)) -
+      #                          length(sampe_prueba) * log(beta(sample_alpha, sample_beta)) - log(marginalike)))
+      
+      Iter_Beta[i] = sum(zeta*exp(log(sample_beta)-log(marginalike))) 
+      #sum(exp((sample_alpha - 1) * log(x0) + (sample_beta - 1) * log(y0) + log(sample_beta) +
+      #                         log(Prior(sample_alpha, sample_beta, a, b, c, d)) -
+      #                         length(sampe_prueba) * log(beta(sample_alpha, sample_beta)) - log(marginalike)))
     }
     VIter_Alpha = rbind(VIter_Alpha, c(quantile(Iter_Alpha, probs = c(0, 0.025, 0.5, 0.975, 1), na.rm = T), mean(Iter_Alpha), var(Iter_Alpha), (alpha_real - mean(Iter_Alpha)),
                                        (var(Iter_Alpha) + (alpha_real - mean(Iter_Alpha))^2), n_sample[j]))
