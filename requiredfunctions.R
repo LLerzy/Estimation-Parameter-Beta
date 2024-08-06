@@ -803,24 +803,12 @@ Sim_study = function(N, N_FC, prop_prec, a, b, c, d, thin1, X10_given = "random"
       sampe_prueba = rbeta(n_sample[j], alpha_real, beta_real)
       x0 = prod(sampe_prueba)
       y0 = prod(1 - sampe_prueba)
-      #marginalike = sum(exp((sample_alpha - 1) * log(x0) + (sample_beta - 1) * log(y0) +
-      #                        log(Prior(sample_alpha, sample_beta, a, b, c, d)) -
-      #                        length(sampe_prueba) * log(beta(sample_alpha, sample_beta))))
       
       zeta=exp((sample_alpha-1)*log(x0)+(sample_beta-1)*log(y0)-(n_sample[j])*log(beta(sample_alpha,sample_beta)))
-      marginalike=sum(zeta)#/length(sample_beta)
-      
+      marginalike=sum(zeta)
       Iter_Alpha[i] = sum(zeta*exp(log(sample_alpha)-log(marginalike)))
-      
-      #sum(exp((sample_alpha - 1) * log(x0) + (sample_beta - 1) * log(y0) + log(sample_alpha) +
-      #                          log(Prior(sample_alpha, sample_beta, a, b, c, d)) -
-      #                          length(sampe_prueba) * log(beta(sample_alpha, sample_beta)) - log(marginalike)))
-      
       Iter_Beta[i] = sum(zeta*exp(log(sample_beta)-log(marginalike))) 
-      #sum(exp((sample_alpha - 1) * log(x0) + (sample_beta - 1) * log(y0) + log(sample_beta) +
-      #                         log(Prior(sample_alpha, sample_beta, a, b, c, d)) -
-      #                         length(sampe_prueba) * log(beta(sample_alpha, sample_beta)) - log(marginalike)))
-      
+
       # Sampling importance resampling
       selected_elements=sample(1:length(sample_alpha),size = sample_size_IS,replace = T,prob = zeta/marginalike)
       selected_alpha=sample_alpha[selected_elements]
