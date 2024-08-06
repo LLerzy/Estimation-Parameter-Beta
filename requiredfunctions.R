@@ -758,8 +758,29 @@ Est_Post = function(ssample, N, N_FC, Precision, a, b, c, d, thin1, thin2, burni
 # alpha_real and beta_real are the true values used to set the simulation scenario.
 # N_Iter_Sim: Number of times the estimation is repeated for each sample size.
 
-Sim_study = function(N, N_FC, prop_prec, a, b, c, d, thin1, X10_given = "random", dig_tol = 15, thin2, burnin, n_sample, alpha_real, beta_real, N_Iter_Sim) {
+Sim_study = function(N, N_FC, prop_prec, a, b, c, d, thin1, X10_given = "random", dig_tol = 15, thin2, burnin, n_sample, alpha_real, beta_real, N_Iter_Sim,
+                     sample_size_IS) {
+  # Average length 
+  meanlenght=function(Interval){
+    lenint=sum(Interval[,2]-Interval[,1])/nrow(Interval)
+    return(lenint=lenint)
+  }
   
+  # Coverage probability
+  covprob=function(Interval,param_value){
+    indicator=function(j){
+      if(Interval[j,1]<=param_value & Interval[j,2]>=param_value){
+        return(1)
+      }else{return(0)}
+    }
+    resind=NA
+    for(l in 1:nrow(Interval)){
+      resind[l]=indicator(l)
+    }
+    covint=sum(resind)/nrow(Interval)
+    
+    return(covint=covint)
+  }
   # Generate prior sample
   Sample_Prior_Hip = Gen_Joint_Dist(N1 = N, N2 = N_FC, prop_prec = 3, a, b, c, d, thin = thin1, X10_given = "random", dig_tol = dig_tol)
   piece = (Sample_Prior_Hip$X1[seq((burnin + 1), N, by = thin2)] * (1 - Sample_Prior_Hip$X1[seq((burnin + 1), N, by = thin2)]) /
@@ -773,9 +794,10 @@ Sim_study = function(N, N_FC, prop_prec, a, b, c, d, thin1, X10_given = "random"
   
   Iter_Alpha = NA
   Iter_Beta = NA
-  VIter_Alpha = matrix(data = NA, nrow = 0, ncol = 10, dimnames = list(NULL, c("Min", "Q2.5", "Q50", "Q97.5", "Max", "Mean", "Var", "Bias", "MSE", "SampleSize")))
+  VIter_Alpha = matrix(data = NA, nrow = 0, ncol = 12, dimnames = list(NULL, c("Min", "Q2.5", "Q50", "Q97.5", "Max", "Mean", "Var", "Bias", "MSE", "SampleSize","Coverage","Length")))
   VIter_Beta = VIter_Alpha
-  
+  RC_A=matrix(data = NA, nrow = 0, ncol = 2, dimnames = list(NULL, c("Q2.5", "Q97.5")))
+  RC_B=RC_A
   for (j in 1:length(n_sample)) {
     for (i in 1:N_Iter_Sim) {
       sampe_prueba = rbeta(n_sample[j], alpha_real, beta_real)
@@ -798,11 +820,21 @@ Sim_study = function(N, N_FC, prop_prec, a, b, c, d, thin1, X10_given = "random"
       #sum(exp((sample_alpha - 1) * log(x0) + (sample_beta - 1) * log(y0) + log(sample_beta) +
       #                         log(Prior(sample_alpha, sample_beta, a, b, c, d)) -
       #                         length(sampe_prueba) * log(beta(sample_alpha, sample_beta)) - log(marginalike)))
+      
+      # Sampling importance resampling
+      selected_elements=sample(1:length(sample_alpha),size = sample_size_IS,replace = T,prob = zeta/marginalike)
+      selected_alpha=sample_alpha[selected_elements]
+      selected_beta=sample_beta[selected_elements]
+      
+      # Regions of credibility
+      RC_A = rbind(RC_A, quantile(selected_alpha, probs = c(0.025, 0.975), na.rm = T))
+      RC_B = rbind(RC_B, quantile(selected_beta, probs = c(0.025, 0.975), na.rm = T))
+      
     }
     VIter_Alpha = rbind(VIter_Alpha, c(quantile(Iter_Alpha, probs = c(0, 0.025, 0.5, 0.975, 1), na.rm = T), mean(Iter_Alpha), var(Iter_Alpha), (alpha_real - mean(Iter_Alpha)),
-                                       (var(Iter_Alpha) + (alpha_real - mean(Iter_Alpha))^2), n_sample[j]))
+                                       (var(Iter_Alpha) + (alpha_real - mean(Iter_Alpha))^2), n_sample[j],covprob(RC_A,alpha_real),meanlenght(RC_A)))
     VIter_Beta = rbind(VIter_Beta, c(quantile(Iter_Beta, probs = c(0, 0.025, 0.5, 0.975, 1), na.rm = T), mean(Iter_Beta), var(Iter_Beta), (beta_real - mean(Iter_Beta)),
-                                     (var(Iter_Beta) + (beta_real - mean(Iter_Beta))^2), n_sample[j]))
+                                     (var(Iter_Beta) + (beta_real - mean(Iter_Beta))^2), n_sample[j], covprob(RC_B,beta_real), meanlenght(RC_B)))
   }
   
   return(list(Result_Alpha = as.data.frame(VIter_Alpha), Result_Beta = as.data.frame(VIter_Beta), Descriptive_Sample_Prior = Descriptive_Sample_Prior))
@@ -901,8 +933,34 @@ Comparison_Hyper = function(data, value_real, lim_x, title_text, y_Text) {
     geom_line() +
     geom_point() +
     labs(title = " ",
-         x = "Sample Size",
+         x = " ",
          y = "MSE") +
+    scale_x_continuous(breaks = lim_x) +
+    theme_minimal() + 
+    theme(legend.position = "none") +  # Remove legend
+    scale_shape_manual(values = c(16, 17, 18, 19, 15, 8, 3, 4, 5, 6)) +  # Different shapes for points
+    scale_linetype_manual(values = c("solid", "dashed", "dotted", "dotdash", "longdash", "twodash", "twodash", "dotted", "solid", "dashed"))
+  
+  # Coverage
+  Comparacion_Coverage = ggplot(data, aes(x = SampleSize, y = Coverage, color = Method, shape = Method, linetype = Method)) +
+    geom_line() +
+    geom_point() +
+    labs(title = " ",
+         x = " ",
+         y = "Coverage") +
+    scale_x_continuous(breaks = lim_x) +
+    theme_minimal() + 
+    theme(legend.position = "none") +  # Remove legend
+    scale_shape_manual(values = c(16, 17, 18, 19, 15, 8, 3, 4, 5, 6)) +  # Different shapes for points
+    scale_linetype_manual(values = c("solid", "dashed", "dotted", "dotdash", "longdash", "twodash", "twodash", "dotted", "solid", "dashed"))
+  
+  # Length
+  Comparacion_Length = ggplot(data, aes(x = SampleSize, y = Length, color = Method, shape = Method, linetype = Method)) +
+    geom_line() +
+    geom_point() +
+    labs(title = " ",
+         x = "Sample Size",
+         y = "Length") +
     scale_x_continuous(breaks = lim_x) +
     theme_minimal() + 
     theme(legend.position = "none") +  # Remove legend
@@ -922,7 +980,7 @@ Comparison_Hyper = function(data, value_real, lim_x, title_text, y_Text) {
   
   # Combine the plots without legend with the legend on the right
   grid.arrange(
-    arrangeGrob(Comparacion_Mean, Comparacion_Bias, Comparacion_Mse, ncol = 1, heights = c(6, 6, 6)),
+    arrangeGrob(Comparacion_Mean, Comparacion_Bias, Comparacion_Mse, Comparacion_Coverage, Comparacion_Length, ncol = 1, heights = c(9, 9, 9, 9, 9)),
     legend, 
     ncol = 2, 
     widths = c(7, 1)
