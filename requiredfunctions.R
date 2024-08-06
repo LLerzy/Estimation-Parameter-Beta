@@ -757,6 +757,7 @@ Est_Post = function(ssample, N, N_FC, Precision, a, b, c, d, thin1, thin2, burni
 # n_sample: list of sample sizes for samples generated from the Beta distribution using the true parameter values, alpha_real and beta_real.
 # alpha_real and beta_real are the true values used to set the simulation scenario.
 # N_Iter_Sim: Number of times the estimation is repeated for each sample size.
+# sample_size_IS: importance resampling sample size.
 
 Sim_study = function(N, N_FC, prop_prec, a, b, c, d, thin1, X10_given = "random", dig_tol = 15, thin2, burnin, n_sample, alpha_real, beta_real, N_Iter_Sim,
                      sample_size_IS) {
