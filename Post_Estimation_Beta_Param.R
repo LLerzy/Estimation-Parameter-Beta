@@ -23,7 +23,7 @@
 # 5. Visualization of results and comparison of hyperparameters.          #
 #                                                                         #
 # Author: Llerzy Torres Ome                                               #
-# Creation Date: July 24, 2024                                            #
+# Creation Date: August 06, 2024                                            #
 #                                                                         #
 # Notes:                                                                  #
 # 1. It is recommended to review and adapt each section according to the  #
@@ -91,19 +91,8 @@ for (i in 1:length(Vect_Alpha)) {
   sim_beta[, i] <- rbeta(10, shape1 = Vect_Alpha[i], shape2 = Vect_Beta[i])
 }
 
-# You can load the samples that were generated
-# sim_beta = read.xlsx(file.path("Results_Post_Estim/Spreadsheets", "SamplesBeta.xlsx"), sheet = "DataSamples", cols = c(2, 3, 4))
-sim_beta = as.data.frame(sim_beta)
 
-#####
-# Create a workbook object to save results for the Empirical Bayes approach.
-##
-titulo_xlsx = "SamplesBeta.xlsx"
-wb <- createWorkbook()
-addWorksheet(wb, "DataSamples")
-writeData(wb, sheet = "DataSamples", x = sim_beta, colNames = TRUE, rowNames = TRUE)
-saveWorkbook(wb, file = titulo_xlsx, overwrite = TRUE)
-#####
+sim_beta = as.data.frame(sim_beta)
 
 #####
 ## Obtaining hyperparameters for the Empirical Bayes approach and the subjective approach
@@ -113,7 +102,7 @@ saveWorkbook(wb, file = titulo_xlsx, overwrite = TRUE)
 # When n=0, it represents scenario 1. For n=1, it represents scenario 2, and for n=2, it represents scenario 3.
 # n_combi: takes values from 0 to 3 and represents the combinations between the epsilon errors of the mean and the cv.
 # bound_var: parameter that indicates the way in which the upper limit for the conditional variance of the mean is established.
-bound_var = "max"
+bound_var = "min"
 BoostrapIntervalsMu = NULL
 BoostrapIntervalsCv = NULL
 BoostrapIntervalsVar = NULL
@@ -121,11 +110,11 @@ BoostrapIntervalsVar = NULL
 for (n in 0:2) {
   hip_BM = Hyperparameters(sim_beta[, n + 1], r_boostrap = 100, q_boostrap = c(0.025, 0.975), option_mu = "moments",
                            sig_mu = 0, bound_var = bound_var,
-                           sig_var = 0.15, digits = 4, graphs_boot = F)  # Bootstrap interval and Moments method.
+                           sig_var = 0.1, digits = 4, graphs_boot = F)  # Bootstrap interval and Moments method.
   
   hip_BT = Hyperparameters(sim_beta[, n + 1], r_boostrap = 100, q_boostrap = c(0.025, 0.975), option_mu = "tovar", 
-                           sig_mu = 0.20, bound_var = bound_var,
-                           sig_var = 0.15, digits = 4, graphs_boot = F)  # Bootstrap interval and Tovar method.
+                           sig_mu = 0.1, bound_var = bound_var,
+                           sig_var = 0.1, digits = 4, graphs_boot = F)  # Bootstrap interval and Tovar method.
   
   BoostrapIntervalsMu = rbind(BoostrapIntervalsMu, hip_BM$Q_mean, hip_BT$Q_mean)
   BoostrapIntervalsCv = rbind(BoostrapIntervalsCv, hip_BM$Q_cv, hip_BT$Q_cv)
@@ -142,13 +131,13 @@ for (n in 0:2) {
   for (n_combi in 0:3) {
     hip_EM = Hyperparameters(sim_beta[, (n + 1)], r_boostrap = 0, q_boostrap = c(0.025, 0.975), option_mu = "moments",
                              sig_mu = 0, bound_var = bound_var,
-                             sig_var = 0.15, digits = 4, graphs_boot = F, 
+                             sig_var = 0.1, digits = 4, graphs_boot = F, 
                              Q_E_mu = c(Param$LMu[10 * n + 3 + 2 * n_combi], Param$UMu[10 * n + 3 + 2 * n_combi]), 
                              Q_E_cv = c(Param$LCV[10 * n + 3 + 2 * n_combi], Param$UCV[10 * n + 3 + 2 * n_combi]))  # Expert interval and Moments method.
     
     hip_ET = Hyperparameters(sim_beta[, (n + 1)], r_boostrap = 0, q_boostrap = c(0.025, 0.975), option_mu = "tovar",
-                             sig_mu = 0.20, bound_var = bound_var,
-                             sig_var = 0.15, digits = 4, graphs_boot = F,
+                             sig_mu = 0.1, bound_var = bound_var,
+                             sig_var = 0.1, digits = 4, graphs_boot = F,
                              Q_E_mu = c(Param$LMu[10 * n + 4 + 2 * n_combi], Param$UMu[10 * n + 4 + 2 * n_combi]), 
                              Q_E_cv = c(Param$LCV[10 * n + 4 + 2 * n_combi], Param$UCV[10 * n + 4 + 2 * n_combi]))  # Expert interval and Tovar method.
     
@@ -246,6 +235,7 @@ saveWorkbook(wb, file = titulo_xlsx, overwrite = TRUE)
 # is obtained from the importance sampling.
 ###########################
 
+Parall_sim_study=function(n,hyperparameters_values,N_Iter_Sim){
 # Number of cores to use
 numCores <- detectCores() - 1  # Use all but one to avoid saturating the machine
 cl <- makeCluster(numCores)
@@ -254,8 +244,8 @@ registerDoParallel(cl, c("Sim_study"))
 # Define the variables Method_name, Param, Vect_Alpha, Vect_Beta
 # Here you should define the variables used in the code
 #Param = Parameters_Min  # Set of hyperparameters established for the prior distribution and obtained by choosing the bound_var parameter.
-Param = Param
-n = 0  # Represents the scenario in question; n = 0 corresponds to scenario 1, n = 1 to scenario 2, and n = 2 to scenario 3.
+Param = hyperparameters_values
+#n = 0  # Represents the scenario in question; n = 0 corresponds to scenario 1, n = 1 to scenario 2, and n = 2 to scenario 3.
 
 # Initialize the data frames
 Results_Scen_Alpha <- data.frame()
@@ -264,10 +254,12 @@ Results_Scen_Diff <- data.frame()
 Method_name = c("BM", "BT", "EM1", "ET1", "EM2", "ET2", "EM3", "ET3", "EM4", "ET4")
 
 # Parallelize the for loop
-Results_list <- foreach(n_hiper = 1:length(Method_name), .combine = 'c', .packages = c("betafunctions", "coda")) %dopar% {
+Results_list <- foreach(n_hiper = 1:length(Method_name), .combine = 'c',.export = c("Sim_study","Gen_Joint_Dist","Gen_FC_X1_X2","Measure_Diagnostic","Mom_Prior_Dist",
+                                                                                    "Vect_Alpha","Vect_Beta"),
+                        .packages = c("betafunctions", "coda")) %dopar% {
   Results_Scen <- Sim_study(N = 10^4, N_FC = 2, prop_prec = 3, a = Param$Va[n_hiper + 10 * n], b = Param$Vb[n_hiper + 10 * n], c = Param$Vc[n_hiper + 10 * n], d = Param$Vd[n_hiper + 10 * n],
                                   thin1 = 1, X10_given = "random", dig_tol = 15, thin2 = 1, burnin = 2000, n_sample = c(seq(10, 50, 5), seq(100, 200, 50)),
-                                  alpha_real = Vect_Alpha[n + 1], beta_real = Vect_Beta[n + 1], N_Iter_Sim = 1000)
+                                  alpha_real = Vect_Alpha[n + 1], beta_real = Vect_Beta[n + 1], N_Iter_Sim = N_Iter_Sim, sample_size_IS = (10^4-2000)/1)
   
   Results_Scen$Result_Alpha$Method <- Method_name[n_hiper]
   Results_Scen$Result_Beta$Method <- Method_name[n_hiper]
@@ -279,7 +271,8 @@ Results_list <- foreach(n_hiper = 1:length(Method_name), .combine = 'c', .packag
     Diff = Results_Scen$Descriptive_Sample_Prior$Differences
   )
 }
-
+# Stop the cluster
+stopCluster(cl)
 # Combine the results after the foreach loop
 for (result in seq_along(Results_list)) {
   Results_Scen_Alpha <- rbind(Results_Scen_Alpha, Results_list[result]$Alpha)
@@ -287,30 +280,71 @@ for (result in seq_along(Results_list)) {
   Results_Scen_Diff <- rbind(Results_Scen_Diff, Results_list[result]$Diff)
 }
 
-# Stop the cluster
-stopCluster(cl)
+
+return(list(Results_Scen_Alpha=Results_Scen_Alpha, Results_Scen_Beta=Results_Scen_Beta,Results_Scen_Diff=Results_Scen_Diff))
+}
+
+# Obtaining posterior estimates for each scenario, set of hyperparameters, 12 sample sizes and 1000 repetitions.
+
+Parameters_Scenario1=Parall_sim_study(n=0,hyperparameters_values=Param,N_Iter_Sim=1000)
+Parameters_Scenario2=Parall_sim_study(n=1,hyperparameters_values=Param,N_Iter_Sim=1000)
+Parameters_Scenario3=Parall_sim_study(n=2,hyperparameters_values=Param,N_Iter_Sim=1000)
+
+Min_Scenario1=Parall_sim_study(n=0,hyperparameters_values=Parameters_Min,N_Iter_Sim=1000)
+Min_Scenario2=Parall_sim_study(n=1,hyperparameters_values=Parameters_Min,N_Iter_Sim=1000)
+Min_Scenario3=Parall_sim_study(n=2,hyperparameters_values=Parameters_Min,N_Iter_Sim=1000)
+
+Mean_Scenario1=Parall_sim_study(n=0,hyperparameters_values=Parameters_Mean,N_Iter_Sim=1000)
+Mean_Scenario2=Parall_sim_study(n=1,hyperparameters_values=Parameters_Mean,N_Iter_Sim=1000)
+Mean_Scenario3=Parall_sim_study(n=2,hyperparameters_values=Parameters_Mean,N_Iter_Sim=1000)
+
+Max_Scenario1=Parall_sim_study(n=0,hyperparameters_values=Parameters_Max,N_Iter_Sim=1000)
+Max_Scenario2=Parall_sim_study(n=1,hyperparameters_values=Parameters_Max,N_Iter_Sim=1000)
+Max_Scenario3=Parall_sim_study(n=2,hyperparameters_values=Parameters_Max,N_Iter_Sim=1000)
 
 
 # The following graphs represent the scenario defined by the parameter n and the Hyperparameters obtained by the choice of bound_var.
+Graphs_Comparison_Hyper=function(n,results_sim_study){
 # Posterior estimates obtained for the Alpha parameter of the Beta distribution of the variable X.
-Comparison_Hyper(Results_Scen_Alpha, value_real = Vect_Alpha[n + 1], lim_x = c(10, 25, 50, 100, 150, 200),
+Comparison_Hyper(results_sim_study$Results_Scen_Alpha, value_real = Vect_Alpha[n + 1], lim_x = c(10, 25, 50, 100, 150, 200),
                 title_text = " ", y_Text = "Alpha")
 # MinAlphaSigMu01SigV01Scen-3
 
 # Posterior estimates obtained for the Beta parameter of the Beta distribution of the variable X.
-Comparison_Hyper(Results_Scen_Beta, value_real = Vect_Beta[n + 1], lim_x = c(10, 25, 50, 100, 150, 200),
+Comparison_Hyper(results_sim_study$Results_Scen_Beta, value_real = Vect_Beta[n + 1], lim_x = c(10, 25, 50, 100, 150, 200),
                 title_text = " ", y_Text = "Beta")
 # MinBetaSigMu01SigV01Scen-3
+}
 
+# Graph of the results obtained in the simulation study for each scenario, set of hyperparameters, sample sizes and 1000 repetitions.
+Graphs_Comparison_Hyper(n=0,results_sim_study = Parameters_Scenario1)
+Graphs_Comparison_Hyper(n=1,results_sim_study = Parameters_Scenario2)
+Graphs_Comparison_Hyper(n=2,results_sim_study = Parameters_Scenario3)
+
+Graphs_Comparison_Hyper(n=0,results_sim_study = Min_Scenario1)
+Graphs_Comparison_Hyper(n=1,results_sim_study = Min_Scenario2)
+Graphs_Comparison_Hyper(n=2,results_sim_study = Min_Scenario3)
+
+Graphs_Comparison_Hyper(n=0,results_sim_study = Mean_Scenario1)
+Graphs_Comparison_Hyper(n=1,results_sim_study = Mean_Scenario2)
+Graphs_Comparison_Hyper(n=2,results_sim_study = Mean_Scenario3)
+
+Graphs_Comparison_Hyper(n=0,results_sim_study = Max_Scenario1)
+Graphs_Comparison_Hyper(n=1,results_sim_study = Max_Scenario2)
+Graphs_Comparison_Hyper(n=2,results_sim_study = Max_Scenario3)
+
+
+# Storage of results in spreadsheets.
+Parameters = Max_Scenario3
 # Create a workbook object to save Scen results
-titulo_xlsx = "MinSigMu01SigV01Scen-3.xlsx"
+titulo_xlsx = "MaxSigMu01SigV01Scen-3.xlsx"
 wb <- createWorkbook()
 addWorksheet(wb, "Parameters")
 writeData(wb, sheet = "Parameters", x = Param, colNames = TRUE, rowNames = TRUE)
 addWorksheet(wb, "Alpha")
-writeData(wb, sheet = "Alpha", x = Results_Scen_Alpha, colNames = TRUE, rowNames = TRUE)
+writeData(wb, sheet = "Alpha", x = Parameters$Results_Scen_Alpha, colNames = TRUE, rowNames = TRUE)
 addWorksheet(wb, "Beta")
-writeData(wb, sheet = "Beta", x = Results_Scen_Beta, colNames = TRUE, rowNames = TRUE)
+writeData(wb, sheet = "Beta", x = Parameters$Results_Scen_Beta, colNames = TRUE, rowNames = TRUE)
 addWorksheet(wb, "Difference")
-writeData(wb, sheet = "Difference", x = Results_Scen_Diff, colNames = TRUE, rowNames = TRUE)
+writeData(wb, sheet = "Difference", x =Parameters$Results_Scen_Diff, colNames = TRUE, rowNames = TRUE)
 saveWorkbook(wb, file = titulo_xlsx, overwrite = TRUE)
