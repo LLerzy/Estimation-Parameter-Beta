@@ -177,17 +177,17 @@ Gen_FC_X1_X2 <- function(N, prop_prec, a, b, c, d, v, option = "end", thin = 1, 
   
   # Main algorithm
   for (k in 2:N) {
-    prop_alpha = (chain[k - 1] - X1_lower) / (X1_upper - X1_lower) * prop_prec
-    prop_beta = (X1_upper - chain[k - 1]) / (X1_upper - X1_lower) * prop_prec
+    a_c = (chain[k - 1] - X1_lower) / (X1_upper - X1_lower) * prop_prec
+    b_c = (X1_upper - chain[k - 1]) / (X1_upper - X1_lower) * prop_prec
     
-    yt = rBeta.4P(n = 1, l = X1_lower, u = X1_upper, alpha = prop_alpha, beta = prop_beta)
+    yt = rBeta.4P(n = 1, l = X1_lower, u = X1_upper, alpha = a_c, beta = b_c)
     if (round(-yt^2 + yt - v, dig_tol) != 0) {
-      prop_alpha_proposal = (yt - X1_lower) / (X1_upper - X1_lower) * prop_prec
-      prop_beta_proposal = (X1_upper - yt) / (X1_upper - X1_lower) * prop_prec
+      a_p = (yt - X1_lower) / (X1_upper - X1_lower) * prop_prec
+      b_p = (X1_upper - yt) / (X1_upper - X1_lower) * prop_prec
       alpha[k] = exp((a - c - d) * log(yt / chain[k - 1]) + (b - c - d) * log((1 - yt) / (1 - chain[k - 1])) +
                        (d - 1) * log(yt * (1 - yt) - v) - (d - 1) * log(chain[k - 1] * (1 - chain[k - 1]) - v) +
-                       log(dBeta.4P(chain[k - 1], l = X1_lower, u = X1_upper, alpha = prop_alpha_proposal, beta = prop_beta_proposal)) -
-                       log(dBeta.4P(yt, l = X1_lower, u = X1_upper, alpha = prop_alpha, beta = prop_beta)))
+                       log(dBeta.4P(chain[k - 1], l = X1_lower, u = X1_upper, alpha = a_p, beta = b_p)) -
+                       log(dBeta.4P(yt, l = X1_lower, u = X1_upper, alpha = a_c, beta = b_c)))
       if (alpha[k] == Inf) {
         alpha[k] = 1
       }
