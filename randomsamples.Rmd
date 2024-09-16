@@ -233,7 +233,7 @@ Los resultados analíticos fueron:
 results_measure_diag1$Analytical
 ```
 
-La diferencia entre las medidas descriptivas numéricas y las analíticas son las siguientes:
+La diferencia entre las medidas descriptivas numéricas y las analíticas obtenidas son las siguientes:
 
 ```{r}
 results_measure_diag1$Differences
