@@ -61,8 +61,8 @@ densidad obtenida presenta un comportamiento similar al obtenido
 anteriormente.
 
 ``` r
-test=Gen_FC_X1_X2(N=10^4, prop_prec=3, a=a1, b=b1, c=c1, d=d1, v=0.05, option = "all", thin=1, burnin=500)
-plot(density(test$thinned_chain),main="Densidad de distribución condicional X_1 dado X_2")
+test=Gen_FC_X1_X2(N=10^5, prop_prec=3, a=a1, b=b1, c=c1, d=d1, v=0.05, option = "all", thin=25, burnin=5000,target_acceptance = 0.4)
+plot(density(test$thinned_chain),main="Densidad de distribución condicional X_1 dado X_2",xlab=expression(x[1]))
 ```
 
 ![](randomsamples_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
@@ -75,7 +75,7 @@ diferentes valores de la precisión (utilizada en la distribución
 instrumental) versus valores de $X_2=v$ .
 
 ``` r
-Mon_Measure(N=10^4, prop_prec_values=seq(1, 20, by = 1), a=a1, b=b1, c=c1, d=d1, v_values=seq(0.01, 0.24, length.out = 10),thin = 5,burnin = 500)
+Mon_Measure(N=10^4, prop_prec_values=seq(1, 20, by = 1), a=a1, b=b1, c=c1, d=d1, v_values=seq(0.01, 0.24, length.out = 10),thin = 5,burnin = 1000,target_acceptance = 0.4)
 ```
 
 ![](randomsamples_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
@@ -98,7 +98,7 @@ para asegurar una mejor convergencia y obtener estimaciones más
 precisas.
 
 ``` r
-Mon_R_Hat(N=10^4, prop_prec_values=seq(1, 20, by = 1), a=a1, b=b1, c=c1, d=d1, v_values=seq(0.01, 0.24, length.out = 10),thin = 5,burnin = 500)
+Mon_R_Hat(N=10^4, prop_prec_values=seq(1, 20, by = 1), a=a1, b=b1, c=c1, d=d1, v_values=seq(0.01, 0.24, length.out = 10),thin = 2,burnin = 1000,target_acceptance = 0.4)
 ```
 
 ![](randomsamples_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
@@ -113,7 +113,7 @@ durante la simulación, es decir, el algoritmo se ajusta así mismo, lo
 cual permite disminuir rápidamente la autocorrelación de la cadena.
 
 ``` r
-ExampleFC_X1_X2=Gen_FC_X1_X2(N=10^5, prop_prec = 3, a=a1, b=b1, c=c1, d=d1, v=0.1, option="all", thin = 50, burnin = 5000, X10_given = "random", target_acceptance = 0.3, dig_tol=15)
+ExampleFC_X1_X2=Gen_FC_X1_X2(N=10^5, prop_prec = 3, a=a1, b=b1, c=c1, d=d1, v=0.05, option="all", thin = 25, burnin = 5000, X10_given = "random", target_acceptance = 0.4, dig_tol=15)
 Graphs(as.data.frame(ExampleFC_X1_X2$thinned_chain), "X1", width = 40, lscatt = 0.3, uscatt = 0.3)
 ```
 
@@ -139,11 +139,11 @@ establecidas por el usuario y monitoreamos la convergencia del promedio
 de cada cadena generada.
 
 ``` r
-N=10^4;burnin=500;thin=50
+N=10^5;burnin=5000;thin=25; target_acceptance=0.4
 seedgiv=seq(0.1,0.9,0.1)
 ExampleFC_X1_X2_seedgiven=matrix(data=NA,nrow = length(seq((burnin+1), N, by = thin)),ncol=9, dimnames=list(list(),list("0.1","0.2","0.3","0.4","0.5","0.6","0.7","0.8","0.9")))
 for (i in 1:9) {
-  ExampleFC_X1_X2_seedgiven[,i]=Gen_FC_X1_X2(N=N, prop_prec = 4, a=a1, b=b1, c=c1, d=d1, v=0.05, option="all", thin = thin, burnin = burnin, X10_given = seedgiv[i], dig_tol = 10)$thinned_chain
+  ExampleFC_X1_X2_seedgiven[,i]=Gen_FC_X1_X2(N=N, prop_prec = 3, a=a1, b=b1, c=c1, d=d1, v=0.05, option="all", thin = thin, burnin = burnin, X10_given = seedgiv[i], dig_tol = 10,target_acceptance)$thinned_chain
 }
 ExampleFC_X1_X2_seedgiven=as.data.frame(ExampleFC_X1_X2_seedgiven)
 
@@ -167,6 +167,10 @@ grid.arrange(arrangeGrob(Piece1_Grap_FC, Piece2_Grap_FC, Full_Grap_FC,ncol=2, nr
 
 ![](randomsamples_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
 
+``` r
+round(apply(ExampleFC_X1_X2_seedgiven[1:3800,], 2, mean),3)
+```
+
 # Gibbs Sampling
 
 ## Muestras aleatorias para el vector $(X_1,X_2)$
@@ -180,14 +184,15 @@ involucran la densidad e histograma, traza, promedio acumulado y
 autocorrelación.
 
 ``` r
-N=10^4; burnin=1000;thin=10
-Example_Joint_Dist=Gen_Joint_Dist(N1 = N,N2 = 2,prop_prec = 3,a1,b1,c1,d1,thin = 2,X10_given = "random")
+N=10^5
+Example_Joint_Dist=Gen_Joint_Dist(N1 = N,N2 = 2,prop_prec = 3,a1,b1,c1,d1,thin = 2,X10_given = "random",target_acceptance = 0.4)
+burnin=5000;thin=25
 Graphs(as.data.frame(Example_Joint_Dist$X2[seq((burnin+1), N, by=thin)]),"X2",width = 40,uscatt = 0.06,lscatt = 0.05)
 ```
 
     ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 
-![](randomsamples_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+![](randomsamples_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
 Note that the `echo = FALSE` parameter was added to the code chunk to
 prevent printing of the R code that generated the plot.
@@ -198,7 +203,7 @@ Graphs(as.data.frame(Example_Joint_Dist$X1[seq((burnin+1), N, by=thin)]),"X1",wi
 
     ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 
-![](randomsamples_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
+![](randomsamples_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
 
 ### Curvas de nivel y diagrama de puntos para la muestra generada para $(X_1,X_2)$
 
@@ -218,7 +223,7 @@ ggplot()+geom_contour(aes(dta$X1, dta$X2, z = (dta$Z)),bins = 50) +
   labs(title = "Curvas de nivel y diagrama de puntos de una muestra aleatoria")
 ```
 
-![](randomsamples_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+![](randomsamples_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
 
 ## Muestras aleatorias para el vector $(Y_1,Y_2)$
 
@@ -240,7 +245,7 @@ Graphs(as.data.frame(alpha),"Y1",width = 40,uscatt = 10,lscatt = 10)
 
     ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 
-![](randomsamples_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+![](randomsamples_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
 
 ``` r
 Graphs(as.data.frame(beta),"Y2",width = 40,uscatt = 10,lscatt = 10)
@@ -248,7 +253,7 @@ Graphs(as.data.frame(beta),"Y2",width = 40,uscatt = 10,lscatt = 10)
 
     ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 
-![](randomsamples_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+![](randomsamples_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
 
 ### Curvas de nivel y diagrama de puntos para la muestra generada para $(Y_1,Y_2)$
 
@@ -269,7 +274,7 @@ ggplot()+geom_contour(aes(dta$X1, dta$X2, z = dta$Z),bins = 50)+
   ylim(c(0,2))
 ```
 
-![](randomsamples_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
+![](randomsamples_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
 
 # Comparación entre momentos numéricos y analíticos
 
@@ -282,22 +287,52 @@ utiliza un burnin=15000 y thin=7. Primero se presentan los resultados
 numéricos de las medidas.
 
 ``` r
-Example_Joint_Dist=Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec=3,a = a1,b = b1,c = c1,d = d1,thin = 1, X10_given = "random")
+#Example_Joint_Dist=Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec=3,a = a1,b = b1,c = c1,d = d1,thin = 1, X10_given = "random")
 
-results_measure_diag=Measure_Diagnostic(data1 = Example_Joint_Dist$X1,data2 = Example_Joint_Dist$X2, var ="transform", digits = 4, a = a1, b = b1, c = c1, d = d1, burnin = 15000, thin = 10)
+results_measure_diag=Measure_Diagnostic(data1 = Example_Joint_Dist$X1,data2 = Example_Joint_Dist$X2, var ="transform", digits = 4, a = a1, b = b1, c = c1, d = d1, burnin = 5000, thin = 25)
 
-results_measure_diag$Numerical
+print(round(results_measure_diag$Numerical,4))
 ```
 
 Los resultados analíticos fueron:
 
 ``` r
-results_measure_diag$Analytical
+print(round(results_measure_diag$Analytical,4))
 ```
 
 La diferencia entre las medidas descriptivas numéricas y las analíticas
 son las siguientes:
 
 ``` r
-results_measure_diag$Differences
+print(round(results_measure_diag$Differences,4))
 ```
+
+# Comparación utilizando otra configuración de parámetros
+
+``` r
+a1=3;b1=6;c1=3;d1=6
+Example_Joint_Dist1=Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec=4,a = a1,b = b1,c = c1,d = d1,thin = 1, X10_given = "random",target_acceptance = 0.4)
+
+results_measure_diag1=Measure_Diagnostic(data1 = Example_Joint_Dist1$X1,data2 = Example_Joint_Dist1$X2, var ="transform", digits = 4, a = a1, b = b1, c = c1, d = d1, burnin = 5000, thin = 25)
+
+results_measure_diag1$Numerical
+```
+
+Los resultados analíticos fueron:
+
+``` r
+results_measure_diag1$Analytical
+```
+
+    ##   Mean_Y1 Var_Y1 ESS_Y1 Mean_Y2 Var_Y2 ESS_Y2 Cov Length
+    ## 1       1    1.8   3800       2    5.8   3800 2.2   3800
+
+La diferencia entre las medidas descriptivas numéricas y las analíticas
+obtenidas son las siguientes:
+
+``` r
+results_measure_diag1$Differences
+```
+
+    ##   Mean_Y1 Var_Y1 ESS_Y1 Mean_Y2 Var_Y2   ESS_Y2    Cov Length
+    ## 1 -0.0634 0.3164      0  0.0254 0.5056 409.0004 0.2146      0
