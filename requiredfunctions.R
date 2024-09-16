@@ -34,15 +34,15 @@
 #     given data samples.                                                 #
 # 12. Measure_Analy: Computes analytical results for the proposed prior   #
 #     distribution.                                                       #
-# 13. Hiperparameters: Obtains hyperparameters using empirical Bayes and  #
+# 13. Hyperparameters: Obtains hyperparameters using empirical Bayes and  #
 #     subjective approaches.                                              #
 # 14. Est_Post: Posterior estimation for alpha and beta parameters of the #
 #     beta distribution using importance sampling.                        #
-# 15. Estudio_Sim: Conducts simulation studies to compare posterior       #
+# 15. Sim_study: Conducts simulation studies to compare posterior       #
 #     estimates using different hyperparameters and sample sizes.         #
 # 16. Individual_Graphs: Creates individual graphs to monitor posterior   #
 #     estimates using bias and MSE as indicators.                         #
-# 17. Comparacion_Hiper: Compares joint functions for different hyperparam- #
+# 17. Comparison_Hyper: Compares joint functions for different hyperparam- #
 #     eter sets.                                                          #
 #                                                                         #
 # Notes:                                                                  #
@@ -125,12 +125,12 @@ Graph_Fc_X1=function(v1, v1name, v2, v2name, v3, v3name, ae, be, ce, de) {
     # Plot FC for v3
     geom_function(fun=function(X1) mapply(FC_X1_Given_v, X1, a=ae, b=be, c=ce, d=de, v=v3), lwd=1,
                   linetype=1, aes(col=v3name)) +
-    labs(title="Full Conditional of X1 given X2",
+    labs(title=expression("Full Conditional of " ~ X[1] ~ " given " ~ X[2]),
          caption=substitute(
-           list("Plot of", f(X1/v)==X1^(a-c-d) * (1-X1)^(b-c-d) * (X1*(1-X1)-v)^(d-1),
+           list("Plot of", f[X[1]/X[2]](x[1]/v)==x[1]^(a-c-d) * (1-x[1])^(b-c-d) * (x[1]*(1-x[1])-v)^(d-1),
                 "with", a==ae, b==be, c==ce, d==de), list(ae=ae, be=be, ce=ce, de=de))) +
-    xlab(expression(X1)) + ylab(expression(f(X1/X2==v))) +
-    scale_colour_manual(values = c("red", "black", "purple"), name="X2=v")
+    xlab(expression(x[1])) + ylab("Density") +
+    scale_colour_manual(values = c("red", "black", "purple"), name=expression(X[2]==v))
 }
 #####
 
@@ -177,17 +177,17 @@ Gen_FC_X1_X2 <- function(N, prop_prec, a, b, c, d, v, option = "end", thin = 1, 
   
   # Main algorithm
   for (k in 2:N) {
-    prop_alpha = (chain[k - 1] - X1_lower) / (X1_upper - X1_lower) * prop_prec
-    prop_beta = (X1_upper - chain[k - 1]) / (X1_upper - X1_lower) * prop_prec
+    a_c = (chain[k - 1] - X1_lower) / (X1_upper - X1_lower) * prop_prec
+    b_c = (X1_upper - chain[k - 1]) / (X1_upper - X1_lower) * prop_prec
     
-    yt = rBeta.4P(n = 1, l = X1_lower, u = X1_upper, alpha = prop_alpha, beta = prop_beta)
+    yt = rBeta.4P(n = 1, l = X1_lower, u = X1_upper, alpha = a_c, beta = b_c)
     if (round(-yt^2 + yt - v, dig_tol) != 0) {
-      prop_alpha_proposal = (yt - X1_lower) / (X1_upper - X1_lower) * prop_prec
-      prop_beta_proposal = (X1_upper - yt) / (X1_upper - X1_lower) * prop_prec
+      a_p = (yt - X1_lower) / (X1_upper - X1_lower) * prop_prec
+      b_p = (X1_upper - yt) / (X1_upper - X1_lower) * prop_prec
       alpha[k] = exp((a - c - d) * log(yt / chain[k - 1]) + (b - c - d) * log((1 - yt) / (1 - chain[k - 1])) +
                        (d - 1) * log(yt * (1 - yt) - v) - (d - 1) * log(chain[k - 1] * (1 - chain[k - 1]) - v) +
-                       log(dBeta.4P(chain[k - 1], l = X1_lower, u = X1_upper, alpha = prop_alpha_proposal, beta = prop_beta_proposal)) -
-                       log(dBeta.4P(yt, l = X1_lower, u = X1_upper, alpha = prop_alpha, beta = prop_beta)))
+                       log(dBeta.4P(chain[k - 1], l = X1_lower, u = X1_upper, alpha = a_p, beta = b_p)) -
+                       log(dBeta.4P(yt, l = X1_lower, u = X1_upper, alpha = a_c, beta = b_c)))
       if (alpha[k] == Inf) {
         alpha[k] = 1
       }
@@ -255,7 +255,7 @@ Gen_FC_X1_X2 <- function(N, prop_prec, a, b, c, d, v, option = "end", thin = 1, 
 # "thin" and "burnin" are parameters for the function Gen_FC_X1_X2.
 # This function constructs two plots comparing the behavior of the Effective Sample Size (ESS)
 # and the acceptance rate for different values of precision.
-Mon_Measure = function(N, prop_prec_values, a, b, c, d, v_values, thin = 1, burnin = 1) {
+Mon_Measure = function(N, prop_prec_values, a, b, c, d, v_values, thin = 1, burnin = 1, target_acceptance = 0.3) {
   # Get the total number of cores
   num_cores <- detectCores()
   
@@ -273,7 +273,7 @@ Mon_Measure = function(N, prop_prec_values, a, b, c, d, v_values, thin = 1, burn
                           .packages = c('coda', 'betafunctions')) %dopar% {
                             tmp_df <- data.frame()
                             for (prop_prec in prop_prec_values) {
-                              results <- Gen_FC_X1_X2(N, prop_prec, a, b, c, d, v, option = "all", thin, burnin)
+                              results <- Gen_FC_X1_X2(N, prop_prec, a, b, c, d, v, option = "all", thin, burnin, target_acceptance = target_acceptance)
                               result_AR <- results$acc_rate
                               mcmc_obj <- mcmc(results$thinned_chain)
                               result_ESS <- effectiveSize(mcmc_obj)
@@ -303,7 +303,8 @@ Mon_Measure = function(N, prop_prec_values, a, b, c, d, v_values, thin = 1, burn
     labs(title = " ",
          x = "v",
          y = "Precision",
-         fill = "Effective Size")
+         fill = "Effective Size") +
+    theme(axis.text.x = element_text(margin = margin(t = 5), size = 7))
   
   # Acceptance rate plot for v and precision values
   measure_quantile = quantile(df$Accept_Rate, probs = c(0, 0.25, 0.5, 0.75, 1))
@@ -320,7 +321,8 @@ Mon_Measure = function(N, prop_prec_values, a, b, c, d, v_values, thin = 1, burn
     labs(title = " ",
          x = "v",
          y = "Precision",
-         fill = "Acceptance Rate")
+         fill = "Acceptance Rate") + 
+    theme(axis.text.x = element_text(margin = margin(t = 5), size = 7))
   
   grid.arrange(plot_ESS, plot_AR, nrow = 1, ncol = 2, layout_matrix = rbind(c(1, 2)))
 }
@@ -335,7 +337,7 @@ Mon_Measure = function(N, prop_prec_values, a, b, c, d, v_values, thin = 1, burn
 # "thin" and "burnin" are parameters for the function Gen_FC_X1_X2.
 # This function constructs a plot comparing the behavior of the Gelman-Rubin diagnostic (R-hat)
 # for different values of precision.
-Mon_R_Hat = function(N, prop_prec_values, a, b, c, d, v_values, thin = 1, burnin = 1) {
+Mon_R_Hat = function(N, prop_prec_values, a, b, c, d, v_values, thin = 1, burnin = 1, target_acceptance=0.3) {
   # Get the total number of cores
   num_cores <- detectCores()
   
@@ -353,9 +355,9 @@ Mon_R_Hat = function(N, prop_prec_values, a, b, c, d, v_values, thin = 1, burnin
                           .packages = c('coda', 'betafunctions')) %dopar% {
                             tmp_df <- data.frame()
                             for (prop_prec in prop_prec_values) {
-                              sample1 = Gen_FC_X1_X2(N, prop_prec, a, b, c, d, v, option = "all", thin=thin , X10_given = "random", burnin)
-                              sample2 = Gen_FC_X1_X2(N, prop_prec, a, b, c, d, v, option = "all", thin=thin , X10_given = "random", burnin)
-                              sample3 = Gen_FC_X1_X2(N, prop_prec, a, b, c, d, v, option = "all", thin=thin , X10_given = "random", burnin)
+                              sample1 = Gen_FC_X1_X2(N, prop_prec, a, b, c, d, v, option = "all", thin, burnin, X10_given = "random", target_acceptance)
+                              sample2 = Gen_FC_X1_X2(N, prop_prec, a, b, c, d, v, option = "all", thin, burnin, X10_given = "random", target_acceptance)
+                              sample3 = Gen_FC_X1_X2(N, prop_prec, a, b, c, d, v, option = "all", thin, burnin, X10_given = "random", target_acceptance)
                               Gelm_Rud = gelman.diag(list(mcmc(sample1$thinned_chain), mcmc(sample2$thinned_chain),
                                                           mcmc(sample3$thinned_chain)))$psrf[1]
                               tmp_df <- rbind(tmp_df, data.frame(v = v, Precision = prop_prec, Gelman_Rubin = Gelm_Rud))
@@ -459,7 +461,7 @@ Graphs = function(dataset, nameaxisy, width = 10, lscatt = 0.05, uscatt = 0.05) 
   
   # Plots of histogram, trace, convergence control, and acf.
   grid.arrange(hist, trace, mean_X1_X2, acfplot, 
-                      ncol = 2, nrow = 2, widths = c(4, 4), heights = c(2, 2), layout_matrix = rbind(c(1, 2), c(3, 4)))
+               ncol = 2, nrow = 2, widths = c(4, 4), heights = c(2, 2), layout_matrix = rbind(c(1, 2), c(3, 4)))
 }
 
 ##########################################################
@@ -474,14 +476,14 @@ Graphs = function(dataset, nameaxisy, width = 10, lscatt = 0.05, uscatt = 0.05) 
 # The seed type can be specified with "X10_given" as "random" or "fixed".
 # "lower_epsilon": lower limit for the conditional distribution of the variance given a value for the mean.
 # "dig_tol" in Gen_FC_X1_X2: number of decimal places for -X10^2 + X10 - v, and -yt^2 + yt - v to be different from zero.
-Gen_Joint_Dist = function(N1, N2, prop_prec, a, b, c, d, thin = 1, X10_given = "random", lower_epsilon = 0, dig_tol = 15) {
+Gen_Joint_Dist = function(N1, N2, prop_prec, a, b, c, d, thin = 1, X10_given = "random", lower_epsilon = 0, dig_tol = 15, target_acceptance = 0.3) {
   SampleGen = matrix(data = NA, nrow = N1, ncol = 2, dimnames = list(NULL, c("X2", "X1")))
   SampleGen = as.data.frame(SampleGen)
   SampleGen$X1[1] = rbeta(1, a, b)
   SampleGen$X2[1] = rBeta.4P(1, l = 0, u = SampleGen$X1[1] * (1 - SampleGen$X1[1]), alpha = c, beta = d)
   for (t in 2:N1) {
     # Generate X1[t] using the Metropolis-Hastings algorithm
-    SampleGen$X1[t] = Gen_FC_X1_X2(N2, prop_prec, a, b, c, d, SampleGen$X2[t-1], option = "end", thin, burnin = 0, X10_given, dig_tol = dig_tol)$thinned_chain
+    SampleGen$X1[t] = Gen_FC_X1_X2(N2, prop_prec, a, b, c, d, SampleGen$X2[t-1], option = "end", thin, burnin = 0, X10_given, target_acceptance, dig_tol)$thinned_chain
     # Generate X2[t] using the conditional distribution
     SampleGen$X2[t] = rBeta.4P(1, l = lower_epsilon, u = SampleGen$X1[t] * (1 - SampleGen$X1[t]), alpha = c, beta = d)
   }
@@ -620,7 +622,7 @@ Measure_Analy = function(a, b, c, d, digits) {
 # graphs_boot: logical indicator to generate a histogram, T or F.
 # Q_E_mu and Q_E_cv: quantiles for the mean and variance obtained from the expert.
 
-Hiperparameters = function(ssample, r_boostrap = 100, q_boostrap = c(0.025, 0.975), option_mu = "moments", 
+Hyperparameters = function(ssample, r_boostrap = 100, q_boostrap = c(0.025, 0.975), option_mu = "moments", 
                            sig_mu = 0.05, bound_var = "max", sig_var = 0.05, digits = 4, 
                            graphs_boot = F, Q_E_mu = 0, Q_E_cv = 0) {
   if (r_boostrap != 0) {
@@ -647,7 +649,7 @@ Hiperparameters = function(ssample, r_boostrap = 100, q_boostrap = c(0.025, 0.97
   # Interval for the mean
   #############################
   if (option_mu == "moments") {
-    portion = (mean(quantile_mu) * (1 - mean(quantile_mu)) / ((quantile_mu[[2]] - quantile_mu[[1]]) / 4) - 1)
+    portion = (mean(quantile_mu) * (1 - mean(quantile_mu)) / ((quantile_mu[[2]] - quantile_mu[[1]]) / 4)^2 - 1)
     hiper_mean = data.frame("a" = mean(quantile_mu) * portion, "b" = (1 - mean(quantile_mu)) * portion)
   } else if (option_mu == "tovar") {
     hiper_mean = Mtovar_vs2(quantile_mu[[1]], quantile_mu[[2]], 0, 1, sig_mu)
@@ -719,21 +721,23 @@ Est_Post = function(ssample, N, N_FC, Precision, a, b, c, d, thin1, thin2, burni
   x0 = prod(ssample)
   y0 = prod(1 - ssample)
   
-  marginalike = sum(exp((sample_alpha - 1) * log(x0) + (sample_beta - 1) * log(y0) + log(Prior(sample_alpha, sample_beta, a, b, c, d)) -
-                          length(ssample) * log(beta(sample_alpha, sample_beta))))
+  zeta=exp((sample_alpha-1)*log(x0)+(sample_beta-1)*log(y0)-(length(ssample))*log(beta(sample_alpha,sample_beta)))
   
-  meanpalph = sum(exp((sample_alpha - 1) * log(x0) + (sample_beta - 1) * log(y0) + log(sample_alpha) +
-                        log(Prior(sample_alpha, sample_beta, a, b, c, d)) -
-                        length(ssample) * log(beta(sample_alpha, sample_beta)) - log(marginalike)))
+  marginalike=sum(zeta)/length(sample_beta)
   
-  meanpbet = sum(exp((sample_alpha - 1) * log(x0) + (sample_beta - 1) * log(y0) + log(sample_beta) +
-                       log(Prior(sample_alpha, sample_beta, a, b, c, d)) -
-                       length(ssample) * log(beta(sample_alpha, sample_beta)) - log(marginalike)))
+  meanpalpha=sum(zeta*exp(log(sample_alpha)-log(marginalike)))
+  varpalpha=sum(zeta*exp(2*log(sample_alpha)-log(marginalike)))-meanpalpha^2
+  
+  meanpbeta=sum(zeta*exp(log(sample_beta)-log(marginalike))) 
+  varpbeta=sum(zeta*exp(2*log(sample_beta)-log(marginalike)))-meanpbeta^2
+  
+  covalphabeta=sum(zeta*exp(log(sample_alpha)+log(sample_beta)-log(marginalike))) - meanpalpha*meanpbeta
   
   Descriptivo = Measure_Diagnostic(data1 = Example_Joint_Dist$X1, data2 = Example_Joint_Dist$X2, var = "transform",
                                    digits = 4, burnin, thin = thin2, a, b, c, d)
-  return(list(EstPost = data.frame(Prior_Lik = marginalike, P_A = meanpalph, P_B = meanpbet), Descriptivo = Descriptivo,
-              SA = sample_alpha, SB = sample_beta, SX1 = Example_Joint_Dist$X1, SX2 = Example_Joint_Dist$X2))
+  return(list(EstPost=data.frame(Prior_Lik=marginalike,P_A=meanpalpha,P_B=meanpbeta,VP_A=varpalpha,VP_B=varpbeta,CP_AB=covalphabeta),
+              Descriptivo=Descriptivo,
+              SA=sample_alpha,SB=sample_beta,SX1=Example_Joint_Dist$X1,SX2=Example_Joint_Dist$X2))
 }
 
 
@@ -755,9 +759,31 @@ Est_Post = function(ssample, N, N_FC, Precision, a, b, c, d, thin1, thin2, burni
 # n_sample: list of sample sizes for samples generated from the Beta distribution using the true parameter values, alpha_real and beta_real.
 # alpha_real and beta_real are the true values used to set the simulation scenario.
 # N_Iter_Sim: Number of times the estimation is repeated for each sample size.
+# sample_size_IS: importance resampling sample size.
 
-Estudio_Sim = function(N, N_FC, prop_prec, a, b, c, d, thin1, X10_given = "random", dig_tol = 15, thin2, burnin, n_sample, alpha_real, beta_real, N_Iter_Sim) {
+Sim_study = function(N, N_FC, prop_prec, a, b, c, d, thin1, X10_given = "random", dig_tol = 15, thin2, burnin, n_sample, alpha_real, beta_real, N_Iter_Sim,
+                     sample_size_IS) {
+  # Average length 
+  meanlenght=function(Interval){
+    lenint=sum(Interval[,2]-Interval[,1])/nrow(Interval)
+    return(lenint=lenint)
+  }
   
+  # Coverage probability
+  covprob=function(Interval,param_value){
+    indicator=function(j){
+      if(Interval[j,1]<=param_value & Interval[j,2]>=param_value){
+        return(1)
+      }else{return(0)}
+    }
+    resind=NA
+    for(l in 1:nrow(Interval)){
+      resind[l]=indicator(l)
+    }
+    covint=sum(resind)/nrow(Interval)
+    
+    return(covint=covint)
+  }
   # Generate prior sample
   Sample_Prior_Hip = Gen_Joint_Dist(N1 = N, N2 = N_FC, prop_prec = 3, a, b, c, d, thin = thin1, X10_given = "random", dig_tol = dig_tol)
   piece = (Sample_Prior_Hip$X1[seq((burnin + 1), N, by = thin2)] * (1 - Sample_Prior_Hip$X1[seq((burnin + 1), N, by = thin2)]) /
@@ -771,30 +797,35 @@ Estudio_Sim = function(N, N_FC, prop_prec, a, b, c, d, thin1, X10_given = "rando
   
   Iter_Alpha = NA
   Iter_Beta = NA
-  VIter_Alpha = matrix(data = NA, nrow = 0, ncol = 10, dimnames = list(NULL, c("Min", "Q2.5", "Q50", "Q97.5", "Max", "Mean", "Var", "Bias", "MSE", "SampleSize")))
+  VIter_Alpha = matrix(data = NA, nrow = 0, ncol = 12, dimnames = list(NULL, c("Min", "Q2.5", "Q50", "Q97.5", "Max", "Mean", "Var", "Bias", "MSE", "SampleSize","Coverage","Length")))
   VIter_Beta = VIter_Alpha
-  
+  RC_A=matrix(data = NA, nrow = 0, ncol = 2, dimnames = list(NULL, c("Q2.5", "Q97.5")))
+  RC_B=RC_A
   for (j in 1:length(n_sample)) {
     for (i in 1:N_Iter_Sim) {
       sampe_prueba = rbeta(n_sample[j], alpha_real, beta_real)
       x0 = prod(sampe_prueba)
       y0 = prod(1 - sampe_prueba)
-      marginalike = sum(exp((sample_alpha - 1) * log(x0) + (sample_beta - 1) * log(y0) +
-                              log(Prior(sample_alpha, sample_beta, a, b, c, d)) -
-                              length(sampe_prueba) * log(beta(sample_alpha, sample_beta))))
       
-      Iter_Alpha[i] = sum(exp((sample_alpha - 1) * log(x0) + (sample_beta - 1) * log(y0) + log(sample_alpha) +
-                                log(Prior(sample_alpha, sample_beta, a, b, c, d)) -
-                                length(sampe_prueba) * log(beta(sample_alpha, sample_beta)) - log(marginalike)))
+      zeta=exp((sample_alpha-1)*log(x0)+(sample_beta-1)*log(y0)-(n_sample[j])*log(beta(sample_alpha,sample_beta)))
+      marginalike=sum(zeta)
+      Iter_Alpha[i] = sum(zeta*exp(log(sample_alpha)-log(marginalike)))
+      Iter_Beta[i] = sum(zeta*exp(log(sample_beta)-log(marginalike))) 
       
-      Iter_Beta[i] = sum(exp((sample_alpha - 1) * log(x0) + (sample_beta - 1) * log(y0) + log(sample_beta) +
-                               log(Prior(sample_alpha, sample_beta, a, b, c, d)) -
-                               length(sampe_prueba) * log(beta(sample_alpha, sample_beta)) - log(marginalike)))
+      # Sampling importance resampling
+      selected_elements=sample(1:length(sample_alpha),size = sample_size_IS,replace = T,prob = zeta/marginalike)
+      selected_alpha=sample_alpha[selected_elements]
+      selected_beta=sample_beta[selected_elements]
+      
+      # Regions of credibility
+      RC_A = rbind(RC_A, quantile(selected_alpha, probs = c(0.025, 0.975), na.rm = T))
+      RC_B = rbind(RC_B, quantile(selected_beta, probs = c(0.025, 0.975), na.rm = T))
+      
     }
     VIter_Alpha = rbind(VIter_Alpha, c(quantile(Iter_Alpha, probs = c(0, 0.025, 0.5, 0.975, 1), na.rm = T), mean(Iter_Alpha), var(Iter_Alpha), (alpha_real - mean(Iter_Alpha)),
-                                       (var(Iter_Alpha) + (alpha_real - mean(Iter_Alpha))^2), n_sample[j]))
+                                       (var(Iter_Alpha) + (alpha_real - mean(Iter_Alpha))^2), n_sample[j],covprob(RC_A,alpha_real),meanlenght(RC_A)))
     VIter_Beta = rbind(VIter_Beta, c(quantile(Iter_Beta, probs = c(0, 0.025, 0.5, 0.975, 1), na.rm = T), mean(Iter_Beta), var(Iter_Beta), (beta_real - mean(Iter_Beta)),
-                                     (var(Iter_Beta) + (beta_real - mean(Iter_Beta))^2), n_sample[j]))
+                                     (var(Iter_Beta) + (beta_real - mean(Iter_Beta))^2), n_sample[j], covprob(RC_B,beta_real), meanlenght(RC_B)))
   }
   
   return(list(Result_Alpha = as.data.frame(VIter_Alpha), Result_Beta = as.data.frame(VIter_Beta), Descriptive_Sample_Prior = Descriptive_Sample_Prior))
@@ -860,9 +891,9 @@ Individual_Graphs = function(Data, lim_x, value_real, y_text, title_text) {
 ####
 # Comparison of joint functions
 ####
-Comparacion_Hiper = function(data, value_real, lim_x, title_text, y_Text) {
+Comparison_Hyper = function(data, value_real, lim_x, title_text, y_Text) {
   # Mean
-  Comparacion_Mean = ggplot(data, aes(x = SampleSize, y = Mean, color = Source, shape = Source, linetype = Source)) +
+  Comparacion_Mean = ggplot(data, aes(x = SampleSize, y = Mean, color = Method, shape = Method, linetype = Method)) +
     geom_line() +
     geom_point(size = 2) +
     labs(title = title_text,
@@ -876,7 +907,7 @@ Comparacion_Hiper = function(data, value_real, lim_x, title_text, y_Text) {
     scale_linetype_manual(values = c("solid", "dashed", "dotted", "dotdash", "longdash", "twodash", "twodash", "dotted", "solid", "dashed"))
   
   # Bias
-  Comparacion_Bias = ggplot(data, aes(x = SampleSize, y = Bias, color = Source, shape = Source, linetype = Source)) +
+  Comparacion_Bias = ggplot(data, aes(x = SampleSize, y = Bias, color = Method, shape = Method, linetype = Method)) +
     geom_line() +
     geom_point() +
     labs(title = " ",
@@ -889,12 +920,38 @@ Comparacion_Hiper = function(data, value_real, lim_x, title_text, y_Text) {
     scale_linetype_manual(values = c("solid", "dashed", "dotted", "dotdash", "longdash", "twodash", "twodash", "dotted", "solid", "dashed"))
   
   # MSE
-  Comparacion_Mse = ggplot(data, aes(x = SampleSize, y = MSE, color = Source, shape = Source, linetype = Source)) +
+  Comparacion_Mse = ggplot(data, aes(x = SampleSize, y = MSE, color = Method, shape = Method, linetype = Method)) +
+    geom_line() +
+    geom_point() +
+    labs(title = " ",
+         x = " ",
+         y = "MSE") +
+    scale_x_continuous(breaks = lim_x) +
+    theme_minimal() + 
+    theme(legend.position = "none") +  # Remove legend
+    scale_shape_manual(values = c(16, 17, 18, 19, 15, 8, 3, 4, 5, 6)) +  # Different shapes for points
+    scale_linetype_manual(values = c("solid", "dashed", "dotted", "dotdash", "longdash", "twodash", "twodash", "dotted", "solid", "dashed"))
+  
+  # Coverage
+  Comparacion_Coverage = ggplot(data, aes(x = SampleSize, y = Coverage, color = Method, shape = Method, linetype = Method)) +
+    geom_line() +
+    geom_point() +
+    labs(title = " ",
+         x = " ",
+         y = "Coverage") +
+    scale_x_continuous(breaks = lim_x) +
+    theme_minimal() + 
+    theme(legend.position = "none") +  # Remove legend
+    scale_shape_manual(values = c(16, 17, 18, 19, 15, 8, 3, 4, 5, 6)) +  # Different shapes for points
+    scale_linetype_manual(values = c("solid", "dashed", "dotted", "dotdash", "longdash", "twodash", "twodash", "dotted", "solid", "dashed"))
+  
+  # Length
+  Comparacion_Length = ggplot(data, aes(x = SampleSize, y = Length, color = Method, shape = Method, linetype = Method)) +
     geom_line() +
     geom_point() +
     labs(title = " ",
          x = "Sample Size",
-         y = "MSE") +
+         y = "Length") +
     scale_x_continuous(breaks = lim_x) +
     theme_minimal() + 
     theme(legend.position = "none") +  # Remove legend
@@ -914,7 +971,7 @@ Comparacion_Hiper = function(data, value_real, lim_x, title_text, y_Text) {
   
   # Combine the plots without legend with the legend on the right
   grid.arrange(
-    arrangeGrob(Comparacion_Mean, Comparacion_Bias, Comparacion_Mse, ncol = 1, heights = c(6, 6, 6)),
+    arrangeGrob(Comparacion_Mean, Comparacion_Bias, Comparacion_Mse, Comparacion_Coverage, Comparacion_Length, ncol = 1, heights = c(9, 9, 9, 9, 9)),
     legend, 
     ncol = 2, 
     widths = c(7, 1)
