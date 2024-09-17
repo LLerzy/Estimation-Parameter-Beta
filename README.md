@@ -18,7 +18,18 @@ El script incluyen enfoques bayesianos empíricos y subjetivos para la estimaci�
 
 ## Instalación
 
-Para ejecutar el código es necesario tener `R` instalado con los siguiente paquetes: - `ggplot2` - `gridExtra` - `tidyr` - `plotly` - `coda` - `foreach` - `doParallel` - `betafunctions` - `openxlsx` - `xtable`
+Para ejecutar el código es necesario tener `R` instalado con los siguiente paquetes: 
+
+- `ggplot2` 
+- `gridExtra` 
+- `tidyr` 
+- `plotly` 
+- `coda` 
+- `foreach` 
+- `doParallel` 
+- `betafunctions` 
+- `openxlsx` 
+- `xtable`
 
 Usted puede instalar los paquetes requeridos utilizando el siguiente comando:
 
