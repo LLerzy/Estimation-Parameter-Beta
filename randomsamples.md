@@ -322,8 +322,8 @@ Los resultados numéricos fueron:
 results_measure_diag1$Numerical
 ```
 
-    ##   Mean_Y1 Var_Y1   ESS_Y1 Mean_Y2 Var_Y2   ESS_Y2    Cov Length
-    ## 1  1.0601 1.3218 3991.776  1.9628 3.8862 3680.607 1.6279   3800
+    ##   Mean_Y1 Var_Y1   ESS_Y1 Mean_Y2 Var_Y2 ESS_Y2    Cov Length
+    ## 1  1.0465 1.5897 4127.574  1.9205   5.37   3800 2.0624   3800
 
 Los resultados analíticos fueron:
 
@@ -341,5 +341,5 @@ obtenidas son las siguientes:
 results_measure_diag1$Differences
 ```
 
-    ##   Mean_Y1 Var_Y1    ESS_Y1 Mean_Y2 Var_Y2   ESS_Y2    Cov Length
-    ## 1 -0.0601 0.4782 -191.7762  0.0372 1.9138 119.3932 0.5721      0
+    ##   Mean_Y1 Var_Y1    ESS_Y1 Mean_Y2 Var_Y2 ESS_Y2    Cov Length
+    ## 1 -0.0465 0.2103 -327.5737  0.0795   0.43      0 0.1376      0
