@@ -1,6 +1,6 @@
 # Algoritmo Basado En Métodos MCMC Para Simular Muestras De Una Nueva Distribución Bivariada
 
-Este repositorio es una rama de uno principal denominado **[Estimation-Parameter-Beta]**(https://github.com/LLerzy/Estimation-Parameter-Beta).
+Este repositorio es una rama de uno principal denominado **[Estimation-Parameter-Beta](https://github.com/LLerzy/Estimation-Parameter-Beta)**.
 
 ## Tabla de Contenido
 - [Resumen](#resumen)
