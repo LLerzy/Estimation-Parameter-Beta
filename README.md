@@ -10,7 +10,7 @@ Este repositorio es una rama de uno principal denominado [**Estimation-Parameter
 -   [Archivos y Documentos](#archivos-y-documentos)
 -   [Contribuciones](#contribuciones)
 
-## Resumen {#resumen}
+## Resumen
 
 Este proyecto contiene un conjunto de rutinas destinadas a estimar los parámetros de forma de la distribución Beta para la variable $X$ desde una perspectiva bayesiana. Aunque se utiliza una nueva distribución a priori bivariada y su respectivo método para simular muestras aleatorias (los cuales pueden ser consultados en la rama ), el objetivo principal es desarrollar un estudio de simulación para monitorear el comportamiento de las estimaciones obtenidas para estos parámetros.
 
