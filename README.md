@@ -8,7 +8,6 @@ Este repositorio es una rama de uno principal denominado **[Estimation-Parameter
 - [Uso](#uso)
 - [Archivos y Documentos](#archivos-y-documentos)
 - [Contribuciones](#contribuciones)
-- [Licencia](#licencia)
 
 ## Resumen
 
@@ -70,6 +69,3 @@ El código generará los diagnósticos de convergencia, como histograma versus d
 
 ## Contribuciones
 ¡Las contribuciones son bienvenidas! Envíe una solicitud de incorporación de cambios o abra un problema si tiene alguna sugerencia o mejora.
-
-## Licencia
-Este proyecto está licenciado bajo la licencia MIT. Consulte el archivo [LICENSE](LICENSE) para obtener más detalles.
