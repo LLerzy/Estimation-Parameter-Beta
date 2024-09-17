@@ -7,8 +7,8 @@ Este repositorio es una rama del repositorio principal denominado Estimation-Par
 - [Instalación](#instalación)
 - [Uso](#uso)
 - [Archivos y Documentos](#archivos-y-documentos)
-- [Contributing](#contributing)
-- [License](#license)
+- [Contribuciones](#contribuciones)
+- [Licencia](#licencia)
 
 ## Resumen
 
@@ -53,15 +53,18 @@ El código generará los diagnósticos de convergencia, como Histograma versus D
 ## Archivos y Documentos
 - [`randomsamples.Rmd`](randomsamples.Rmd): El archivo RMarkdown principal que contiene el código para generar los resultados.
 - [`randomsamples.md`](randomsamples.md): Una versión Markdown de los resultados.
-- [`requiredfunctions.R`](requiredfunctions.R): Contiene las funciones personalizadas utilizadas en el algoritmo, como el Gibbs Sampling, Metropolis Hasting y la nueva distribución
+- [`requiredfunctions.R`](requiredfunctions.R): Contiene las funciones personalizadas utilizadas en el algoritmo, como el Gibbs Sampling, Metropolis Hasting y la nueva distribución bivariada.
 - [`randomsamples_files/`](randomsamples_files/figure-gfm): Carpeta que contiene las figuras generadas por el archivo RMarkdown.
 
-### Key Figures:
+### Figuras Clave:
+- **Tamaño Efectivo y Tasa de Aceptación según Precisión vs. Tamaño de Muestra**: Consulte la figura generada [`EffectiveSize-AcceptanceRate.png`](randomsamples_files/figure-gfm/unnamed-chunk-3-1.png) para analizar el rendimiento del algoritmo en diferentes configuraciones de la precisión y el tamaño de muestra.
+- **Gráfico de convergencia de R-Hat**: consulte el gráfico de R-Hat en [`R-hat.png`](randomsamples_files/figure-gfm/R-hat.png) para obtener una evaluación de la convergencia de las cadenas.
+
 - **Effective Size vs Acceptance Rate**: Refer to the generated figure [`EffectiveSize-AcceptanceRate.png`](randomsamples_files/figure-gfm/EffectiveSize-AcceptanceRate.png) to analyze how the algorithm performs under different configurations.
 - **R-Hat Convergence Plot**: See the R-Hat plot in [`R-hat.png`](randomsamples_files/figure-gfm/R-hat.png) for an evaluation of the convergence of the chains.
 
-## Contributing
-Contributions are welcome! Please submit a pull request or open an issue if you have any suggestions or improvements.
+## Contribuciones
+¡Las contribuciones son bienvenidas! Envíe una solicitud de incorporación de cambios o abra un problema si tiene alguna sugerencia o mejora.
 
-## License
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
+## Licencia
+Este proyecto está licenciado bajo la licencia MIT. Consulte el archivo [LICENSE](LICENSE) para obtener más detalles.
