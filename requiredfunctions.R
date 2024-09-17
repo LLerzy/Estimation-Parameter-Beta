@@ -9,7 +9,7 @@
 # hyperparameter sets and sample sizes.                                   #
 #                                                                         #
 # Author: Llerzy Torres Ome                                               #
-# Creation Date: July 23, 2024                                            #
+# Creation Date: September 16, 2024                                       #
 #                                                                         #
 # Functions included:                                                     #
 # 1. Prior: Defines the proposed prior probability density function.      #
