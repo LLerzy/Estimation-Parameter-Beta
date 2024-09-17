@@ -223,7 +223,11 @@ a1=3;b1=6;c1=3;d1=6
 Example_Joint_Dist1=Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec=4,a = a1,b = b1,c = c1,d = d1,thin = 1, X10_given = "random",target_acceptance = 0.4)
 
 results_measure_diag1=Measure_Diagnostic(data1 = Example_Joint_Dist1$X1,data2 = Example_Joint_Dist1$X2, var ="transform", digits = 4, a = a1, b = b1, c = c1, d = d1, burnin = 5000, thin = 25)
+```
 
+Los resultados numéricos fueron:
+
+```{r}
 results_measure_diag1$Numerical
 ```
 

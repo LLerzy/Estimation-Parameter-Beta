@@ -314,9 +314,16 @@ a1=3;b1=6;c1=3;d1=6
 Example_Joint_Dist1=Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec=4,a = a1,b = b1,c = c1,d = d1,thin = 1, X10_given = "random",target_acceptance = 0.4)
 
 results_measure_diag1=Measure_Diagnostic(data1 = Example_Joint_Dist1$X1,data2 = Example_Joint_Dist1$X2, var ="transform", digits = 4, a = a1, b = b1, c = c1, d = d1, burnin = 5000, thin = 25)
+```
 
+Los resultados numéricos fueron:
+
+``` r
 results_measure_diag1$Numerical
 ```
+
+    ##   Mean_Y1 Var_Y1   ESS_Y1 Mean_Y2 Var_Y2   ESS_Y2    Cov Length
+    ## 1  1.0601 1.3218 3991.776  1.9628 3.8862 3680.607 1.6279   3800
 
 Los resultados analíticos fueron:
 
@@ -334,5 +341,5 @@ obtenidas son las siguientes:
 results_measure_diag1$Differences
 ```
 
-    ##   Mean_Y1 Var_Y1 ESS_Y1 Mean_Y2 Var_Y2   ESS_Y2    Cov Length
-    ## 1 -0.0634 0.3164      0  0.0254 0.5056 409.0004 0.2146      0
+    ##   Mean_Y1 Var_Y1    ESS_Y1 Mean_Y2 Var_Y2   ESS_Y2    Cov Length
+    ## 1 -0.0601 0.4782 -191.7762  0.0372 1.9138 119.3932 0.5721      0
