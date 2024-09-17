@@ -62,14 +62,14 @@ El código considera tres escenarios para los parámetros de forma de la distrib
 
 ## Archivos y Documentos
 
--   [`Post_Estimation_Beta_Param.R`](Post_Estimation_Beta_Param.R): Contiene el código utilizado para obtener los resultados del estudio de simulación para la estimación posterior de los parámetros de forma de la distribución beta, considerando una nueva distribución bivariada como a priori y una metodología de obtenciónd e valores de hiperparámetros.
+-   [`Post_Estimation_Beta_Param.R`](Post_Estimation_Beta_Param.R): Contiene el código utilizado para obtener los resultados del estudio de simulación sobre la estimación posterior de los parámetros de forma de la distribución beta, considerando una nueva distribución bivariada como a priori y una propuesta metodológica para la obtención de valores de hiperparámetros.
 -   [`requiredfunctions.R`](requiredfunctions.R): Contiene las funciones personalizadas utilizadas en el estudio de simulación.
--   [`Results_Post_Estim/`](randomsamples_files/figure-gfm): Carpeta que contiene las figuras generadas por el archivo RMarkdown.
+-   [`Results_Post_Estim/`](randomsamples_files/figure-gfm): Carpeta que contiene dos subcarpetas, la primera almacena las figuras generadas para el monitoreo de las características de los estimadores posteriores y la segunda contiene hojas de calculo sobre los valores de hiperparámetros, junto con las cadenas utilizadas en la construcción de los gráficos antes descritos.
 
-### Figuras Clave:
+### Figuras y Documentos Claves:
 
--   **Tamaño Efectivo y Tasa de Aceptación según Precisión vs. Tamaño de Muestra**: Consulte la figura generada [`EffectiveSize-AcceptanceRate.png`](randomsamples_files/figure-gfm/unnamed-chunk-3-1.png) para analizar el rendimiento del algoritmo en diferentes configuraciones de la precisión y el tamaño de muestra.
--   **Curvas de Nivel vs Diagrama de Puntos del Vector Aleatorio** $(Y_1,Y_2)$: Consulte el gráfico en [`Curvas-de-Nivel-vs-Diagrama-Puntos.png`](randomsamples_files/figure-gfm/unnamed-chunk-14-1.png) para obtener una evaluación de la convergencia de las cadenas.
+-   **Estimaciones Posteriores Generadas Para El Escenario $\alpha=0.5$ y $\beta=0.5$**: Consulte la figura generada [`Alpha-Escenario1.png`](https://github.com/LLerzy/Estimation-Parameter-Beta/blob/Post-Estimate/Results_Post_Estim/Graphics/ParAlphaSigMu01SigV01Scen-1.png) para los resultados obtenidos del parámetros $\alpha$ y la figura [`Beta-Escenario1.png`](https://github.com/LLerzy/Estimation-Parameter-Beta/blob/Post-Estimate/Results_Post_Estim/Graphics/ParBetaSigMu01SigV01Scen-1.png) para los resultados de $\beta$.
+-   **Suplemento 1**: Es un archivo PDF, [`Max-IC-Varianza`](https://github.com/LLerzy/Estimation-Parameter-Beta/blob/Post-Estimate/Results_Post_Estim/Supplement1.pdf), que contiene los resultados obtenidos para las estimaciones posteriores cuando se considera que la varianza se encuentra limitada por el límite superior del intervalo de cuantiles que proporciona el experto o el enfoque emppirico de Bayes..
 
 ## Contribuciones
 
