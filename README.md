@@ -54,7 +54,7 @@ El código generará los diagnósticos de convergencia, como Histograma versus D
 - [`randomsamples.Rmd`](randomsamples.Rmd): El archivo RMarkdown principal que contiene el código para generar los resultados.
 - [`randomsamples.md`](randomsamples.md): Una versión Markdown de los resultados.
 - [`requiredfunctions.R`](requiredfunctions.R): Contiene las funciones personalizadas utilizadas en el algoritmo, como el Gibbs Sampling, Metropolis Hasting y la nueva distribución
-- [`randomsamples_files/`](randomsamples_files/): Carpeta que contiene las figuras generadas por el archivo RMarkdown.
+- [`randomsamples_files/`](randomsamples_files/figure-gfm): Carpeta que contiene las figuras generadas por el archivo RMarkdown.
 
 ### Key Figures:
 - **Effective Size vs Acceptance Rate**: Refer to the generated figure [`EffectiveSize-AcceptanceRate.png`](randomsamples_files/figure-gfm/EffectiveSize-AcceptanceRate.png) to analyze how the algorithm performs under different configurations.
