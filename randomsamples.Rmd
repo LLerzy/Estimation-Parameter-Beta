@@ -23,7 +23,7 @@ $$
 
 siempre que $c>2$.
 
-El método presentado utiliza el método de metropolis Hasting con caminata aleatoria para generar muestras de la distribución condicional $X_1$ dado $X_2$, posteriormente se utiliza Gibbs Sampling para generar muestras del vector aleatorio $(X_1,X_2)$ y finalmente se obtienen muestras para el vector $(Y_1,Y_2)$ mediante la transformación
+El método presentado utiliza el método de metropolis Hasting con caminata aleatoria para generar muestras de la distribución condicional $X_1$ dado $X_2$, posteriormente se utiliza Gibbs Sampling para generar muestras del vector aleatorio $(X_1,X_2)$ y finalmente se obtienen muestras para el vector $(Y_1,Y_2)$ mediante la siguiente transformación:
 
 $$
 (Y_1,Y_2)=\left(X_1\left(\dfrac{X_1(1-X_1)}{X_2}-1\right),(1-X_1)\left(\dfrac{X_1(1-X_1)}{X_2}-1\right)\right).
