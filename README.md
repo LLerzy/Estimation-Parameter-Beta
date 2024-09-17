@@ -1,6 +1,6 @@
 # Algoritmo Basado En Métodos MCMC Para Simular Muestras De Una Nueva Distribución Bivariada
 
-Este repositorio es una rama del repositorio principal denominado Estimation-Parameter-Beta.
+Este repositorio es una rama de uno principal denominado **[Estimation-Parameter-Beta]**(https://github.com/LLerzy/Estimation-Parameter-Beta).
 
 ## Tabla de Contenido
 - [Resumen](#resumen)
@@ -12,11 +12,15 @@ Este repositorio es una rama del repositorio principal denominado Estimation-Par
 
 ## Resumen
 
-Este proyecto presenta un conjunto de funciones que implementan algoritmos MCMC diseñados para generar muestras aleatorias del vector aleatorio \((X_1, X_2)\) con función de densidad 
+Este proyecto presenta un conjunto de funciones que implementan algoritmos MCMC diseñados para generar muestras aleatorias $(x_1,x_2)_{(n)}$ del vector aleatorio \((X_1, X_2)\) con función de densidad 
+
 $$f(x_1,x_2|\phi)=\dfrac{1}{\text{beta}(a,b)\text{beta}(c,d)}\dfrac{x_2^{c-1}[x_1(1-x_1)-x_2]^{d-1}}{x_1^{c+d-a}(1-x_1)^{c+d-b}}.$$
+
 Posteriomente se transforma dicha muestra generada al espacio del vector aleatorio $(Y_1,Y_2)$ con función de densidad,
-$$f_{\phi}(y_1,y_2)= \text{beta}(a, b) \text{beta}(c, d)\ y_1^{a-1}y_2^{b-1}(y_1+y_2)^{d-(a+b)} (y_1+y_2+1)^{-c-d},\hspace{1cm}y_1,y_2\in\mathbb{R}_+.$$ 
-Todo el código está escrito en R, aprovechando las herramientas estadísticas y computacionales de este software. El proyecto incluye tanto resultados numéricos como teóricos, con un enfoque en el análisis de las cadenas generadas a través de ocho criterios diferentes de convergencia. Estos diagnósticos proporcionan una evaluación integral del rendimiento de las cadenas, asegurando la fiabilidad y precisión de las estimaciones. Los métodos presentados son adecuados para una amplia gama de aplicaciones que involucran inferencia bayesiana y técnicas de muestreo de Gibbs.
+
+$$f_{\phi}(y_1,y_2)= \dfrac{1}{\text{beta}(a, b) \text{beta}(c, d)}\ y_1^{a-1}y_2^{b-1}(y_1+y_2)^{d-(a+b)} (y_1+y_2+1)^{-c-d},\hspace{1cm}y_1,y_2\in\mathbb{R}_+.$$ 
+
+Todo el código está escrito en R-Project, aprovechando las herramientas estadísticas y computacionales de este software. El proyecto incluye tanto resultados numéricos como teóricos, con un enfoque en el análisis de las cadenas generadas a través de ocho criterios diferentes de convergencia. Estos diagnósticos proporcionan una evaluación integral del rendimiento de las cadenas, asegurando la fiabilidad y precisión de las estimaciones. Los métodos presentados son adecuados para una amplia gama de aplicaciones que involucran inferencia bayesiana y métodos MCMC.
 
 ## Instalación
 Para ejecutar el código es necesario tener `R` instalado con los siguiente paquetes:
@@ -49,10 +53,10 @@ Para repliar el análisis y ejecutar los algoritmos, siga los siguientes pasos:
 
 3. Corra el script para generar los resultados:
    ```bash
-   Rscript randomsamples.md
+   Rscript -e "rmarkdown::render('randomsamples.Rmd')"
    ```
 
-El código generará los diagnósticos de convergencia, como Histograma versus Densidad, gráficos de calor para el tamaño de muestra efectivo, tasa de aceptaicón y R-Hat, promedio acumulado, traza, autocorrelación y curvas de nivel junto con diagrama de puntos de la muestra generada.
+El código generará los diagnósticos de convergencia, como histograma versus densidad, gráficos de calor para el tamaño de muestra efectivo, tasa de aceptaicón y R-Hat, promedio acumulado, traza, autocorrelación y curvas de nivel junto con diagrama de puntos de la muestra generada.
 
 ## Archivos y Documentos
 - [`randomsamples.Rmd`](randomsamples.Rmd): El archivo RMarkdown principal que contiene el código para generar los resultados.
