@@ -58,10 +58,7 @@ El código generará los diagnósticos de convergencia, como Histograma versus D
 
 ### Figuras Clave:
 - **Tamaño Efectivo y Tasa de Aceptación según Precisión vs. Tamaño de Muestra**: Consulte la figura generada [`EffectiveSize-AcceptanceRate.png`](randomsamples_files/figure-gfm/unnamed-chunk-3-1.png) para analizar el rendimiento del algoritmo en diferentes configuraciones de la precisión y el tamaño de muestra.
-- **Gráfico de convergencia de R-Hat**: consulte el gráfico de R-Hat en [`R-hat.png`](randomsamples_files/figure-gfm/R-hat.png) para obtener una evaluación de la convergencia de las cadenas.
-
-- **Effective Size vs Acceptance Rate**: Refer to the generated figure [`EffectiveSize-AcceptanceRate.png`](randomsamples_files/figure-gfm/EffectiveSize-AcceptanceRate.png) to analyze how the algorithm performs under different configurations.
-- **R-Hat Convergence Plot**: See the R-Hat plot in [`R-hat.png`](randomsamples_files/figure-gfm/R-hat.png) for an evaluation of the convergence of the chains.
+- **Curvas de Nivel vs Diagrama de Puntos del Vector Aleatorio $(Y_1,Y_2)$**: Consulte el gráfico en [`Curvas-de-Nivel-vs-Diagrama-Puntos.png`](randomsamples_files/figure-gfm/unnamed-chunk-14-1.png) para obtener una evaluación de la convergencia de las cadenas.
 
 ## Contribuciones
 ¡Las contribuciones son bienvenidas! Envíe una solicitud de incorporación de cambios o abra un problema si tiene alguna sugerencia o mejora.
