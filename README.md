@@ -64,7 +64,7 @@ El código considera tres escenarios para los parámetros de forma de la distrib
 
 -   [`Post_Estimation_Beta_Param.R`](Post_Estimation_Beta_Param.R): Contiene el código utilizado para obtener los resultados del estudio de simulación sobre la estimación posterior de los parámetros de forma de la distribución beta, considerando una nueva distribución bivariada como a priori y una propuesta metodológica para la obtención de valores de hiperparámetros.
 -   [`requiredfunctions.R`](requiredfunctions.R): Contiene las funciones personalizadas utilizadas en el estudio de simulación.
--   [`Results_Post_Estim/`](randomsamples_files/figure-gfm): Carpeta que contiene dos subcarpetas, la primera almacena las figuras generadas para el monitoreo de las características de los estimadores posteriores y la segunda contiene hojas de calculo sobre los valores de hiperparámetros, junto con las cadenas utilizadas en la construcción de los gráficos antes descritos.
+-   [`Results_Post_Estim/`](https://github.com/LLerzy/Estimation-Parameter-Beta/tree/Post-Estimate/Results_Post_Estim): Carpeta que contiene dos subcarpetas, la primera almacena las figuras generadas para el monitoreo de las características de los estimadores posteriores y la segunda contiene hojas de calculo sobre los valores de hiperparámetros, junto con las cadenas utilizadas en la construcción de los gráficos antes descritos.
 
 ### Figuras y Documentos Claves:
 
