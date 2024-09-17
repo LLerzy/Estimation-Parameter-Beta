@@ -1,6 +1,6 @@
 # Estimación Posterior De Los Parámetros De Forma De La Distribución Beta: Estudio de Simulación
 
-Este repositorio es una rama de uno principal denominado [**Estimation-Parameter-Beta**](Estimation-Parameter-Beta).
+Este repositorio es una rama de uno principal denominado [**Estimation-Parameter-Beta**](https://github.com/LLerzy/Estimation-Parameter-Beta).
 
 ## Tabla de Contenido
 
