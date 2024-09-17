@@ -12,7 +12,11 @@ Este repositorio es una rama del repositorio principal denominado Estimation-Par
 
 ## Resumen
 
-Este proyecto presenta un conjunto de funciones que implementan algoritmos MCMC diseñados para generar muestras aleatorias del vector bivariado \((X_1, X_2)\) y posteriomente transformar dichas muestras al espacio del vector aleatorio $(Y_1,Y_2)$. Todo el código está escrito en R, aprovechando las herramientas estadísticas y computacionales de este software. El proyecto incluye tanto resultados numéricos como teóricos, con un enfoque en el análisis de las cadenas generadas a través de ocho criterios diferentes de convergencia. Estos diagnósticos proporcionan una evaluación integral del rendimiento de las cadenas, asegurando la fiabilidad y precisión de las estimaciones. Los métodos presentados son adecuados para una amplia gama de aplicaciones que involucran inferencia bayesiana y técnicas de muestreo de Gibbs.
+Este proyecto presenta un conjunto de funciones que implementan algoritmos MCMC diseñados para generar muestras aleatorias del vector aleatorio \((X_1, X_2)\) con función de densidad 
+$$f(x_1,x_2|\phi)=\dfrac{1}{\text{beta}(a,b)\text{beta}(c,d)}\dfrac{x_2^{c-1}[x_1(1-x_1)-x_2]^{d-1}}{x_1^{c+d-a}(1-x_1)^{c+d-b}}.$$
+Posteriomente se transforma dicha muestra generada al espacio del vector aleatorio $(Y_1,Y_2)$ con función de densidad,
+$$f_{\phi}(y_1,y_2)= \text{beta}(a, b) \text{beta}(c, d)\ y_1^{a-1}y_2^{b-1}(y_1+y_2)^{d-(a+b)} (y_1+y_2+1)^{-c-d},\hspace{1cm}y_1,y_2\in\mathbb{R}_+.$$ 
+Todo el código está escrito en R, aprovechando las herramientas estadísticas y computacionales de este software. El proyecto incluye tanto resultados numéricos como teóricos, con un enfoque en el análisis de las cadenas generadas a través de ocho criterios diferentes de convergencia. Estos diagnósticos proporcionan una evaluación integral del rendimiento de las cadenas, asegurando la fiabilidad y precisión de las estimaciones. Los métodos presentados son adecuados para una amplia gama de aplicaciones que involucran inferencia bayesiana y técnicas de muestreo de Gibbs.
 
 ## Instalación
 Para ejecutar el código es necesario tener `R` instalado con los siguiente paquetes:
