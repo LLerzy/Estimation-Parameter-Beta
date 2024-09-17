@@ -9,7 +9,7 @@
 # hyperparameter sets and sample sizes.                                   #
 #                                                                         #
 # Author: Llerzy Torres Ome                                               #
-# Creation Date: July 23, 2024                                            #
+# Creation Date: September 16, 2024                                       #
 #                                                                         #
 # Functions included:                                                     #
 # 1. Prior: Defines the proposed prior probability density function.      #
@@ -125,12 +125,12 @@ Graph_Fc_X1=function(v1, v1name, v2, v2name, v3, v3name, ae, be, ce, de) {
     # Plot FC for v3
     geom_function(fun=function(X1) mapply(FC_X1_Given_v, X1, a=ae, b=be, c=ce, d=de, v=v3), lwd=1,
                   linetype=1, aes(col=v3name)) +
-    labs(title="Full Conditional of X1 given X2",
+    labs(title=expression("Full Conditional of " ~ X[1] ~ " given " ~ X[2]),
          caption=substitute(
-           list("Plot of", f(X1/v)==X1^(a-c-d) * (1-X1)^(b-c-d) * (X1*(1-X1)-v)^(d-1),
+           list("Plot of", f[X[1]/X[2]](x[1]/v)==x[1]^(a-c-d) * (1-x[1])^(b-c-d) * (x[1]*(1-x[1])-v)^(d-1),
                 "with", a==ae, b==be, c==ce, d==de), list(ae=ae, be=be, ce=ce, de=de))) +
-    xlab(expression(X1)) + ylab(expression(f(X1/X2==v))) +
-    scale_colour_manual(values = c("red", "black", "purple"), name="X2=v")
+    xlab(expression(x[1])) + ylab("Density") +
+    scale_colour_manual(values = c("red", "black", "purple"), name=expression(X[2]==v))
 }
 #####
 
@@ -255,7 +255,7 @@ Gen_FC_X1_X2 <- function(N, prop_prec, a, b, c, d, v, option = "end", thin = 1, 
 # "thin" and "burnin" are parameters for the function Gen_FC_X1_X2.
 # This function constructs two plots comparing the behavior of the Effective Sample Size (ESS)
 # and the acceptance rate for different values of precision.
-Mon_Measure = function(N, prop_prec_values, a, b, c, d, v_values, thin = 1, burnin = 1) {
+Mon_Measure = function(N, prop_prec_values, a, b, c, d, v_values, thin = 1, burnin = 1, target_acceptance = 0.3) {
   # Get the total number of cores
   num_cores <- detectCores()
   
@@ -273,7 +273,7 @@ Mon_Measure = function(N, prop_prec_values, a, b, c, d, v_values, thin = 1, burn
                           .packages = c('coda', 'betafunctions')) %dopar% {
                             tmp_df <- data.frame()
                             for (prop_prec in prop_prec_values) {
-                              results <- Gen_FC_X1_X2(N, prop_prec, a, b, c, d, v, option = "all", thin, burnin)
+                              results <- Gen_FC_X1_X2(N, prop_prec, a, b, c, d, v, option = "all", thin, burnin, target_acceptance = target_acceptance)
                               result_AR <- results$acc_rate
                               mcmc_obj <- mcmc(results$thinned_chain)
                               result_ESS <- effectiveSize(mcmc_obj)
@@ -303,7 +303,8 @@ Mon_Measure = function(N, prop_prec_values, a, b, c, d, v_values, thin = 1, burn
     labs(title = " ",
          x = "v",
          y = "Precision",
-         fill = "Effective Size")
+         fill = "Effective Size") +
+    theme(axis.text.x = element_text(margin = margin(t = 5), size = 7))
   
   # Acceptance rate plot for v and precision values
   measure_quantile = quantile(df$Accept_Rate, probs = c(0, 0.25, 0.5, 0.75, 1))
@@ -320,7 +321,8 @@ Mon_Measure = function(N, prop_prec_values, a, b, c, d, v_values, thin = 1, burn
     labs(title = " ",
          x = "v",
          y = "Precision",
-         fill = "Acceptance Rate")
+         fill = "Acceptance Rate") + 
+    theme(axis.text.x = element_text(margin = margin(t = 5), size = 7))
   
   grid.arrange(plot_ESS, plot_AR, nrow = 1, ncol = 2, layout_matrix = rbind(c(1, 2)))
 }
@@ -335,7 +337,7 @@ Mon_Measure = function(N, prop_prec_values, a, b, c, d, v_values, thin = 1, burn
 # "thin" and "burnin" are parameters for the function Gen_FC_X1_X2.
 # This function constructs a plot comparing the behavior of the Gelman-Rubin diagnostic (R-hat)
 # for different values of precision.
-Mon_R_Hat = function(N, prop_prec_values, a, b, c, d, v_values, thin = 1, burnin = 1) {
+Mon_R_Hat = function(N, prop_prec_values, a, b, c, d, v_values, thin = 1, burnin = 1, target_acceptance=0.3) {
   # Get the total number of cores
   num_cores <- detectCores()
   
@@ -353,9 +355,9 @@ Mon_R_Hat = function(N, prop_prec_values, a, b, c, d, v_values, thin = 1, burnin
                           .packages = c('coda', 'betafunctions')) %dopar% {
                             tmp_df <- data.frame()
                             for (prop_prec in prop_prec_values) {
-                              sample1 = Gen_FC_X1_X2(N, prop_prec, a, b, c, d, v, option = "all", thin=thin , X10_given = "random", burnin)
-                              sample2 = Gen_FC_X1_X2(N, prop_prec, a, b, c, d, v, option = "all", thin=thin , X10_given = "random", burnin)
-                              sample3 = Gen_FC_X1_X2(N, prop_prec, a, b, c, d, v, option = "all", thin=thin , X10_given = "random", burnin)
+                              sample1 = Gen_FC_X1_X2(N, prop_prec, a, b, c, d, v, option = "all", thin, burnin, X10_given = "random", target_acceptance)
+                              sample2 = Gen_FC_X1_X2(N, prop_prec, a, b, c, d, v, option = "all", thin, burnin, X10_given = "random", target_acceptance)
+                              sample3 = Gen_FC_X1_X2(N, prop_prec, a, b, c, d, v, option = "all", thin, burnin, X10_given = "random", target_acceptance)
                               Gelm_Rud = gelman.diag(list(mcmc(sample1$thinned_chain), mcmc(sample2$thinned_chain),
                                                           mcmc(sample3$thinned_chain)))$psrf[1]
                               tmp_df <- rbind(tmp_df, data.frame(v = v, Precision = prop_prec, Gelman_Rubin = Gelm_Rud))
@@ -459,7 +461,7 @@ Graphs = function(dataset, nameaxisy, width = 10, lscatt = 0.05, uscatt = 0.05) 
   
   # Plots of histogram, trace, convergence control, and acf.
   grid.arrange(hist, trace, mean_X1_X2, acfplot, 
-                      ncol = 2, nrow = 2, widths = c(4, 4), heights = c(2, 2), layout_matrix = rbind(c(1, 2), c(3, 4)))
+               ncol = 2, nrow = 2, widths = c(4, 4), heights = c(2, 2), layout_matrix = rbind(c(1, 2), c(3, 4)))
 }
 
 ##########################################################
@@ -474,14 +476,14 @@ Graphs = function(dataset, nameaxisy, width = 10, lscatt = 0.05, uscatt = 0.05) 
 # The seed type can be specified with "X10_given" as "random" or "fixed".
 # "lower_epsilon": lower limit for the conditional distribution of the variance given a value for the mean.
 # "dig_tol" in Gen_FC_X1_X2: number of decimal places for -X10^2 + X10 - v, and -yt^2 + yt - v to be different from zero.
-Gen_Joint_Dist = function(N1, N2, prop_prec, a, b, c, d, thin = 1, X10_given = "random", lower_epsilon = 0, dig_tol = 15) {
+Gen_Joint_Dist = function(N1, N2, prop_prec, a, b, c, d, thin = 1, X10_given = "random", lower_epsilon = 0, dig_tol = 15, target_acceptance = 0.3) {
   SampleGen = matrix(data = NA, nrow = N1, ncol = 2, dimnames = list(NULL, c("X2", "X1")))
   SampleGen = as.data.frame(SampleGen)
   SampleGen$X1[1] = rbeta(1, a, b)
   SampleGen$X2[1] = rBeta.4P(1, l = 0, u = SampleGen$X1[1] * (1 - SampleGen$X1[1]), alpha = c, beta = d)
   for (t in 2:N1) {
     # Generate X1[t] using the Metropolis-Hastings algorithm
-    SampleGen$X1[t] = Gen_FC_X1_X2(N2, prop_prec, a, b, c, d, SampleGen$X2[t-1], option = "end", thin, burnin = 0, X10_given, dig_tol = dig_tol)$thinned_chain
+    SampleGen$X1[t] = Gen_FC_X1_X2(N2, prop_prec, a, b, c, d, SampleGen$X2[t-1], option = "end", thin, burnin = 0, X10_given, target_acceptance, dig_tol)$thinned_chain
     # Generate X2[t] using the conditional distribution
     SampleGen$X2[t] = rBeta.4P(1, l = lower_epsilon, u = SampleGen$X1[t] * (1 - SampleGen$X1[t]), alpha = c, beta = d)
   }
@@ -809,7 +811,7 @@ Sim_study = function(N, N_FC, prop_prec, a, b, c, d, thin1, X10_given = "random"
       marginalike=sum(zeta)
       Iter_Alpha[i] = sum(zeta*exp(log(sample_alpha)-log(marginalike)))
       Iter_Beta[i] = sum(zeta*exp(log(sample_beta)-log(marginalike))) 
-
+      
       # Sampling importance resampling
       selected_elements=sample(1:length(sample_alpha),size = sample_size_IS,replace = T,prob = zeta/marginalike)
       selected_alpha=sample_alpha[selected_elements]
