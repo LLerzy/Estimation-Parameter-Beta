@@ -23,7 +23,7 @@
 # 5. Visualization of results and comparison of hyperparameters.          #
 #                                                                         #
 # Author: Llerzy Torres Ome                                               #
-# Creation Date: August 06, 2024                                            #
+# Creation Date: September 16, 2024                                       #
 #                                                                         #
 # Notes:                                                                  #
 # 1. It is recommended to review and adapt each section according to the  #
