@@ -12,7 +12,7 @@ Este repositorio es una rama de uno principal denominado [**Estimation-Parameter
 
 ## Resumen
 
-Este proyecto presenta siete distribuciones bivariadas construidas para el vector aleatorio $(Y_1,Y2)$ utilizando la transformación continua y diferenciable,  
+Este proyecto presenta algunas distribuciones bivariadas construidas para el vector aleatorio $(Y_1,Y2)$ utilizando la transformación continua y diferenciable,  
 
 $$\begin{matrix}
    T^{-1}: &  \mathbb{R}^2_+ & \Longrightarrow &(0,1)\times (0,U(X_1))\\
@@ -23,31 +23,12 @@ junto con la representación de la función de densidad conjunta del vector $(X_
 
 $$f_{X_1,X_2}(x_1,x_2|\phi=(\phi_1,\phi_2)) = f_{X_1}(x_1|\phi_1)f_{X_2|X_1}(x_2|x_1,\phi_2).$$
 
-
-un conjunto de rutinas destinadas a estimar los parámetros de forma de la distribución Beta para la variable $X$ desde una perspectiva bayesiana. Aunque se utiliza una nueva distribución a priori bivariada y su respectivo método para simular muestras aleatorias (los cuales pueden ser consultados en la rama [**Algorithm-Sim-Samples**](https://github.com/LLerzy/Estimation-Parameter-Beta/tree/Algorithm-Sim-Samples)), el objetivo principal es desarrollar un estudio de simulación para monitorear el comportamiento de las estimaciones obtenidas para estos parámetros.
-
-El script incluyen enfoques bayesianos empíricos y subjetivos para la estimación de hiperparámetros, utilizando tanto intervalos bootstrap como intervalos de expertos establecidos con diferentes sesgos y semi-amplitudes. Todo el código está escrito en R-Project, aprovechando las herramientas estadísticas y computacionales de este software. El proyecto incluye tanto resultados numéricos como teóricos.
+Aunque se consideraron cinco distribuciones para $X_1$ y cinco para $X_2|X_1$, para un total de 25 combinaciones, esta rama únicamente presenta las caracteristicas de siete distribuciones. Para cada una, se construye la superficie de la densidad, curvas de nivel, densidad marginal, distribución de probabilidad acumulada marginal y momentos (media, varianza). Todo el código está escrito en Mathematica, aprovechando la manipulación simbólica y capacidad computacional de este software. El proyecto incluye 
+únicamente resultados numéricos obtenidos con la función NIntegrate.
 
 ## Instalación
 
-Para ejecutar el código es necesario tener `R` instalado con los siguiente paquetes: 
-
-- `ggplot2` 
-- `gridExtra` 
-- `tidyr` 
-- `plotly` 
-- `coda` 
-- `foreach` 
-- `doParallel` 
-- `betafunctions` 
-- `openxlsx` 
-- `xtable`
-
-Usted puede instalar los paquetes requeridos utilizando el siguiente comando:
-
-``` r
-install.packages(c("ggplot2", "gridExtra", "tidyr","plotly","coda","foreach","doParallel","betafunctions","openxlsx","xtable"))
-```
+Para ejecutar el código es necesario tener `Mathematica` instalado.
 
 ## Uso
 
@@ -59,16 +40,13 @@ Para repliar el análisis y ejecutar los algoritmos, siga los siguientes pasos:
     git clone https://github.com/LLerzy/Estimation-Parameter-Beta/tree/Post-Estimate.git
     ```
 
-2.  Abra el script de R en cualquier ambiente de desarrollo integrado (IDE) compatible:
+2.  Abra el script de Mathematica en cualquier ambiente de desarrollo integrado (IDE) compatible:
 
-    -   Para el script que contiene las funciones principales, consulte [`requiredfunctions.R`](https://github.com/LLerzy/Estimation-Parameter-Beta/blob/Post-Estimate/requiredfunctions.R).
-    -   Para el script que contiene las secuencias sobre el estudio de simulación, consulte [`Post_Estimation_Beta_Param.R`](https://github.com/LLerzy/Estimation-Parameter-Beta/blob/Post-Estimate/Post_Estimation_Beta_Param.R).
+    -   Para el script que contiene las características (mencionadas en el resumen) de las siete distribuciones bivariadas seleccionadas, consulte [`SelectedBivariateDistributions.nb`](SelectedBivariateDistributions.nb).
+    -   Para el script que contiene las caracteristicas de la distribución bivariada de $(Y_1,Y_2)$ construida al considerar $X_1\sim Beta(a,b)$ y $X_2|X_1\sim Beta(c,d)$, consulte [`DistribucionBetaBeta4P.nb`](DistribucionBetaBeta4P.nb).
 
-3.  El script puede ser ejecutado con el siguiente comando, sin embargo, es necesario antes ajustar ciertos parámetros dentro del código.
+3.  El script debe ser ejecutado dentro del IDE.
 
-    ``` bash
-    Rscript Post_Estimation_Beta_Param.R
-    ```
 
 El código considera tres escenarios para los parámetros de forma de la distribución beta y establece diferentes sesgos para el grado de información de expertos hipotéticos. Los resultados que genera el código, involucra el enfoque empírico de Bayes y el enfoque subjetivo, dentro de estos se presenta: Matriz de valores de hiperparámetros, matriz de estimaciones (teóricas) de las distribuciones a priori, gráficos sobre las estimaciones posteriores generadas por el método de muestreo por importancia y características de los estimadores posteriores (estimación promedio, sesgo, error cuadrático medio, probabilidad de cobertura, longitud promedio).
 
