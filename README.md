@@ -23,7 +23,7 @@ junto con la representación de la función de densidad conjunta del vector $(X_
 
 $$f_{X_1,X_2}(x_1,x_2|\phi=(\phi_1,\phi_2)) = f_{X_1}(x_1|\phi_1)f_{X_2|X_1}(x_2|x_1,\phi_2).$$
 
-Aunque se consideraron cinco distribuciones para $X_1$ y cinco para $X_2|X_1$, para un total de 25 combinaciones, esta rama únicamente presenta las caracteristicas de siete distribuciones. Para cada una, se construye la superficie de la densidad, curvas de nivel, densidad marginal, distribución de probabilidad acumulada marginal y momentos (media, varianza). Todo el código está escrito en Mathematica, aprovechando la manipulación simbólica y capacidad computacional de este software. El proyecto incluye resultados numéricos obtenidos con la función NIntegrate y algunos teóricos.
+Aunque se consideraron cinco distribuciones para $X_1$ y cinco para $X_2|X_1$, para un total de 25 combinaciones, esta rama únicamente presenta las caracteristicas de siete distribuciones, todas con vector de parámetros $\phi=(a,b,c,d)$. Para cada una, se construye la superficie de la densidad, curvas de nivel, densidad marginal, distribución de probabilidad acumulada marginal y momentos (media, varianza). Todo el código está escrito en Mathematica, aprovechando la manipulación simbólica y capacidad computacional de este software. El proyecto incluye resultados numéricos obtenidos con la función NIntegrate y algunos teóricos.
 
 ## Instalación
 
