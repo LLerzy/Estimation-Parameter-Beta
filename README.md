@@ -43,23 +43,17 @@ Para replicar el análisis y ejecutar los algoritmos, siga los siguientes pasos:
 2.  Abra el script de Mathematica en cualquier ambiente de desarrollo integrado (IDE) compatible:
 
     -   Para el script que contiene las características (mencionadas en el resumen) de las siete distribuciones bivariadas del vector $(Y_1,Y_2)$ seleccionadas, consulte [`SelectedBivariateDistributions.nb`](SelectedBivariateDistributions.nb).
-    -   Para el script que contiene las caracteristicas de la distribución bivariada del vector $(Y_1,Y_2)$ construida al considerar $X_1\sim Beta(a,b)$ y $X_2|X_1\sim Beta(c,d)$, consulte [`DistribucionBetaBeta4P.nb`](DistribucionBetaBeta4P.nb).
+    -   Para el script que contiene las caracteristicas de la distribución bivariada del vector $(Y_1,Y_2)$ construida al considerar $X_1\sim Beta(a,b)$ y $X_2|X_1\sim Beta(0,U(X_1),c,d)$, consulte [`DistribucionBetaBeta4P.nb`](DistribucionBetaBeta4P.nb).
 
 3.  El script debe ser ejecutado dentro del IDE.
 
 
-El código considera tres escenarios para los parámetros de forma de la distribución beta y establece diferentes sesgos para el grado de información de expertos hipotéticos. Los resultados que genera el código, involucra el enfoque empírico de Bayes y el enfoque subjetivo, dentro de estos se presenta: Matriz de valores de hiperparámetros, matriz de estimaciones (teóricas) de las distribuciones a priori, gráficos sobre las estimaciones posteriores generadas por el método de muestreo por importancia y características de los estimadores posteriores (estimación promedio, sesgo, error cuadrático medio, probabilidad de cobertura, longitud promedio).
+El código en `DistribucionBetaBeta4P.nb` considera cuatro configuraciones para el vector de parámetros $(a,b,c,d)$ de la distribución bivariada construida considerando $X_1\sim Beta(a,b)$ y $X_2|X_1\sim Beta(0,U(X_1),c,d)$, en el se presenta la superficie de la densidad, curvas de nivel, distribución de probabilidad acumulada marginal, superifice de supervivencia, función de densidad marginal y se comparan los momentos teóricos con los aproximados numéricamente a través de la función NIntegrate del software `Mathematica`.
 
 ## Archivos y Documentos
 
--   [`Post_Estimation_Beta_Param.R`](Post_Estimation_Beta_Param.R): Contiene el código utilizado para obtener los resultados del estudio de simulación sobre la estimación posterior de los parámetros de forma de la distribución beta, considerando una nueva distribución bivariada como a priori y una propuesta metodológica para la obtención de valores de hiperparámetros.
--   [`requiredfunctions.R`](requiredfunctions.R): Contiene las funciones personalizadas utilizadas en el estudio de simulación.
--   [`Results_Post_Estim/`](https://github.com/LLerzy/Estimation-Parameter-Beta/tree/Post-Estimate/Results_Post_Estim): Carpeta que contiene dos subcarpetas, la primera almacena las figuras generadas para el monitoreo de las características de los estimadores posteriores y la segunda contiene hojas de calculo sobre los valores de hiperparámetros, junto con las cadenas utilizadas en la construcción de los gráficos antes descritos.
-
-### Figuras y Documentos Claves:
-
--   **Estimaciones Posteriores Generadas Para El Escenario $\alpha=0.5$ y $\beta=0.5$**: Consulte la figura generada [`Alpha-Escenario1.png`](https://github.com/LLerzy/Estimation-Parameter-Beta/blob/Post-Estimate/Results_Post_Estim/Graphics/ParAlphaSigMu01SigV01Scen-1.png) para los resultados obtenidos del parámetros $\alpha$ y la figura [`Beta-Escenario1.png`](https://github.com/LLerzy/Estimation-Parameter-Beta/blob/Post-Estimate/Results_Post_Estim/Graphics/ParBetaSigMu01SigV01Scen-1.png) para los resultados de $\beta$.
--   **Suplemento 1**: Es un archivo PDF, [`Max-IC-Varianza`](https://github.com/LLerzy/Estimation-Parameter-Beta/blob/Post-Estimate/Results_Post_Estim/Supplement1.pdf), que contiene los resultados obtenidos para las estimaciones posteriores cuando se considera que la varianza se encuentra acotada por el límite superior del intervalo de cuantiles que proporciona el experto o el enfoque emppirico de Bayes.
+-   [`DistBivSelecc.pdf`](DistBivSelecc.pdf): Contiene resultados numéricos obtenidos para cada una de las siete distribuciones bivariadas seleccionadas.
+-   [`DistribucionBetaBeta4P.pdf`](DistribucionBetaBeta4P.pdf): Contiene resultados numéricos y teóricos obtenidos para la distribución bivariada construida al considerar $X_1\sim Beta(a,b)$ y $X_2|X_1\sim Beta(0,U(X_1),c,d)$.
 
 ## Contribuciones
 
