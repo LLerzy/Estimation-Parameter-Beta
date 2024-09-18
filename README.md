@@ -55,7 +55,7 @@ Para repliar el análisis y ejecutar los algoritmos, siga los siguientes pasos:
 3.  El script puede ser ejecutado con el siguiente comando, sin embargo, es necesario antes ajustar ciertos parámetros dentro del código.
 
     ``` bash
-    Rscript -e "rmarkdown::render('randomsamples.Rmd')"
+    Rscript Post_Estimation_Beta_Param.R
     ```
 
 El código considera tres escenarios para los parámetros de forma de la distribución beta y establece diferentes sesgos para el grado de información de expertos hipotéticos. Los resultados que genera el código, involucra el enfoque empírico de Bayes y el enfoque subjetivo, dentro de estos se presenta: Matriz de valores de hiperparámetros, matriz de estimaciones (teóricas) de las distribuciones a priori, gráficos sobre las estimaciones posteriores generadas por el método de muestreo por importancia y características de los estimadores posteriores (estimación promedio, sesgo, error cuadrático medio, probabilidad de cobertura, longitud promedio).
