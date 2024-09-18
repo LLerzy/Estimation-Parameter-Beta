@@ -32,18 +32,18 @@ Para ejecutar el código es necesario tener `Mathematica` instalado.
 
 ## Uso
 
-Para repliar el análisis y ejecutar los algoritmos, siga los siguientes pasos:
+Para replicar el análisis y ejecutar los algoritmos, siga los siguientes pasos:
 
 1.  Clone este repositorio:
 
     ``` bash
-    git clone https://github.com/LLerzy/Estimation-Parameter-Beta/tree/Post-Estimate.git
+    git clone https://github.com/LLerzy/Estimation-Parameter-Beta/tree/New-Biv-Dist.git
     ```
 
 2.  Abra el script de Mathematica en cualquier ambiente de desarrollo integrado (IDE) compatible:
 
-    -   Para el script que contiene las características (mencionadas en el resumen) de las siete distribuciones bivariadas seleccionadas, consulte [`SelectedBivariateDistributions.nb`](SelectedBivariateDistributions.nb).
-    -   Para el script que contiene las caracteristicas de la distribución bivariada de $(Y_1,Y_2)$ construida al considerar $X_1\sim Beta(a,b)$ y $X_2|X_1\sim Beta(c,d)$, consulte [`DistribucionBetaBeta4P.nb`](DistribucionBetaBeta4P.nb).
+    -   Para el script que contiene las características (mencionadas en el resumen) de las siete distribuciones bivariadas del vector $(Y_1,Y_2)$ seleccionadas, consulte [`SelectedBivariateDistributions.nb`](SelectedBivariateDistributions.nb).
+    -   Para el script que contiene las caracteristicas de la distribución bivariada del vector $(Y_1,Y_2)$ construida al considerar $X_1\sim Beta(a,b)$ y $X_2|X_1\sim Beta(c,d)$, consulte [`DistribucionBetaBeta4P.nb`](DistribucionBetaBeta4P.nb).
 
 3.  El script debe ser ejecutado dentro del IDE.
 
