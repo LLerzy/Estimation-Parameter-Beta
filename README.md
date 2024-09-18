@@ -69,7 +69,7 @@ El código considera tres escenarios para los parámetros de forma de la distrib
 ### Figuras y Documentos Claves:
 
 -   **Estimaciones Posteriores Generadas Para El Escenario $\alpha=0.5$ y $\beta=0.5$**: Consulte la figura generada [`Alpha-Escenario1.png`](https://github.com/LLerzy/Estimation-Parameter-Beta/blob/Post-Estimate/Results_Post_Estim/Graphics/ParAlphaSigMu01SigV01Scen-1.png) para los resultados obtenidos del parámetros $\alpha$ y la figura [`Beta-Escenario1.png`](https://github.com/LLerzy/Estimation-Parameter-Beta/blob/Post-Estimate/Results_Post_Estim/Graphics/ParBetaSigMu01SigV01Scen-1.png) para los resultados de $\beta$.
--   **Suplemento 1**: Es un archivo PDF, [`Max-IC-Varianza`](https://github.com/LLerzy/Estimation-Parameter-Beta/blob/Post-Estimate/Results_Post_Estim/Supplement1.pdf), que contiene los resultados obtenidos para las estimaciones posteriores cuando se considera que la varianza se encuentra limitada por el límite superior del intervalo de cuantiles que proporciona el experto o el enfoque emppirico de Bayes..
+-   **Suplemento 1**: Es un archivo PDF, [`Max-IC-Varianza`](https://github.com/LLerzy/Estimation-Parameter-Beta/blob/Post-Estimate/Results_Post_Estim/Supplement1.pdf), que contiene los resultados obtenidos para las estimaciones posteriores cuando se considera que la varianza se encuentra acotada por el límite superior del intervalo de cuantiles que proporciona el experto o el enfoque emppirico de Bayes.
 
 ## Contribuciones
 
