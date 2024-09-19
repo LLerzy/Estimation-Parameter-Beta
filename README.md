@@ -1,6 +1,8 @@
 # Estimación Posterior De Los Parámetros De Forma De La Distribución Beta: Estudio de Simulación
 
-En este repositorio se presentan un conjunto de funciones 
+En este repositorio se presentan un conjunto de funciones diseñadas para estimar desde el enfoque Bayesiano, los parámetros de forma de la distribución Beta, cuya función de densidad es
+
+$$f_X(x|\alpha,\beta)=\dfrac{1}{B(\alpha,\beta)}x^{\alpha-1}(1-x)^{\beta-1};\hspace{1cm}x\in[0,1],$$
 
 Este repositorio es una rama de uno principal denominado [**Estimation-Parameter-Beta**](https://github.com/LLerzy/Estimation-Parameter-Beta).
 
