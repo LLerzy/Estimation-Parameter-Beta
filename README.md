@@ -1,59 +1,58 @@
-# Nuevas Distribuciones De Probabilidad Bivariadas
+# New Bivariate Probability Distributions
 
-Este repositorio es una rama de uno principal denominado [**Estimation-Parameter-Beta**](https://github.com/LLerzy/Estimation-Parameter-Beta).
+This repository is a branch of a main repository called [**Estimation-Parameter-Beta**](https://github.com/LLerzy/Estimation-Parameter-Beta).
 
-## Tabla de Contenido
+## Table of Contents
 
--   [Resumen](#resumen)
--   [Instalación](#instalación)
--   [Uso](#uso)
--   [Archivos y Documentos](#archivos-y-documentos)
--   [Contribuciones](#contribuciones)
+-   [Overview](#overview)
+-   [Installation](#installation)
+-   [Usage](#usage)
+-   [Files and Documents](#files-and-documents)
+-   [Contributions](#contributions)
 
-## Resumen
+## Overview
 
-Este proyecto presenta algunas distribuciones bivariadas construidas para el vector aleatorio $(Y_1,Y2)$ utilizando la transformación continua y diferenciable,  
+This project presents several bivariate distributions constructed for the random vector $(Y_1,Y_2)$ using a continuous and differentiable transformation,
 
 $$\begin{matrix}
    T^{-1}: &  \mathbb{R}^2_+ & \Longrightarrow &(0,1)\times (0,U(X_1))\\
         &\left(Y_1,Y_2\right)&\longrightarrow & (X_1,X_2):=\left(\dfrac{Y_1}{Y_1+Y_2},\dfrac{Y_1Y_2}{(Y_1+Y_2)^2(Y_1+Y_2+1)}\right)
 \end{matrix},$$
 
-junto con la representación de la función de densidad conjunta del vector $(X_1,X_2)$,
+along with the joint density function representation of the vector $(X_1,X_2)$,
 
 $$f_{X_1,X_2}(x_1,x_2|\phi=(\phi_1,\phi_2)) = f_{X_1}(x_1|\phi_1)f_{X_2|X_1}(x_2|x_1,\phi_2).$$
 
-Aunque se consideraron cinco distribuciones para $X_1$ y cinco para $X_2|X_1$, para un total de 25 combinaciones, esta rama únicamente presenta las caracteristicas de siete distribuciones, todas con vector de parámetros $\phi=(a,b,c,d)$. Para cada una, se construye la superficie de la densidad, curvas de nivel, densidad marginal, distribución de probabilidad acumulada marginal y momentos (media, varianza). Todo el código está escrito en Mathematica, aprovechando la manipulación simbólica y capacidad computacional de este software. El proyecto incluye resultados numéricos obtenidos con la función NIntegrate y algunos teóricos.
+Although five distributions for $X_1$ and five for $X_2|X_1$ were considered, for a total of 25 combinations, this branch presents the characteristics of only seven distributions, all with a parameter vector $\phi=(a,b,c,d)$. For each one, the density surface, contour curves, marginal density, marginal cumulative probability distribution, and moments (mean, variance) are constructed. All the code is written in Mathematica, taking advantage of the symbolic manipulation and computational power of this software. The project includes numerical results obtained using the NIntegrate function, as well as some theoretical results.
 
-## Instalación
+## Installation
 
-Para ejecutar el código es necesario tener `Mathematica` instalado.
+To run the code, you need to have `Mathematica` installed.
 
-## Uso
+## Usage
 
-Para replicar el análisis y ejecutar los algoritmos, siga los siguientes pasos:
+To replicate the analysis and execute the algorithms, follow these steps:
 
-1.  Clone este repositorio:
+1.  Clone this repository:
 
     ``` bash
     git clone https://github.com/LLerzy/Estimation-Parameter-Beta/tree/New-Biv-Dist.git
     ```
 
-2.  Abra el script de Mathematica en cualquier ambiente de desarrollo integrado (IDE) compatible:
+2.  Open the Mathematica script in any compatible Integrated Development Environment (IDE):
 
-    -   Para el script que contiene las características (mencionadas en el resumen) de las siete distribuciones bivariadas seleccionadas para el vector $(Y_1,Y_2)$, consulte [`SelectedBivariateDistributions.nb`](SelectedBivariateDistributions.nb).
-    -   Para el script que contiene las caracteristicas de la distribución bivariada del vector $(Y_1,Y_2)$, construida considerando $X_1\sim Beta(a,b)$ y $X_2|X_1\sim Beta(0,U(X_1),c,d)$, consulte [`DistribucionBetaBeta4P.nb`](DistribucionBetaBeta4P.nb).
+    -   For the script that contains the characteristics (mentioned in the overview) of the seven selected bivariate distributions for the vector $(Y_1,Y_2)$, refer to [`SelectedBivariateDistributions.nb`](SelectedBivariateDistributions.nb).
+    -   For the script that contains the characteristics of the bivariate distribution of the vector $(Y_1,Y_2)$, constructed by considering $X_1 \sim Beta(a,b)$ and $X_2|X_1 \sim Beta(0,U(X_1),c,d)$, refer to [`DistribucionBetaBeta4P.nb`](DistribucionBetaBeta4P.nb).
 
-3.  El script debe ser ejecutado dentro del IDE.
+3.  The script must be run within the IDE.
 
+The code in `DistribucionBetaBeta4P.nb` considers four configurations for the parameter vector $(a,b,c,d)$ of the bivariate distribution constructed using $X_1 \sim Beta(a,b)$ and $X_2|X_1 \sim Beta(0,U(X_1),c,d)$. It presents the density surface, contour curves, marginal cumulative distribution, survival surface, marginal density function, and compares the theoretical moments with the numerical approximations obtained using the NIntegrate function of the `Mathematica` software.
 
-El código en `DistribucionBetaBeta4P.nb` considera cuatro configuraciones para el vector de parámetros $(a,b,c,d)$ de la distribución bivariada construida utilizando $X_1\sim Beta(a,b)$ y $X_2|X_1\sim Beta(0,U(X_1),c,d)$, en el se presenta la superficie de la densidad, curvas de nivel, distribución de probabilidad acumulada marginal, superifice de supervivencia, función de densidad marginal y se comparan los momentos teóricos con los aproximados numéricamente a través de la función NIntegrate del software `Mathematica`.
+## Files and Documents
 
-## Archivos y Documentos
+-   [`DistBivSelecc.pdf`](DistBivSelecc.pdf): Contains numerical results obtained for each of the seven selected bivariate distributions.
+-   [`DistribucionBetaBeta4P.pdf`](DistribucionBetaBeta4P.pdf): Contains numerical and theoretical results obtained for the bivariate distribution of $(Y_1,Y_2)$, constructed by considering $X_1 \sim Beta(a,b)$ and $X_2|X_1 \sim Beta(0,U(X_1),c,d)$.
 
--   [`DistBivSelecc.pdf`](DistBivSelecc.pdf): Contiene resultados numéricos obtenidos para cada una de las siete distribuciones bivariadas seleccionadas.
--   [`DistribucionBetaBeta4P.pdf`](DistribucionBetaBeta4P.pdf): Contiene resultados numéricos y teóricos obtenidos para la distribución bivariada de $(Y_1,Y_2)$, construida al considerar $X_1\sim Beta(a,b)$ y $X_2|X_1\sim Beta(0,U(X_1),c,d)$.
+## Contributions
 
-## Contribuciones
-
-¡Las contribuciones son bienvenidas! Envíe una solicitud de incorporación de cambios o abra un problema si tiene alguna sugerencia o mejora.
+Contributions are welcome! Please submit a pull request or open an issue if you have any suggestions or improvements.
