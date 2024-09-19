@@ -11,7 +11,7 @@ This repository is a branch of a main repository called **[Estimation-Parameter-
 
 ## Overview
 
-This project presents a set of functions implementing MCMC algorithms designed to generate random samples $(x_1,x_2)_{(n)}$ from the random vector \((X_1, X_2)\) with the density function 
+This project presents a set of functions implementing MCMC algorithms designed to generate random samples $(x_1,x_2)_{(n)}$ from the random vector $(X_1, X_2)$ with the density function 
 
 $$f(x_1,x_2|\phi)=\dfrac{1}{\text{beta}(a,b)\text{beta}(c,d)}\dfrac{x_2^{c-1}[x_1(1-x_1)-x_2]^{d-1}}{x_1^{c+d-a}(1-x_1)^{c+d-b}}.$$
 
