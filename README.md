@@ -1,4 +1,4 @@
-# Posterior Estimation of the Shape Parameters of the Beta Distribution: Simulation Study
+# Posterior Estimation of the Shape Parameters of the Beta Distribution
 
 This main repository contains three branches aimed at providing a methodology to estimate the shape parameters of the Beta distribution.
 
