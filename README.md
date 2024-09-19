@@ -1,24 +1,24 @@
-# Estimación Posterior De Los Parámetros De Forma De La Distribución Beta: Estudio de Simulación
+# Posterior Estimation of the Shape Parameters of the Beta Distribution: Simulation Study
 
-Este repositorio es una rama de uno principal denominado [**Estimation-Parameter-Beta**](https://github.com/LLerzy/Estimation-Parameter-Beta).
+This repository is a branch of a main repository called [**Estimation-Parameter-Beta**](https://github.com/LLerzy/Estimation-Parameter-Beta).
 
-## Tabla de Contenido
+## Table of Contents
 
--   [Resumen](#resumen)
--   [Instalación](#instalación)
--   [Uso](#uso)
--   [Archivos y Documentos](#archivos-y-documentos)
--   [Contribuciones](#contribuciones)
+-   [Overview](#overview)
+-   [Installation](#installation)
+-   [Usage](#usage)
+-   [Files and Documents](#files-and-documents)
+-   [Contributions](#contributions)
 
-## Resumen
+## Overview
 
-Este proyecto contiene un conjunto de rutinas destinadas a estimar los parámetros de forma de la distribución Beta para la variable $X$ desde una perspectiva bayesiana. Aunque se utiliza una nueva distribución a priori bivariada y su respectivo método para simular muestras aleatorias (los cuales pueden ser consultados en la rama [**Algorithm-Sim-Samples**](https://github.com/LLerzy/Estimation-Parameter-Beta/tree/Algorithm-Sim-Samples)), el objetivo principal es desarrollar un estudio de simulación para monitorear el comportamiento de las estimaciones obtenidas para estos parámetros.
+This project contains a set of routines aimed at estimating the shape parameters of the Beta distribution for the variable $X$ from a Bayesian perspective. Although a new bivariate prior distribution and its respective method for simulating random samples are used (which can be found in the [**Algorithm-Sim-Samples**](https://github.com/LLerzy/Estimation-Parameter-Beta/tree/Algorithm-Sim-Samples) branch), the main goal is to develop a simulation study to monitor the behavior of the estimates obtained for these parameters.
 
-El script incluyen enfoques bayesianos empíricos y subjetivos para la estimación de hiperparámetros, utilizando tanto intervalos bootstrap como intervalos de expertos establecidos con diferentes sesgos y semi-amplitudes. Todo el código está escrito en R-Project, aprovechando las herramientas estadísticas y computacionales de este software. El proyecto incluye tanto resultados numéricos como teóricos.
+The script includes both empirical and subjective Bayesian approaches for the estimation of hyperparameters, using bootstrap intervals and expert intervals with different biases and semi-widths. All the code is written in R-Project, taking advantage of the statistical and computational tools of this software. The project includes both numerical and theoretical results.
 
-## Instalación
+## Installation
 
-Para ejecutar el código es necesario tener `R` instalado con los siguiente paquetes: 
+To run the code, you need to have `R` installed with the following packages:
 
 - `ggplot2` 
 - `gridExtra` 
@@ -31,46 +31,46 @@ Para ejecutar el código es necesario tener `R` instalado con los siguiente paqu
 - `openxlsx` 
 - `xtable`
 
-Usted puede instalar los paquetes requeridos utilizando el siguiente comando:
+You can install the required packages using the following command:
 
 ``` r
 install.packages(c("ggplot2", "gridExtra", "tidyr","plotly","coda","foreach","doParallel","betafunctions","openxlsx","xtable"))
 ```
 
-## Uso
+## Usage
 
-Para repliar el análisis y ejecutar los algoritmos, siga los siguientes pasos:
+To replicate the analysis and run the algorithms, follow these steps:
 
-1.  Clone este repositorio:
+1.  Clone this repository:
 
     ``` bash
     git clone https://github.com/LLerzy/Estimation-Parameter-Beta/tree/Post-Estimate.git
     ```
 
-2.  Abra el script de R en cualquier ambiente de desarrollo integrado (IDE) compatible:
+2.  Open the R script in any compatible Integrated Development Environment (IDE):
 
-    -   Para el script que contiene las funciones principales, consulte [`requiredfunctions.R`](https://github.com/LLerzy/Estimation-Parameter-Beta/blob/Post-Estimate/requiredfunctions.R).
-    -   Para el script que contiene las secuencias sobre el estudio de simulación, consulte [`Post_Estimation_Beta_Param.R`](https://github.com/LLerzy/Estimation-Parameter-Beta/blob/Post-Estimate/Post_Estimation_Beta_Param.R).
+    -   For the script containing the main functions, refer to [`requiredfunctions.R`](https://github.com/LLerzy/Estimation-Parameter-Beta/blob/Post-Estimate/requiredfunctions.R).
+    -   For the script containing the simulation study sequences, refer to [`Post_Estimation_Beta_Param.R`](https://github.com/LLerzy/Estimation-Parameter-Beta/blob/Post-Estimate/Post_Estimation_Beta_Param.R).
 
-3.  El script puede ser ejecutado con el siguiente comando, sin embargo, es necesario antes ajustar ciertos parámetros dentro del código.
+3.  The script can be executed using the following command; however, it is necessary to adjust certain parameters in the code beforehand.
 
     ``` bash
     Rscript Post_Estimation_Beta_Param.R
     ```
 
-El código considera tres escenarios para los parámetros de forma de la distribución beta y establece diferentes sesgos para el grado de información de expertos hipotéticos. Los resultados que genera el código, involucra el enfoque empírico de Bayes y el enfoque subjetivo, dentro de estos se presenta: Matriz de valores de hiperparámetros, matriz de estimaciones (teóricas) de las distribuciones a priori, gráficos sobre las estimaciones posteriores generadas por el método de muestreo por importancia y características de los estimadores posteriores (estimación promedio, sesgo, error cuadrático medio, probabilidad de cobertura, longitud promedio).
+The code considers three scenarios for the shape parameters of the Beta distribution and establishes different biases for the level of information from hypothetical experts. The results generated by the code involve both empirical Bayesian and subjective approaches. These results include: a matrix of hyperparameter values, a matrix of (theoretical) estimates of the prior distributions, graphs of the posterior estimates generated by importance sampling, and characteristics of the posterior estimators (mean estimate, bias, mean squared error, coverage probability, average length).
 
-## Archivos y Documentos
+## Files and Documents
 
--   [`Post_Estimation_Beta_Param.R`](Post_Estimation_Beta_Param.R): Contiene el código utilizado para obtener los resultados del estudio de simulación sobre la estimación posterior de los parámetros de forma de la distribución beta, considerando una nueva distribución bivariada como a priori y una propuesta metodológica para la obtención de valores de hiperparámetros.
--   [`requiredfunctions.R`](requiredfunctions.R): Contiene las funciones personalizadas utilizadas en el estudio de simulación.
--   [`Results_Post_Estim/`](https://github.com/LLerzy/Estimation-Parameter-Beta/tree/Post-Estimate/Results_Post_Estim): Carpeta que contiene dos subcarpetas, la primera almacena las figuras generadas para el monitoreo de las características de los estimadores posteriores y la segunda contiene hojas de calculo sobre los valores de hiperparámetros, junto con las cadenas utilizadas en la construcción de los gráficos antes descritos.
+-   [`Post_Estimation_Beta_Param.R`](Post_Estimation_Beta_Param.R): Contains the code used to obtain the simulation study results for the posterior estimation of the shape parameters of the Beta distribution, considering a new bivariate prior distribution and a proposed methodology for obtaining hyperparameter values.
+-   [`requiredfunctions.R`](requiredfunctions.R): Contains the custom functions used in the simulation study.
+-   [`Results_Post_Estim/`](https://github.com/LLerzy/Estimation-Parameter-Beta/tree/Post-Estimate/Results_Post_Estim): Folder containing two subfolders: one stores the figures generated for monitoring the characteristics of the posterior estimators, and the other contains spreadsheets with the hyperparameter values along with the chains used to construct the previously described graphs.
 
-### Figuras y Documentos Claves:
+### Key Figures and Documents:
 
--   **Estimaciones Posteriores Generadas Para El Escenario $\alpha=0.5$ y $\beta=0.5$**: Consulte la figura generada [`Alpha-Escenario1.png`](https://github.com/LLerzy/Estimation-Parameter-Beta/blob/Post-Estimate/Results_Post_Estim/Graphics/ParAlphaSigMu01SigV01Scen-1.png) para los resultados obtenidos del parámetros $\alpha$ y la figura [`Beta-Escenario1.png`](https://github.com/LLerzy/Estimation-Parameter-Beta/blob/Post-Estimate/Results_Post_Estim/Graphics/ParBetaSigMu01SigV01Scen-1.png) para los resultados de $\beta$.
--   **Suplemento 1**: Es un archivo PDF, [`Max-IC-Varianza`](https://github.com/LLerzy/Estimation-Parameter-Beta/blob/Post-Estimate/Results_Post_Estim/Supplement1.pdf), que contiene los resultados obtenidos para las estimaciones posteriores cuando se considera que la varianza se encuentra acotada por el límite superior del intervalo de cuantiles que proporciona el experto o el enfoque emppirico de Bayes.
+-   **Posterior Estimates Generated for Scenario $\alpha=0.5$ and $\beta=0.5$**: See the generated figure [`Alpha-Escenario1.png`](https://github.com/LLerzy/Estimation-Parameter-Beta/blob/Post-Estimate/Results_Post_Estim/Graphics/ParAlphaSigMu01SigV01Scen-1.png) for the results obtained for the parameter $\alpha$ and the figure [`Beta-Escenario1.png`](https://github.com/LLerzy/Estimation-Parameter-Beta/blob/Post-Estimate/Results_Post_Estim/Graphics/ParBetaSigMu01SigV01Scen-1.png) for the results of $\beta$.
+-   **Supplement 1**: A PDF file, [`Max-IC-Varianza`](https://github.com/LLerzy/Estimation-Parameter-Beta/blob/Post-Estimate/Results_Post_Estim/Supplement1.pdf), contains the results obtained for the posterior estimates when considering the variance is bounded by the upper limit of the quantile interval provided by the expert or the empirical Bayesian approach.
 
-## Contribuciones
+## Contributions
 
-¡Las contribuciones son bienvenidas! Envíe una solicitud de incorporación de cambios o abra un problema si tiene alguna sugerencia o mejora.
+Contributions are welcome! Please submit a pull request or open an issue if you have any suggestions or improvements.
