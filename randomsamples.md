@@ -1,45 +1,47 @@
 RandomSample
 ================
 
-En este documento se presenta un método de simulación para generar
-muestras aleatorias de una nueva distribución de probabilidad bivariada
-con parámetros $\phi=(a,b,c,d)$, función de densidad de probabilidad
+# Introduction
+
+This document presents a simulation method for generating random samples
+from a new bivariate probability distribution with parameters
+$\phi=(a,b,c,d)$, and a probability density function.
 
 $$
 f_{\phi}(y_1,y_2)= \dfrac{1}{beta(a,b)beta(c,d)}\ y_1^{a-1}y_2^{b-1}(y_1+y_2)^{d-(a+b)} (y_1+y_2+1)^{-c-d},\hspace{1cm}y_1,y_2\in\mathbb{R}^+
 $$
 
-y momento conjunto de orden $l=l_1+l_2$ determinado por
+and a joint moment of order $l = l_1 + l_2$ determined by
 
 $$
 E_{\phi}[Y_1^{l_1} Y_2^{l_2}] \propto beta(c-l,l+d)\times beta(l_1+a,l_2+b)
 $$
 
-siempre que $c>2$.
+provided that $c > 2$.
 
-El método presentado utiliza el método de metropolis Hasting con
-caminata aleatoria para generar muestras de la distribución condicional
-$X_1$ dado $X_2$, posteriormente se utiliza Gibbs Sampling para generar
-muestras del vector aleatorio $(X_1,X_2)$ y finalmente se obtienen
-muestras para el vector $(Y_1,Y_2)$ mediante la transformación
+The presented method uses the Metropolis-Hastings method with a random
+walk to generate samples from the conditional distribution $X_1$ given
+$X_2$. Subsequently, Gibbs Sampling is used to generate samples from the
+random vector $(X_1, X_2)$, and finally, samples for the vector
+$(Y_1, Y_2)$ are obtained through the transformation.
 
 $$
 (Y_1,Y_2)=\left(X_1\left(\dfrac{X_1(1-X_1)}{X_2}-1\right),(1-X_1)\left(\dfrac{X_1(1-X_1)}{X_2}-1\right)\right).
 $$
 
-# Generación de Muestras de $X_1$ dado $X_2$
+# Generating Samples of $X_1$ Given $X_2$
 
-## Distribución Condicional de $X_1$ dado $X_2$.
+## Conditional Distribution of $X_1$ Given $X_2$
 
-La función de densidad condicional de $X_1$ dado $X_2=v$ es
+The conditional density function of $X_1$ given $X_2 = v$ is
 
 $$
 f_{\phi}(x_1|x_2)\propto x_1^{a-c-d}(x_1(1-x_1)-x_2)^{d-1}(1-x_1)^{b-c-d}
 $$
 
-Fijando valores de hiperparámetros
-$\phi=(a1,b1,c1,d1)=(2.2,2.2,2.2,2.2)$, se construye la gráfica para
-tres valores de $X_2$.
+By setting the hyperparameter values
+$\phi = (a1, b1, c1, d1) = (2.2, 2.2, 2.2, 2.2)$, the graph is
+constructed for three values of $X_2$.
 
 ``` r
 a1=2.2; b1=2.2; c1=2.2; d1=2.2
@@ -48,31 +50,31 @@ Graph_Fc_X1(v1 = 0.05,"v=0.05",v2 = 0.10,"v=0.10",v3 = 0.20,"v=0.20",ae = a1,be 
 
 ![](randomsamples_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->
 
-Se observa que la densidad condicional es simétrica para la
-configuración de valores $\phi$ y que ésta disminuye para valores de
-$X_2$ cercanos a 0.25.
+It is observed that the conditional density is symmetric for the
+configuration of $\phi$ values and that it decreases for $X_2$ values
+close to 0.25.
 
-## Algoritmo Metropolis Hasting con Caminata Aleatoria
+## Metropolis-Hastings Algorithm with Random Walk
 
-Utilizando el algoritmo de Metropolis Hastings con Caminata Aleatoria
-(MHCA), se genera una cadena de tamaño $N=10^4$ con precisión de 3 en la
-distribución instrumental, thin de 1 y burnin de 500. La gráfica de la
-densidad obtenida presenta un comportamiento similar al obtenido
-anteriormente.
+Using the Metropolis-Hastings Algorithm with Random Walk (MHARW), a
+chain of size $N=10^5$ is generated with a precision of 3 in the
+proposal distribution, a thinning of 25, and a burn-in of 5000. The
+graph of the resulting density shows a similar behavior to the one
+obtained previously.
 
 ``` r
 test=Gen_FC_X1_X2(N=10^5, prop_prec=3, a=a1, b=b1, c=c1, d=d1, v=0.05, option = "all", thin=25, burnin=5000,target_acceptance = 0.4)
-plot(density(test$thinned_chain),main="Densidad de distribución condicional X_1 dado X_2",xlab=expression(x[1]))
+plot(density(test$thinned_chain),main="Conditional Distribution Density of X_1 Given X_2",xlab=expression(x[1]))
 ```
 
 ![](randomsamples_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
 
-## Monitoreo de convergencia método de simulación
+## Convergence Monitoring of the Simulation Method
 
-Para monitorear la convergencia de la cadena del algoritmo diseñado, se
-monitorea la tasa de aceptación y el tamaño de muestra efectivo para
-diferentes valores de la precisión (utilizada en la distribución
-instrumental) versus valores de $X_2=v$ .
+To monitor the convergence of the chain from the designed algorithm, the
+acceptance rate and the effective sample size are tracked for different
+values of the precision (used in the proposal distribution) versus
+values of $X_2 = v$.
 
 ``` r
 Mon_Measure(N=10^4, prop_prec_values=seq(1, 20, by = 1), a=a1, b=b1, c=c1, d=d1, v_values=seq(0.01, 0.24, length.out = 10),thin = 5,burnin = 1000,target_acceptance = 0.4)
@@ -80,40 +82,39 @@ Mon_Measure(N=10^4, prop_prec_values=seq(1, 20, by = 1), a=a1, b=b1, c=c1, d=d1,
 
 ![](randomsamples_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
-El comportamiento ideal buscado es que la tasa de aceptación permanezca
-entre 0.2 y 0.7, mientras que el tamaño de muestra efectivo permanezca
-cercano al tamaño de muestra generado, para la configuración de las
-gráficas anteriores, el tamaño de muestra efectivo debería ser superior
-a 544 y cercanas a $(10^4 -500)/5=1900$. Los gráficos presentados
-permiten determinar el valor de la precisión según el valor de $X_2$.
+The ideal behavior sought is for the acceptance rate to remain between
+0.3 and 0.7, while the effective sample size stays close to the
+generated sample size. For the configuration of the previous graphs, the
+effective sample size should be above 465 and close to
+$(10^4 - 1000) / 5 = 1800$. The presented graphs allow for determining
+the value of the precision based on the value of $X_2$.
 
-En la siguiente gráfica se presenta el comportamiento del indicador
-R-Hat (Gelman-Rubin), este se utiliza para compara la variabilidad entre
-varias cadenas con la variabilidad dentro de cada cadena. Un valor de
-R-Hat cercano a 1 indica que las cadenas han convergido a la misma
-distribución, lo que sugiere que las muestras generadas son
-representativas de la distribución. Si el valor de R-Hat es
-significativamente mayor que 1, se recomienda continuar la simulación
-para asegurar una mejor convergencia y obtener estimaciones más
-precisas.
+The following graph shows the behavior of the R-Hat indicator
+(Gelman-Rubin), which is used to compare the variability between several
+chains with the variability within each chain. An R-Hat value close to 1
+indicates that the chains have converged to the same distribution,
+suggesting that the generated samples are representative of the
+distribution. If the R-Hat value is significantly greater than 1, it is
+recommended to continue the simulation to ensure better convergence and
+obtain more accurate estimates.
 
 ``` r
-Mon_R_Hat(N=10^4, prop_prec_values=seq(1, 20, by = 1), a=a1, b=b1, c=c1, d=d1, v_values=seq(0.01, 0.24, length.out = 10),thin = 2,burnin = 1000,target_acceptance = 0.4)
+Mon_R_Hat(N=10^4, prop_prec_values=seq(1, 20, by = 1), a=a1, b=b1, c=c1, d=d1, v_values=seq(0.01, 0.24, length.out = 10),thin = 5,burnin = 1000,target_acceptance = 0.4)
 ```
 
 ![](randomsamples_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
 
-## Otra muestra aleatoria generada para la distribución condicional de $X_1$ dado $X_2$
+## Another random sample generated for the conditional distribution of $X_1$ given $X_2$
 
-Se genera otra muestra de tamaño $N=10^5$, utilizando
-$\phi=(2.2,2.2,2.2,2.2)$ con precisión 3, thin=50, burnin=5000,
-$X_2=v=0.1$ y tasa de aceptación objetivo target_acceptance=0.3, esta
-cantidad controla el aumento o disminución del valor de la precisión
-durante la simulación, es decir, el algoritmo se ajusta así mismo, lo
-cual permite disminuir rápidamente la autocorrelación de la cadena.
+Another sample of size $N=10^5$ is generated using
+$\phi = (2.2, 2.2, 2.2, 2.2)$ with a precision of 3, thinning of 25,
+burn-in of 5000, $X_2 = v = 0.05$, and target acceptance of 0.4. This
+latter value controls the increase or decrease of the precision during
+the simulation, meaning the algorithm adjusts itself, which allows for a
+rapid reduction in the autocorrelation of the chain.
 
 ``` r
-ExampleFC_X1_X2=Gen_FC_X1_X2(N=10^5, prop_prec = 3, a=a1, b=b1, c=c1, d=d1, v=0.05, option="all", thin = 25, burnin = 5000, X10_given = "random", target_acceptance = 0.4, dig_tol=15)
+ExampleFC_X1_X2=Gen_FC_X1_X2(N=10^5, prop_prec = 3, a=a1, b=b1, c=c1, d=d1, v=0.05, option="all",thin = 25, burnin = 5000, X10_given = "random", target_acceptance = 0.4, dig_tol=15)
 Graphs(as.data.frame(ExampleFC_X1_X2$thinned_chain), "X1", width = 40, lscatt = 0.3, uscatt = 0.3)
 ```
 
@@ -121,27 +122,28 @@ Graphs(as.data.frame(ExampleFC_X1_X2$thinned_chain), "X1", width = 40, lscatt = 
 
 ![](randomsamples_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
 
-Para los resultados de ExampleFC_X1_X2, la siguiente Tabla presenta la
-tasa de aceptación antes del periodo de quema y después del periodo de
-quemado, tamaño de muestra efectiva, longitud de la cadena y el valor de
-la precisión después de ser ajustada. El periodo de ajuste corresponde
-al segmento de la cadena quemada.
+For the results of ExampleFC_X1_X2, the following table presents the
+acceptance rate before and after the burn-in period, the effective
+sample size, chain length, and the adjusted precision value. The
+adjustment period corresponds to the burn-in segment of the chain.
 
 ``` r
 data.frame("Acceptance Rate"=ExampleFC_X1_X2$acc_rate,"Acceptance Rate Post Burnin"=ExampleFC_X1_X2$acc_rate_pos_burnin, "ESS"=effectiveSize(ExampleFC_X1_X2$thinned_chain),"Length"=length(ExampleFC_X1_X2$thinned_chain), "Precision"=ExampleFC_X1_X2$precision)
 ```
 
-## Monitoreo de convergencia con semillas fijas
+    ##      Acceptance.Rate Acceptance.Rate.Post.Burnin      ESS Length Precision
+    ## var1       0.8551686                   0.8611985 1103.187   3800   34.4022
 
-Las muestras simuladas anteriormente consideraron que la semilla era
-generada de forma aleatoria. Ahora consideramos nueve semillas
-establecidas por el usuario y monitoreamos la convergencia del promedio
-de cada cadena generada.
+## Convergence Monitoring with Fixed Seeds
+
+The previously simulated samples assumed that the seed was generated
+randomly. Now, we consider nine user-specified seeds and monitor the
+convergence of the mean of each generated chain.
 
 ``` r
 N=10^5;burnin=5000;thin=25; target_acceptance=0.4
 seedgiv=seq(0.1,0.9,0.1)
-ExampleFC_X1_X2_seedgiven=matrix(data=NA,nrow = length(seq((burnin+1), N, by = thin)),ncol=9, dimnames=list(list(),list("0.1","0.2","0.3","0.4","0.5","0.6","0.7","0.8","0.9")))
+ExampleFC_X1_X2_seedgiven=matrix(data=NA,nrow = length(seq((burnin+1), N, by = thin)),ncol=9,dimnames=list(list(),list("0.1","0.2","0.3","0.4","0.5","0.6","0.7","0.8","0.9")))
 for (i in 1:9) {
   ExampleFC_X1_X2_seedgiven[,i]=Gen_FC_X1_X2(N=N, prop_prec = 3, a=a1, b=b1, c=c1, d=d1, v=0.05, option="all", thin = thin, burnin = burnin, X10_given = seedgiv[i], dig_tol = 10,target_acceptance)$thinned_chain
 }
@@ -171,21 +173,23 @@ grid.arrange(arrangeGrob(Piece1_Grap_FC, Piece2_Grap_FC, Full_Grap_FC,ncol=2, nr
 round(apply(ExampleFC_X1_X2_seedgiven[1:3800,], 2, mean),3)
 ```
 
+    ##   0.1   0.2   0.3   0.4   0.5   0.6   0.7   0.8   0.9 
+    ## 0.494 0.491 0.488 0.506 0.490 0.499 0.499 0.499 0.501
+
 # Gibbs Sampling
 
-## Muestras aleatorias para el vector $(X_1,X_2)$
+## Random Samples for the Vector $(X_1, X_2)$
 
-### Monitoreo de Convergencia
+### Convergence Monitoring
 
-Se utiliza el algoritmo de Gibbs Sampling para generar una muestra
-aleatoria del vector $(X_1,X_2)$. Para el monitoreo de la convergencia
-de las cadenas generadas para $X_1$ y $X_2$ se presentan figuras que
-involucran la densidad e histograma, traza, promedio acumulado y
-autocorrelación.
+The Gibbs Sampling algorithm is used to generate a random sample of the
+vector $(X_1, X_2)$. For the convergence monitoring of the chains
+generated for $X_1$ and $X_2$, figures are presented that include
+density versus histogram, trace, cumulative mean, and autocorrelation.
 
 ``` r
 N=10^5
-Example_Joint_Dist=Gen_Joint_Dist(N1 = N,N2 = 2,prop_prec = 3,a1,b1,c1,d1,thin = 2,X10_given = "random",target_acceptance = 0.4)
+Example_Joint_Dist=Gen_Joint_Dist(N1 = N,N2 = 2,prop_prec = 3,a1,b1,c1,d1,thin = 2,X10_given ="random",target_acceptance = 0.4)
 burnin=5000;thin=25
 Graphs(as.data.frame(Example_Joint_Dist$X2[seq((burnin+1), N, by=thin)]),"X2",width = 40,uscatt = 0.06,lscatt = 0.05)
 ```
@@ -193,9 +197,6 @@ Graphs(as.data.frame(Example_Joint_Dist$X2[seq((burnin+1), N, by=thin)]),"X2",wi
     ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 
 ![](randomsamples_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
-
-Note that the `echo = FALSE` parameter was added to the code chunk to
-prevent printing of the R code that generated the plot.
 
 ``` r
 Graphs(as.data.frame(Example_Joint_Dist$X1[seq((burnin+1), N, by=thin)]),"X1",width = 40,uscatt = 0.25,lscatt = 0.2)
@@ -205,12 +206,11 @@ Graphs(as.data.frame(Example_Joint_Dist$X1[seq((burnin+1), N, by=thin)]),"X1",wi
 
 ![](randomsamples_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
 
-### Curvas de nivel y diagrama de puntos para la muestra generada para $(X_1,X_2)$
+### Contour Plots and Scatter Plot for the Generated Sample of $(X_1, X_2)$
 
-Se grafica el diagrama de puntos de la muestra generada
-Example_Joint_Dist sobre las curvas de nivel asociadas con la
-distribución bivariada $(X_1,X_2)$ y parámetros
-$\phi=(2.2,2.2,2.2,2.2)$.
+The scatter plot of the generated sample Example_Joint_Dist is plotted
+over the contour lines associated with the bivariate distribution
+$(X_1, X_2)$ with parameters $\phi = (2.2, 2.2, 2.2, 2.2)$.
 
 ``` r
 mu1=seq(0,1,length=10^3)
@@ -220,21 +220,21 @@ dta=expand.grid(X1 = mu1, X2 = s1) %>%
 ggplot()+geom_contour(aes(dta$X1, dta$X2, z = (dta$Z)),bins = 50) + 
   geom_point(aes(x=Example_Joint_Dist$X1[seq((burnin+1), N, by=thin)], y=Example_Joint_Dist$X2[seq((burnin+1), N, by=thin)]), colour="red",size=0.2) + 
   xlab(expression(X[1])) + ylab(expression(X[2])) + 
-  labs(title = "Curvas de nivel y diagrama de puntos de una muestra aleatoria")
+  labs(title = "Contour Plots and Scatter Plot of a Random Sample")
 ```
 
 ![](randomsamples_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
 
-## Muestras aleatorias para el vector $(Y_1,Y_2)$
+## Random Samples for the Vector $(Y_1, Y_2)$
 
-### Monitoreo de Convergencia
+### Convergence Monitoring
 
-Ahora, se transforman la muestra generada en Example_Joint_Dist para el
-vector $(X_1,X_2)$ a una muestra para el vector $(Y_1,Y_2)$ utilizando
-la transformación presentada al principio de este documento. Para el
-monitoreo de la convergencia de las cadenas para $Y_1$ y $Y_2$ se
-utiliza la densidad e histograma, traza, promedio acumulado y
-autocorrelación.
+The generated sample Example_Joint_Dist for the vector $(X_1, X_2)$ is
+now transformed into a sample for the vector $(Y_1, Y_2)$ using the
+transformation presented at the beginning of this document. For
+convergence monitoring of the chains for $Y_1$ and $Y_2$, the density
+and histogram, trace plot, cumulative mean, and autocorrelation are
+used.
 
 ``` r
 piece=(Example_Joint_Dist$X1[seq((burnin+1), N, by=thin)]*(1-Example_Joint_Dist$X1[seq((burnin+1), N, by=thin)])/ (Example_Joint_Dist$X2[seq((burnin+1), N, by=thin)])-1)
@@ -255,12 +255,12 @@ Graphs(as.data.frame(beta),"Y2",width = 40,uscatt = 10,lscatt = 10)
 
 ![](randomsamples_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
 
-### Curvas de nivel y diagrama de puntos para la muestra generada para $(Y_1,Y_2)$
+### Contour Plots and Scatter Plot for the Generated Sample of $(Y_1, Y_2)$
 
-Se grafica el diagrama de puntos de la muestra generada para el vector
-aleatorio $(Y_1, Y_2)$ sobre las curvas de nivel asociadas con la
-distribución bivariada $(Y_1,Y_2)$ y parámetros
-$\phi=(2.2,2.2,2.2,2.2)$.
+The scatter plot of the generated sample for the random vector
+$(Y_1, Y_2)$ is plotted over the contour lines associated with the
+bivariate distribution $(Y_1, Y_2)$ with parameters
+$\phi = (2.2, 2.2, 2.2, 2.2)$.
 
 ``` r
 alp1=seq(0,18,length=10^3)
@@ -270,62 +270,71 @@ dta=expand.grid(X1 = alp1, X2 = bet1) %>%
 ggplot()+geom_contour(aes(dta$X1, dta$X2, z = dta$Z),bins = 50)+
   geom_point(aes(x=alpha,y=beta),colour="red",size=0.3)+xlab(expression(Y[1])) + 
   ylab(expression(Y[2])) + 
-  labs(title = "Curvas de nivel y diagrama de puntos de una muestra aleatoria")+xlim(c(0,5)) + 
+  labs(title = "Contour Plots and Scatter Plot of a Random Sample")+xlim(c(0,5)) + 
   ylim(c(0,2))
 ```
 
 ![](randomsamples_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
 
-# Comparación entre momentos numéricos y analíticos
+# Comparison Between Numerical and Analytical Moments
 
-Se genera una muestra aleatoria de tamaño $N=10^5$ para el vector
-aleatorio $(X_1, X_2)$ con precisión 3, $\phi=(2.2,2.2,2.2,2.2)$,
-thin=1, y semilla aleatoria. Posteriormente se utiliza la función
-results_measure_diag para determinar los momentos numéricos, analíticos
-y la diferencia entre estos. En la implementación de esta función se
-utiliza un burnin=15000 y thin=7. Primero se presentan los resultados
-numéricos de las medidas.
+The function Measure_Diagnostic is used with the sample
+Example_Joint_Dist to determine the numerical moments, analytical
+moments, and the difference between them for the vector $(Y_1, Y_2)$. In
+the implementation of this function, a burn-in of 5000 and a thinning of
+25 are used.
 
 ``` r
-#Example_Joint_Dist=Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec=3,a = a1,b = b1,c = c1,d = d1,thin = 1, X10_given = "random")
-
 results_measure_diag=Measure_Diagnostic(data1 = Example_Joint_Dist$X1,data2 = Example_Joint_Dist$X2, var ="transform", digits = 4, a = a1, b = b1, c = c1, d = d1, burnin = 5000, thin = 25)
-
-print(round(results_measure_diag$Numerical,4))
 ```
 
-Los resultados analíticos fueron:
+The numerical results were:
 
 ``` r
-print(round(results_measure_diag$Analytical,4))
+results_measure_diag$Numerical
 ```
 
-La diferencia entre las medidas descriptivas numéricas y las analíticas
-son las siguientes:
+    ##   Mean_Y1 Var_Y1 ESS_Y1 Mean_Y2 Var_Y2 ESS_Y2    Cov Length
+    ## 1  0.9416 2.7457   3800  0.9597 2.9071   3800 2.2778   3800
+
+The analytical results were:
 
 ``` r
-print(round(results_measure_diag$Differences,4))
+results_measure_diag$Analytical
 ```
 
-# Comparación utilizando otra configuración de parámetros
+    ##   Mean_Y1 Var_Y1 ESS_Y1 Mean_Y2 Var_Y2 ESS_Y2   Cov Length
+    ## 1  0.9167 7.8511   3800  0.9167 7.8511   3800 5.135   3800
+
+The difference between the numerical and analytical descriptive measures
+is as follows:
 
 ``` r
-a1=3;b1=6;c1=3;d1=6
-Example_Joint_Dist1=Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec=4,a = a1,b = b1,c = c1,d = d1,thin = 1, X10_given = "random",target_acceptance = 0.4)
-
-results_measure_diag1=Measure_Diagnostic(data1 = Example_Joint_Dist1$X1,data2 = Example_Joint_Dist1$X2, var ="transform", digits = 4, a = a1, b = b1, c = c1, d = d1, burnin = 5000, thin = 25)
+results_measure_diag$Differences
 ```
 
-Los resultados numéricos fueron:
+    ##   Mean_Y1 Var_Y1 ESS_Y1 Mean_Y2 Var_Y2 ESS_Y2    Cov Length
+    ## 1 -0.0249 5.1054      0  -0.043  4.944      0 2.8572      0
+
+# Comparison Using a Different Parameter Configuration
+
+``` r
+a2=3;b2=6;c2=3;d2=6
+Example_Joint_Dist1=Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec=4,a = a2,b = b2,c = c2,d = d2,thin = 2, X10_given = "random",target_acceptance = 0.4)
+
+results_measure_diag1=Measure_Diagnostic(data1 = Example_Joint_Dist1$X1,data2 = Example_Joint_Dist1$X2, var ="transform", digits = 4, a = a2, b = b2, c = c2, d = d2, burnin = 5000, thin = 25)
+```
+
+The numerical results were:
 
 ``` r
 results_measure_diag1$Numerical
 ```
 
-    ##   Mean_Y1 Var_Y1   ESS_Y1 Mean_Y2 Var_Y2 ESS_Y2    Cov Length
-    ## 1  1.0465 1.5897 4127.574  1.9205   5.37   3800 2.0624   3800
+    ##   Mean_Y1 Var_Y1 ESS_Y1 Mean_Y2 Var_Y2 ESS_Y2    Cov Length
+    ## 1  1.0552  1.303   3800  1.8382 3.3579   3800 1.4705   3800
 
-Los resultados analíticos fueron:
+The analytical results were:
 
 ``` r
 results_measure_diag1$Analytical
@@ -334,12 +343,12 @@ results_measure_diag1$Analytical
     ##   Mean_Y1 Var_Y1 ESS_Y1 Mean_Y2 Var_Y2 ESS_Y2 Cov Length
     ## 1       1    1.8   3800       2    5.8   3800 2.2   3800
 
-La diferencia entre las medidas descriptivas numéricas y las analíticas
-obtenidas son las siguientes:
+The difference between the numerical and analytical descriptive measures
+is as follows:
 
 ``` r
 results_measure_diag1$Differences
 ```
 
-    ##   Mean_Y1 Var_Y1    ESS_Y1 Mean_Y2 Var_Y2 ESS_Y2    Cov Length
-    ## 1 -0.0465 0.2103 -327.5737  0.0795   0.43      0 0.1376      0
+    ##   Mean_Y1 Var_Y1 ESS_Y1 Mean_Y2 Var_Y2 ESS_Y2    Cov Length
+    ## 1 -0.0552  0.497      0  0.1618 2.4421      0 0.7295      0
