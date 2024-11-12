@@ -207,7 +207,7 @@ Results_Scen$Result_Mu
 
 
 
-Parall_sim_study=function(n,hyperparameters_values,N_Iter_Sim){
+Parall_sim_study_MS=function(n,hyperparameters_values,N_Iter_Sim){
   # Number of cores to use
   numCores <- detectCores() - 1  # Use all but one to avoid saturating the machine
   cl <- makeCluster(numCores)
