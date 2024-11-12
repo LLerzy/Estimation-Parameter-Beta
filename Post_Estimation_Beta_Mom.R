@@ -262,9 +262,9 @@ Vect_mu = Vect_Alpha / (Vect_Alpha + Vect_Beta)  # Mean of the beta distribution
 Vect_var = Vect_Alpha * Vect_Beta / ((Vect_Alpha + Vect_Beta)^2 * (Vect_Alpha + Vect_Beta + 1))  # Variance of the beta distribution of X.
 
 
-Parameters_Scenario_MS1=Parall_sim_study(n=0,hyperparameters_values=Param,N_Iter_Sim=1000)
-Parameters_Scenario_MS2=Parall_sim_study(n=1,hyperparameters_values=Param,N_Iter_Sim=1000)
-Parameters_Scenario_MS3=Parall_sim_study(n=2,hyperparameters_values=Param,N_Iter_Sim=1000)
+Parameters_Scenario_MS1=Parall_sim_study_MS(n=0,hyperparameters_values=Param,N_Iter_Sim=1000)
+Parameters_Scenario_MS2=Parall_sim_study_MS(n=1,hyperparameters_values=Param,N_Iter_Sim=1000)
+Parameters_Scenario_MS3=Parall_sim_study_MS(n=2,hyperparameters_values=Param,N_Iter_Sim=1000)
 
 
 
