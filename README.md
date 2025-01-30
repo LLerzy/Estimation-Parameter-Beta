@@ -1,6 +1,6 @@
 # Posterior Estimation of the Shape Parameters of the Beta Distribution
 
-This main repository contains three branches aimed at providing a methodology to estimate the shape parameters of the Beta distribution.
+This repository is a branch of a main repository called [**Estimation-Parameter-Beta**](https://github.com/LLerzy/Estimation-Parameter-Beta).
 
 ## Table of Contents
 
