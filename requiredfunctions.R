@@ -950,7 +950,7 @@ Comparison_Hyper = function(data, value_real, lim_x, title_text, y_Text) {
     geom_line() +
     geom_point() +
     labs(title = " ",
-         x = "Sample Size",
+         x = "n", #"Sample Size",
          y = "Length") +
     scale_x_continuous(breaks = lim_x) +
     theme_minimal() + 
