@@ -1,28 +1,24 @@
-
-
-
 ####
-## Momentos de la distribución conjunta para la media y la varianza de la variable aleatoria X.
+## Moments of the joint distribution for the mean and variance of the random variable X.
 ####
 
-# Momentos marginales de mu.
+# Marginal moments of mu.
 Mom_Mu=function(k,a,b,c,d){
   beta(a+k,b)/ beta(a,b)
-  # gamma(a+k) * gamma(a+b) / (gamma(a) * gamma(a+b+k))
 }
 
-# Momentos marginales de sigma.
+# Marginal moments of sigma.
 Mom_Sigma=function(k,a,b,c,d){
   beta(c+k,d) * beta(a+k,b+k) / (beta(a,b)*beta(c,d))
 }
 
-# Momentos conjuntos de orden k=k1+k2 para mu y sigma.
+# Joint moments of order k = k1 + k2 for the mean (μ) and variance (σ²).
 Mom_Mu_Sigma=function(k1,k2,a,b,c,d){
   beta(c+k2,d) * beta(a+k1+k2,b+k2) / (beta(a,b)*beta(c,d))
 }
 
-# Momentos para los valores de hiperparámetros obtenidos en los escenarios propuestos,
-# utilizando información subjetiva (obtenida de una persona considerada experta) e infomración boostrap.
+# Moments computed from the hyperparameter values obtained in the proposed scenarios,  
+# based on subjective expert knowledge and bootstrap-derived information.
 Param_Prior_2=Param
 Param_Prior_2$Mean.1 = Mom_Mu_Sigma(1,0,Param$Va,Param$Vb,Param$Vc,Param$Vd)
 Param_Prior_2$Var.1 = Mom_Mu_Sigma(2,0,Param$Va,Param$Vb,Param$Vc,Param$Vd)-Mom_Mu_Sigma(1,0,Param$Va,Param$Vb,Param$Vc,Param$Vd)^2
@@ -30,7 +26,7 @@ Param_Prior_2$Mean.2 = Mom_Mu_Sigma(0,1,Param$Va,Param$Vb,Param$Vc,Param$Vd)
 Param_Prior_2$Var.2 = Mom_Mu_Sigma(0,2,Param$Va,Param$Vb,Param$Vc,Param$Vd) - Mom_Mu_Sigma(0,1,Param$Va,Param$Vb,Param$Vc,Param$Vd)^2
 Param_Prior_2$Cov = Mom_Mu_Sigma(1,1,Param$Va,Param$Vb,Param$Vc,Param$Vd)-Mom_Mu_Sigma(0,1,Param$Va,Param$Vb,Param$Vc,Param$Vd)*Mom_Mu_Sigma(1,0,Param$Va,Param$Vb,Param$Vc,Param$Vd)
 
-# Tablas para Latex
+# Tables for inclusion in a LaTeX document
 library(xtable)
 xtable(cbind(Param_Prior_2[,12],Param_Prior_2[,17],format(Param_Prior_2[,18],scientific = TRUE,digits=3),
              Param_Prior_2[,19],format(Param_Prior_2[,c(20,21)],scientific = TRUE,digits=3)),digits = 2)
@@ -43,8 +39,8 @@ xtable(cbind(Param_Prior_2[,12],Param_Prior_2[,17],format(Param_Prior_2[,18:21],
 
 
 ##############
-# Estudio de simulación
-#############
+# Simulation study
+##############
 
 Measure_Diagnostic = function(data1, data2, var = "original", burnin, thin, digits = 5, a, b, c, d) {
   N = length(data1)
@@ -115,10 +111,8 @@ Measure_Diagnostic = function(data1, data2, var = "original", burnin, thin, digi
 }
 
 
-
-
 ##################
-## Función para realiar la simulación: obtener estimaciones posteriores y criterios de convergencia de las estimaciones.
+## Function to perform the simulation: obtain posterior estimates and convergence criteria.
 ##################
 Sim_study_MS = function(N, N_FC, prop_prec, a, b, c, d, thin1, X10_given = "random", dig_tol = 15, thin2, burnin, n_sample, alpha_real, beta_real, N_Iter_Sim,
                      sample_size_IS) {
@@ -204,9 +198,6 @@ Results_Scen <- Sim_study_MS(N = 10^2, N_FC = 2, prop_prec = 3, a = Param$Va[1],
 
 Results_Scen$Result_Mu
 
-
-
-
 Parall_sim_study_MS=function(n,hyperparameters_values,N_Iter_Sim){
   # Number of cores to use
   numCores <- detectCores() - 1  # Use all but one to avoid saturating the machine
@@ -252,7 +243,6 @@ Parall_sim_study_MS=function(n,hyperparameters_values,N_Iter_Sim){
     Results_Scen_Diff <- rbind(Results_Scen_Diff, Results_list[result]$Diff)
   }
   
-  
   return(list(Results_Scen_Mu=Results_Scen_Mu, Results_Scen_Sigma=Results_Scen_Sigma,Results_Scen_Diff=Results_Scen_Diff))
 }
 
@@ -261,11 +251,10 @@ Vect_Beta = c(0.5, 4, 12)
 Vect_mu = Vect_Alpha / (Vect_Alpha + Vect_Beta)  # Mean of the beta distribution of X.
 Vect_var = Vect_Alpha * Vect_Beta / ((Vect_Alpha + Vect_Beta)^2 * (Vect_Alpha + Vect_Beta + 1))  # Variance of the beta distribution of X.
 
-
+# Results of the simulation study.
 Parameters_Scenario_MS1=Parall_sim_study_MS(n=0,hyperparameters_values=Param,N_Iter_Sim=1000)
 Parameters_Scenario_MS2=Parall_sim_study_MS(n=1,hyperparameters_values=Param,N_Iter_Sim=1000)
 Parameters_Scenario_MS3=Parall_sim_study_MS(n=2,hyperparameters_values=Param,N_Iter_Sim=1000)
-
 
 
 Graphs_Comparison_Hyper_MS=function(n,results_sim_study){
@@ -280,5 +269,49 @@ Graphs_Comparison_Hyper_MS=function(n,results_sim_study){
   # MinBetaSigMu01SigV01Scen-3
 }
 
-
+# Visualizations of the simulation study results.
 Graphs_Comparison_Hyper_MS(n=0,results_sim_study = Parameters_Scenario_MS1)
+Graphs_Comparison_Hyper_MS(n=1,results_sim_study = Parameters_Scenario_MS2)
+Graphs_Comparison_Hyper_MS(n=2,results_sim_study = Parameters_Scenario_MS3)
+
+# Comparison of the results obtained from direct posterior estimation of the shape parameters  
+# versus posterior estimation based on first estimating the mean and variance.
+
+Parameters_Scenario_MS1$Results_Scen_Mu$Mean
+Parameters_Scenario_MS1$Results_Scen_Sigma$Mean
+
+Parameters_Beta=function(z,w){
+  media_alpha=z*(z*(1-z)/w-1);
+  media_beta=(1-z)*(z*(1-z)/w-1);
+  return(list(media_alpha=media_alpha, media_beta=media_beta))
+}
+
+#Parameters_Beta(Parameters_Scenario_MS1$Results_Scen_Mu$Mean,Parameters_Scenario_MS1$Results_Scen_Sigma$Mean)
+
+Comparison=Parameters_Scenario_MS1$Results_Scen_Mu[,c(13,10)]
+
+Comparison$E1_Alpha = Parameters_Scenario1$Results_Scen_Alpha$Mean
+Comparison$E1_MS_Alpha = Parameters_Beta(Parameters_Scenario_MS1$Results_Scen_Mu$Mean,Parameters_Scenario_MS1$Results_Scen_Sigma$Mean)$media_alpha
+Comparison$E1_diff_Alpha = abs(Comparison$E1_Alpha - Comparison$E1_MS_Alpha)
+#
+Comparison$E1_Beta = Parameters_Scenario1$Results_Scen_Beta$Mean
+Comparison$E1_MS_Beta = Parameters_Beta(Parameters_Scenario_MS1$Results_Scen_Mu$Mean,Parameters_Scenario_MS1$Results_Scen_Sigma$Mean)$media_beta
+Comparison$E1_diff_Beta = abs(Comparison$E1_Beta - Comparison$E1_MS_Beta)
+
+Comparison$E2_Alpha = Parameters_Scenario2$Results_Scen_Alpha$Mean
+Comparison$E2_MS_Alpha = Parameters_Beta(Parameters_Scenario_MS2$Results_Scen_Mu$Mean,Parameters_Scenario_MS2$Results_Scen_Sigma$Mean)$media_alpha
+Comparison$E2_diff_Alpha = abs(Comparison$E2_Alpha - Comparison$E2_MS_Alpha)
+#
+Comparison$E2_Beta = Parameters_Scenario2$Results_Scen_Beta$Mean
+Comparison$E2_MS_Beta = Parameters_Beta(Parameters_Scenario_MS2$Results_Scen_Mu$Mean,Parameters_Scenario_MS2$Results_Scen_Sigma$Mean)$media_beta
+Comparison$E2_diff_Beta = abs(Comparison$E2_Beta - Comparison$E2_MS_Beta)
+
+Comparison$E3_Alpha = Parameters_Scenario3$Results_Scen_Alpha$Mean
+Comparison$E3_MS_Alpha = Parameters_Beta(Parameters_Scenario_MS3$Results_Scen_Mu$Mean,Parameters_Scenario_MS3$Results_Scen_Sigma$Mean)$media_alpha
+Comparison$E3_diff_Alpha = abs(Comparison$E3_Alpha - Comparison$E3_MS_Alpha)
+#
+Comparison$E3_Beta = Parameters_Scenario3$Results_Scen_Beta$Mean
+Comparison$E3_MS_Beta = Parameters_Beta(Parameters_Scenario_MS3$Results_Scen_Mu$Mean,Parameters_Scenario_MS3$Results_Scen_Sigma$Mean)$media_beta
+Comparison$E3_diff_Beta = abs(Comparison$E3_Beta - Comparison$E3_MS_Beta)
+
+xtable(Comparison[1:48,c(1:2,15:20)],digits = 3)
