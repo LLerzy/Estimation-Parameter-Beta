@@ -15,9 +15,7 @@ This repository is a branch of a main repository called [**Estimation-Parameter-
 
 This branch contains a set of routines designed to estimate the shape parameters of the Beta distribution for the random variable \(X\) from a Bayesian perspective. The methodology is based on a new bivariate prior distribution for the mean and variance, given by:  
 
-\[
-f_{\mu,\sigma^2}(u,v|\phi=(a,b,c,d))=\dfrac{1}{\text{beta}(a,b) \text{beta}(c,d)} \dfrac{v^{c-1} (u (1-u)-v)^{d-1}}{u^{c+d-a} (1-u)^{c+d-b} },
-\]
+$$f_{\mu,\sigma^2}(u,v|\phi=(a,b,c,d))=\dfrac{1}{\text{beta}(a,b) \text{beta}(c,d)} \dfrac{v^{c-1} (u (1-u)-v)^{d-1}}{u^{c+d-a} (1-u)^{c+d-b} },$$
 
 along with a corresponding method for generating random samples, which can be found in the [**Algorithm-Sim-Samples**](https://github.com/LLerzy/Estimation-Parameter-Beta/tree/Algorithm-Sim-Samples) branch.  
 
