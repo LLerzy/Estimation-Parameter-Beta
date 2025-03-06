@@ -5,7 +5,7 @@ This repository is a branch of a main repository called **[Estimation-Parameter-
 ## Table of Contents
 
 -   [Overview](#overview)
--   [Installation](#installation)
+-   [Execution and Dependencies](#execution-and-dependencies)
 -   [Usage](#usage)
 -   [Included Functions](#included-functions)
 -   [Branches](#branches)
@@ -19,82 +19,73 @@ The code presented is written in Python and conducts a simulation study to compa
 
 The simulation of the posterior chains is carried out using a Metropolis-Hastings method based on random walks, employing the product of Log-Normal distributions as the instrumental distribution. The metrics used to compare the performance include: posterior estimation, bias, mean squared error, coverage probability, and average length of the credibility intervals for the Bayesian approach. In contrast, for the classical approach, bootstrap intervals are used.
 
-## Installation
+## Execution and Dependencies 
 
-El código puede ser accesado y ejecutado a través de Colaboratory de Google. Los paquetes o librerias utilizadas no requiere instalación, las utilizadas pueden ser agrupadas de la siguiente manera:
+This project can be accessed and executed through **Google Colaboratory**. The required packages are pre-installed in Colab, meaning no additional installation is needed.  The libraries used in this project can be grouped as follows:
 
 ### Numerical Computation and Special Functions
 - `numpy`
 - `math`
-- `scipy.special`
+- `scipy.special` (includes `polygamma`, `gammaln`)
 
 ### Optimization and Root Finding
-- ``scipy.optimize import newton, brentq, bisect, minimize
+- `scipy.optimize` (includes `newton`, `brentq`, `bisect`, `minimize`)
+
 ### Statistical Distributions and Bootstrapping
-- `scipy.stats`
-### Data Manipulation and Parallel Processing
+- `scipy.stats` (includes `multivariate_normal`, `lognorm`, `bootstrap`)
+
+### Data Handling and Parallel Processing
 - `pandas`
-- `joblib`
+- `joblib` (includes `Parallel`, `delayed`)
+
 ### Visualization
 - `matplotlib.pyplot`
 - `seaborn`
+
 ### Statistical Models
 - `statsmodels.api`
+
+### Google Colaboratory and Google Sheets Integration
+- `gspread`
+- `google.colab.auth`
+- `google.auth`
+- `gspread_dataframe`  
 
 ## Usage
 
 To run the designed algorithms, follow these steps:
 
-1. Guarde en su Drive de Google la hoja de cálculo [``]
+1. Download and save the spreadsheet [`Results_of_simulations_executed.xlsx`](https://github.com/LLerzy/Estimation-Parameter-Beta/blob/Comparison/Results_of_simulations_executed.xlsx) to your Google Drive.
 
-    ``` bash
-    git clone https://github.com/LLerzy/Estimation-Parameter-Beta/tree/main.git
-    ```
-
-2. Open the R script in any compatible Integrated Development Environment (IDE):
-
-    -   For the script that contains the main functions in the shape parameter estimation process, refer to [`requiredfunctions.R`](https://github.com/LLerzy/Estimation-Parameter-Beta/blob/Post-Estimate/requiredfunctions.R).
-
-3. You can run the script and load all the functions with the following command:
-
-    ``` bash
-    Rscript requiredfunctions.R
-    ```
+2. Access the designed algorithm [`Metropolis_Hasting`](https://github.com/LLerzy/Estimation-Parameter-Beta/blob/Comparison/Metropolis_Hasting(GitHub).ipynb) and create a copy in your Google Drive.
 
 ## Included Functions
 
-The functions defined in the `requiredfunctions.R` script include:
+The functions defined in this project include:
 
--   `Prior`: Defines the proposed prior probability density function, referred to as combination 1 in the [New-Biv-Dist](https://github.com/LLerzy/Estimation-Parameter-Beta/tree/New-Biv-Dist) branch.
--   `FC_X1_Given_v`: Full conditional distribution of $X_1$ given $X_2 = v$.
--   `Graph_Fc_X1`: Plots the full conditional distribution for given parameter values.
--   `Gen_FC_X1_X2`: Metropolis-Hastings algorithm with random walk to generate samples from the full conditional distribution.
--   `Mon_Measure`: Monitors acceptance rates and ESS (effective sample size) for different values of $v$ and precision.
--   `Mon_R_Hat`: Monitors the Gelman-Rubin diagnostic ($R$-hat) for different values of $v$ and precision.
--   `Graphs`: Generates histograms, density plots, trace plots, and convergence diagnostics using averages.
--   `Gen_Joint_Dist`: Gibbs sampling to generate samples from the joint distribution of the random vector $(X_1,X_2)$.
--   `Mtovar_vs2`: Generalizes Tovar’s method to obtain hyperparameter values.
--   `Mom_Prior_Dist`: Computes the joint moments of order $l$ for the proposed prior distribution.
--   `Measure_Diagnostic`: Compares analytical and numerical results for user-provided data samples.
--   `Measure_Analy`: Computes the analytical results for the proposed prior distribution.
--   `Hyperparameters`: Obtains hyperparameter values using empirical and subjective Bayesian approaches.
--   `Est_Post`: Posterior estimation of the Beta distribution's shape parameters $\alpha$ and $\beta$ using importance sampling.
--   `Sim_study`: Conducts simulation studies to compare posterior estimates using different hyperparameters and sample sizes.
--   `Individual_Graphs`: Creates individual graphs to monitor posterior estimates using bias and MSE as indicators.
--   `Comparison_Hyper`: Compares joint density functions for different sets of hyperparameters.
+- `metropolis_hastings`: Implements the Metropolis-Hastings algorithm with a bivariate target distribution, proposal sampling, and an acceptance rate calculation, incorporating thinning and burn-in.
+- `proposal_sampler`: Generates proposals from a **bivariate Log-Normal distribution**, ensuring positivity in the Metropolis-Hastings sampling process.
+- `proposal_pdf`: Computes the probability density function of the **proposal distribution** (product of Log-Normal distributions), given current and proposed values.
+- `monitor_convergence`: Generates **trace plots, histograms, scatter plots, and autocorrelation plots** to evaluate the convergence of the Markov chains.
+- `post_prior_gammas`: Computes the **posterior density function** for a Beta distribution with a **Gamma prior**, ensuring numerical stability using logarithmic transformations.
+- `post_prior_Jeffrey`: Evaluates the **posterior density function** under **Jeffrey’s prior**, incorporating second-order polygamma functions for a **noninformative prior structure**.
+- `post_new_prior`: Implements a **new bivariate prior** for the Beta distribution, with hyperparameter values obtained using a proposed strategy.
+- `target_pdf`: Defines the **bivariate target distribution**, used within the Metropolis-Hastings algorithm, incorporating the specified **prior structure and observed data**.
+- `solve_with_fallback`: Attempts to solve an equation using **Newton-Raphson's method**, switching to **Brent’s method** if convergence is not achieved.
+- `EM_Size`: Executes the **Expectation-Maximization (EM) algorithm** for Bayesian estimation of Beta distribution parameters across different **sample sizes and scenarios**, using Metropolis-Hastings for posterior sampling.
+- `plot_results`: Generates a set of **line plots** displaying the estimation behavior for **bias, mean squared error (MSE), coverage, and interval length** as a function of sample size.
+- `generate_beta_samples`: Generates samples from the Beta distribution, with parameter values and sample size specified by the researcher.
+- `mle_estimation`: Computes the **maximum likelihood estimation (MLE)** for the Beta distribution parameters.
+- `method_of_moments`: Computes the **method of moments estimation** for the Beta distribution parameters.
+- `bootstrap_intervals`: Constructs the **Bootstrap distribution** for a given estimation method.
+- `calculate_metrics`: Computes **descriptive measures** for a given dataset.
+- `process_scenario`: Specifies all estimation methods used in the simulation study.
+- `comparative_study`: Parallelized execution of the **process_scenario** function for efficiency.
 
 ### Notes:
 
 -   It is recommended to review and adapt each function according to the specific needs of each analysis.
 -   Make sure you understand each function before using it to ensure accurate results and avoid potential errors.
-
-## Branches
-
-The following branches are available in this repository:
-
--   [**New-Biv-Dist**](https://github.com/LLerzy/Estimation-Parameter-Beta/tree/New-Biv-Dist): Presents numerically approximated characteristics for seven of the 25 proposed probability distributions representing the random behavior of the Beta distribution’s shape parameters. Additionally, some numerical and theoretical approximations for combination 1 are compared.
--   [**Algorithm-Sim-Samples**](https://github.com/LLerzy/Estimation-Parameter-Beta/tree/Algorithm-Sim-Samples): Monitors the convergence of chains generated by an algorithm using MCMC methods to generate random samples from a new proposed probability distribution, referred to as combination 1 in the [New-Biv-Dist](https://github.com/LLerzy/Estimation-Parameter-Beta/tree/New-Biv-Dist) branch.
--   [**Post-Estimate**](https://github.com/LLerzy/Estimation-Parameter-Beta/tree/Post-Estimate): Conducts a simulation study to estimate the shape parameters of the Beta distribution. This study involves: two questions that can be used in an elicitation process, hyperparameter determination methods, three scenarios for the shape parameters, hypothetical expert information with different levels of bias, and graphs comparing posterior estimators through mean estimation, bias, mean squared error, coverage probability, and average length.
 
 ## Contributions
 
