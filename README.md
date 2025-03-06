@@ -8,7 +8,6 @@ This repository is a branch of a main repository called **[Estimation-Parameter-
 -   [Execution and Dependencies](#execution-and-dependencies)
 -   [Usage](#usage)
 -   [Included Functions](#included-functions)
--   [Branches](#branches)
 -   [Contributions](#contributions)
 
 ## Overview
