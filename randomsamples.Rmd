@@ -90,15 +90,7 @@ df <- data.frame(
   "Precision" = ExampleFC_X1_X2$precision,
   row.names = "Chain Measurements"  # Cambia el nombre de la fila
 )
-
-df %>%
-  kable(caption = "Summary statistics for the generated chain", digits = 4) %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
-                full_width = FALSE,
-                position = "center",
-                font_size = 14,             # Ajusta el tamaño de fuente para compactar
-                latex_options = "hold_position",
-                htmltable_class = "lightable-classic-2") # Mantiene la posición en PDF si exportas
+df 
 ```
 
 ## Convergence Monitoring with Fixed Seeds
