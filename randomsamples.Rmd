@@ -14,22 +14,36 @@ a1=2.2; b1=2.2; c1=2.2; d1=2.2
 This document presents a simulation framework for generating random samples from a newly proposed bivariate probability distribution, characterized by the parameter vector $\phi = (a, b, c, d)$ and the following joint probability density function:
 
 $$
-f_{\phi}(y_1,y_2)= \dfrac{1}{beta(a,b)beta(c,d)}\ y_1^{a-1}y_2^{b-1}(y_1+y_2)^{d-(a+b)} (y_1+y_2+1)^{-c-d},\hspace{1cm}y_1,y_2\in\mathbb{R}^+
-$$ where $\mathrm{beta}(\cdot, \cdot)$ denotes the Beta function. Additionally, the joint moment of order $l = l_1 + l_2$ for this distribution is given by: $$
-E_{\phi}[Y_1^{l_1} Y_2^{l_2}] \propto beta(c-l,l+d)\times beta(l_1+a,l_2+b)
-$$ provided that $c > 2$, ensuring the existence of the moment.
+f_{\phi}(y_1,y_2)= \dfrac{1}{beta(a,b)beta(c,d)}\ y_1^{a-1}y_2^{b-1}(y_1+y_2)^{d-(a+b)} (y_1+y_2+1)^{-c-d},\hspace{1cm}y_1,y_2\in\mathbb{R}^+,
+$$
 
-The simulation approach integrates two key Markov Chain Monte Carlo (MCMC) techniques. First, the **Metropolis-Hastings algorithm with an adaptive random walk** is employed to generate samples from the full conditional distribution of $X_1$ given $X_2$. Second, **Gibbs Sampling** is applied to produce samples from the joint distribution of the vector $(X_1, X_2)$. Finally, these samples are transformed into realizations of the target random vector $(Y_1, Y_2)$ through the following bijective transformation: $$
+where $\mathrm{beta}(\cdot, \cdot)$ denotes the Beta function. Additionally, the joint moment of order $l = l_1 + l_2$ for this distribution is given by:
+
+$$
+E_{\phi}[Y_1^{l_1} Y_2^{l_2}] \propto beta(c-l,l+d)\times beta(l_1+a,l_2+b)
+$$
+
+provided that $c > 2$, ensuring the existence of the moment.
+
+The simulation approach integrates two key Markov Chain Monte Carlo (MCMC) techniques. First, the **Metropolis-Hastings algorithm with an adaptive random walk** is employed to generate samples from the full conditional distribution of $X_1$ given $X_2$. Second, **Gibbs Sampling** is applied to produce samples from the joint distribution of the vector $(X_1, X_2)$. Finally, these samples are transformed into realizations of the target random vector $(Y_1, Y_2)$ through the following bijective transformation:
+
+$$
 (Y_1,Y_2)=\left(X_1\left(\dfrac{X_1(1-X_1)}{X_2}-1\right),(1-X_1)\left(\dfrac{X_1(1-X_1)}{X_2}-1\right)\right).
-$$ This method ensures flexible and efficient sampling from the proposed bivariate distribution, enabling further analysis and characterization of its properties.
+$$
+
+This method ensures flexible and efficient sampling from the proposed bivariate distribution, enabling further analysis and characterization of its properties.
 
 # Generating Samples of $X_1$ Given $X_2$
 
 ## Conditional Distribution of $X_1$ Given $X_2$
 
-The non-normalized conditional density function of $X_1$ given $X_2 = v$ is expressed as: $$
+The non-normalized conditional density function of $X_1$ given $X_2 = v$ is expressed as:
+
+$$
 f_{\phi}(x_1|x_2)\propto x_1^{a-c-d}(x_1(1-x_1)-x_2)^{d-1}(1-x_1)^{b-c-d}
-$$ where $\phi = (a, b, c, d)$ is the parameter vector of the distribution. To illustrate the behavior of this conditional density, we set the hyperparameters to $\phi = (a_1, b_1, c_1, d_1) = (2.2, 2.2, 2.2, 2.2)$ and plot the corresponding density curves for three different values of the conditioning variable $X_2$.
+$$
+
+where $\phi = (a, b, c, d)$ is the parameter vector of the distribution. To illustrate the behavior of this conditional density, we set the hyperparameters to $\phi = (a1, b1, c1, d1) = (2.2, 2.2, 2.2, 2.2)$ and plot the corresponding density curves for three different values of the conditioning variable $X_2$.
 
 ```{r, echo=TRUE, warning=FALSE,fig.width=7, fig.height=4}
 a1=2.2; b1=2.2; c1=2.2; d1=2.2
@@ -90,7 +104,7 @@ df <- data.frame(
   "Precision" = ExampleFC_X1_X2$precision,
   row.names = "Chain Measurements"  # Cambia el nombre de la fila
 )
-df 
+df
 ```
 
 ## Convergence Monitoring with Fixed Seeds
@@ -234,9 +248,9 @@ results_measure_diag$Differences
 
 ```{r, echo=TRUE, warning=FALSE, results='hide'}
 a2=3;b2=6;c2=3;d2=6
-Example_Joint_Dist1=Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec=4,a = a2,b = b2,c = c2,d = d2,thin = 2, X10_given = "random",target_acceptance = 0.4)
+Example_Joint_Dist1=Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec=4,a = a2,b = b2,c = c2,d = d2,thin = 5, X10_given = "random",target_acceptance = 0.4)
 
-results_measure_diag1=Measure_Diagnostic(data1 = Example_Joint_Dist1$X1,data2 = Example_Joint_Dist1$X2, var ="transform", digits = 4, a = a2, b = b2, c = c2, d = d2, burnin = 5000, thin = 25)
+results_measure_diag1=Measure_Diagnostic(data1 = Example_Joint_Dist1$X1,data2 = Example_Joint_Dist1$X2, var ="transform", digits = 4, a = a2, b = b2, c = c2, d = d2, burnin = 5000, thin = 5)
 ```
 
 The numerical results were:

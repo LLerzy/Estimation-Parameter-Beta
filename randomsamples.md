@@ -9,12 +9,18 @@ characterized by the parameter vector $\phi = (a, b, c, d)$ and the
 following joint probability density function:
 
 $$
-f_{\phi}(y_1,y_2)= \dfrac{1}{beta(a,b)beta(c,d)}\ y_1^{a-1}y_2^{b-1}(y_1+y_2)^{d-(a+b)} (y_1+y_2+1)^{-c-d},\hspace{1cm}y_1,y_2\in\mathbb{R}^+
-$$ where $\mathrm{beta}(\cdot, \cdot)$ denotes the Beta function.
+f_{\phi}(y_1,y_2)= \dfrac{1}{beta(a,b)beta(c,d)}\ y_1^{a-1}y_2^{b-1}(y_1+y_2)^{d-(a+b)} (y_1+y_2+1)^{-c-d},\hspace{1cm}y_1,y_2\in\mathbb{R}^+,
+$$
+
+where $\mathrm{beta}(\cdot, \cdot)$ denotes the Beta function.
 Additionally, the joint moment of order $l = l_1 + l_2$ for this
-distribution is given by: $$
+distribution is given by:
+
+$$
 E_{\phi}[Y_1^{l_1} Y_2^{l_2}] \propto beta(c-l,l+d)\times beta(l_1+a,l_2+b)
-$$ provided that $c > 2$, ensuring the existence of the moment.
+$$
+
+provided that $c > 2$, ensuring the existence of the moment.
 
 The simulation approach integrates two key Markov Chain Monte Carlo
 (MCMC) techniques. First, the **Metropolis-Hastings algorithm with an
@@ -23,9 +29,13 @@ conditional distribution of $X_1$ given $X_2$. Second, **Gibbs
 Sampling** is applied to produce samples from the joint distribution of
 the vector $(X_1, X_2)$. Finally, these samples are transformed into
 realizations of the target random vector $(Y_1, Y_2)$ through the
-following bijective transformation: $$
+following bijective transformation:
+
+$$
 (Y_1,Y_2)=\left(X_1\left(\dfrac{X_1(1-X_1)}{X_2}-1\right),(1-X_1)\left(\dfrac{X_1(1-X_1)}{X_2}-1\right)\right).
-$$ This method ensures flexible and efficient sampling from the proposed
+$$
+
+This method ensures flexible and efficient sampling from the proposed
 bivariate distribution, enabling further analysis and characterization
 of its properties.
 
@@ -34,13 +44,16 @@ of its properties.
 ## Conditional Distribution of $X_1$ Given $X_2$
 
 The non-normalized conditional density function of $X_1$ given $X_2 = v$
-is expressed as: $$
+is expressed as:
+
+$$
 f_{\phi}(x_1|x_2)\propto x_1^{a-c-d}(x_1(1-x_1)-x_2)^{d-1}(1-x_1)^{b-c-d}
-$$ where $\phi = (a, b, c, d)$ is the parameter vector of the
-distribution. To illustrate the behavior of this conditional density, we
-set the hyperparameters to
-$\phi = (a_1, b_1, c_1, d_1) = (2.2, 2.2, 2.2, 2.2)$ and plot the
-corresponding density curves for three different values of the
+$$
+
+where $\phi = (a, b, c, d)$ is the parameter vector of the distribution.
+To illustrate the behavior of this conditional density, we set the
+hyperparameters to $\phi = (a1, b1, c1, d1) = (2.2, 2.2, 2.2, 2.2)$ and
+plot the corresponding density curves for three different values of the
 conditioning variable $X_2$.
 
 ``` r
@@ -148,13 +161,13 @@ df <- data.frame(
   "Precision" = ExampleFC_X1_X2$precision,
   row.names = "Chain Measurements"  # Cambia el nombre de la fila
 )
-df 
+df
 ```
 
     ##                    Acceptance.Rate Acceptance.Rate.Post.Burn.in      ESS Length
-    ## Chain Measurements       0.8522785                    0.8588827 1066.608   3800
+    ## Chain Measurements       0.5641456                    0.5630901 3233.412   3800
     ##                    Precision
-    ## Chain Measurements    32.764
+    ## Chain Measurements  2.991442
 
 ## Convergence Monitoring with Fixed Seeds
 
@@ -205,7 +218,7 @@ round(apply(ExampleFC_X1_X2_seedgiven[1:3800,], 2, mean),3)
 ```
 
     ##   0.1   0.2   0.3   0.4   0.5   0.6   0.7   0.8   0.9 
-    ## 0.492 0.490 0.512 0.494 0.508 0.506 0.502 0.509 0.497
+    ## 0.500 0.502 0.498 0.500 0.503 0.494 0.499 0.501 0.502
 
 # Gibbs Sampling
 
@@ -326,7 +339,7 @@ results_measure_diag$Numerical
 ```
 
     ##   Mean_Y1 Var_Y1 ESS_Y1 Mean_Y2 Var_Y2 ESS_Y2    Cov Length
-    ## 1  0.9004 3.3746   3800  0.9202  4.488   3800 3.1678   3800
+    ## 1  0.8859 2.5196   3800  0.8981 2.3915   3800 1.6648   3800
 
 The analytical results were:
 
@@ -345,15 +358,15 @@ results_measure_diag$Differences
 ```
 
     ##   Mean_Y1 Var_Y1 ESS_Y1 Mean_Y2 Var_Y2 ESS_Y2    Cov Length
-    ## 1  0.0163 4.4765      0 -0.0035 3.3631      0 1.9672      0
+    ## 1  0.0308 5.3315      0  0.0186 5.4596      0 3.4702      0
 
 # Comparison Using a Different Parameter Configuration
 
 ``` r
 a2=3;b2=6;c2=3;d2=6
-Example_Joint_Dist1=Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec=4,a = a2,b = b2,c = c2,d = d2,thin = 2, X10_given = "random",target_acceptance = 0.4)
+Example_Joint_Dist1=Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec=4,a = a2,b = b2,c = c2,d = d2,thin = 5, X10_given = "random",target_acceptance = 0.4)
 
-results_measure_diag1=Measure_Diagnostic(data1 = Example_Joint_Dist1$X1,data2 = Example_Joint_Dist1$X2, var ="transform", digits = 4, a = a2, b = b2, c = c2, d = d2, burnin = 5000, thin = 25)
+results_measure_diag1=Measure_Diagnostic(data1 = Example_Joint_Dist1$X1,data2 = Example_Joint_Dist1$X2, var ="transform", digits = 4, a = a2, b = b2, c = c2, d = d2, burnin = 5000, thin = 5)
 ```
 
 The numerical results were:
@@ -362,8 +375,8 @@ The numerical results were:
 results_measure_diag1$Numerical
 ```
 
-    ##   Mean_Y1 Var_Y1   ESS_Y1 Mean_Y2 Var_Y2 ESS_Y2   Cov Length
-    ## 1  1.0399 1.4451 3792.276  1.8655 3.5916   3800 1.746   3800
+    ##   Mean_Y1 Var_Y1   ESS_Y1 Mean_Y2 Var_Y2 ESS_Y2    Cov Length
+    ## 1  1.0659 1.5674 18507.72  1.8793 4.0436  19000 1.8981  19000
 
 The analytical results were:
 
@@ -372,7 +385,7 @@ results_measure_diag1$Analytical
 ```
 
     ##   Mean_Y1 Var_Y1 ESS_Y1 Mean_Y2 Var_Y2 ESS_Y2 Cov Length
-    ## 1       1    1.8   3800       2    5.8   3800 2.2   3800
+    ## 1       1    1.8  19000       2    5.8  19000 2.2  19000
 
 The difference between the numerical and analytical descriptive measures
 is as follows:
@@ -381,5 +394,5 @@ is as follows:
 results_measure_diag1$Differences
 ```
 
-    ##   Mean_Y1 Var_Y1 ESS_Y1 Mean_Y2 Var_Y2 ESS_Y2   Cov Length
-    ## 1 -0.0399 0.3549 7.7242  0.1345 2.2084      0 0.454      0
+    ##   Mean_Y1 Var_Y1   ESS_Y1 Mean_Y2 Var_Y2 ESS_Y2    Cov Length
+    ## 1 -0.0659 0.2326 492.2768  0.1207 1.7564      0 0.3019      0
