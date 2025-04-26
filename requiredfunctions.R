@@ -10,6 +10,7 @@
 #                                                                         #
 # Author: Llerzy Torres Ome                                               #
 # Creation Date: September 16, 2024                                       #
+# Update Date: April 25, 2025                                             #
 #                                                                         #
 # Functions included:                                                     #
 # 1. Prior: Defines the proposed prior probability density function.      #
@@ -22,28 +23,32 @@
 #    of v and precision.                                                  #
 # 6. Mon_R_Hat: Monitors the Gelman-Rubin diagnostic (R-hat) for          #
 #    different values of v and precision.                                 #
-# 7. Graphs: Plots histograms, density, trace, and convergence control    #
+# 7. results_Mon_Measure: similar to Mon_Measure but does not graph.      #
+# 8. results_Mon_R_Hat: similar to Mon_R_Hat but not graphical.           #
+# 9. Generate_Figure3_Panels: Generates the graphs resulting from         #
+#    monitoring convergence.                                              #
+# 10. Graphs: Plots histograms, density, trace, and convergence control   #
 #    using the average.                                                   #
-# 8. Gen_Joint_Dist: Gibbs sampling for generating joint distributions    #
+# 11. Gen_Joint_Dist: Gibbs sampling for generating joint distributions   #
 #    of X1 and X2.                                                        #
-# 9. Mtovar_vs2: Generalizes Tovar's method for obtaining hyperparameter  #
+# 12. Mtovar_vs2: Generalizes Tovar's method for obtaining hyperparameter #
 #    values.                                                              #
-# 10. Mom_Prior_Dist: Calculates joint moments of order l for the proposed  #
+# 13. Mom_Prior_Dist: Calculates joint moments of order l for the proposed#
 #     prior distribution.                                                 #
-# 11. Measure_Diagnostic: Compares analytical and numerical results for   #
+# 14. Measure_Diagnostic: Compares analytical and numerical results for   #
 #     given data samples.                                                 #
-# 12. Measure_Analy: Computes analytical results for the proposed prior   #
+# 15. Measure_Analy: Computes analytical results for the proposed prior   #
 #     distribution.                                                       #
-# 13. Hyperparameters: Obtains hyperparameters using empirical Bayes and  #
+# 16. Hyperparameters: Obtains hyperparameters using empirical Bayes and  #
 #     subjective approaches.                                              #
-# 14. Est_Post: Posterior estimation for alpha and beta parameters of the #
+# 17. Est_Post: Posterior estimation for alpha and beta parameters of the #
 #     beta distribution using importance sampling.                        #
-# 15. Sim_study: Conducts simulation studies to compare posterior       #
+# 18. Sim_study: Conducts simulation studies to compare posterior         #
 #     estimates using different hyperparameters and sample sizes.         #
-# 16. Individual_Graphs: Creates individual graphs to monitor posterior   #
+# 19. Individual_Graphs: Creates individual graphs to monitor posterior   #
 #     estimates using bias and MSE as indicators.                         #
-# 17. Comparison_Hyper: Compares joint functions for different hyperparam- #
-#     eter sets.                                                          #
+# 20. Comparison_Hyper: Compares joint functions for different            #
+#     hyperparameter sets.                                                #
 #                                                                         #
 # Notes:                                                                  #
 # 1. It's recommended to review and adapt each function according to the  #
@@ -129,7 +134,7 @@ Graph_Fc_X1=function(v1, v1name, v2, v2name, v3, v3name, ae, be, ce, de) {
          caption=substitute(
            list("Plot of", f[X[1]/X[2]](x[1]/v)==x[1]^(a-c-d) * (1-x[1])^(b-c-d) * (x[1]*(1-x[1])-v)^(d-1),
                 "with", a==ae, b==be, c==ce, d==de), list(ae=ae, be=be, ce=ce, de=de))) +
-    xlab(expression(x[1])) + ylab("Density") +
+    xlab(expression("Values of " ~ X[1]~"given"~X[2]==v)) + ylab("Density") +
     scale_colour_manual(values = c("red", "black", "purple"), name=expression(X[2]==v))
 }
 #####
@@ -390,6 +395,165 @@ Mon_R_Hat = function(N, prop_prec_values, a, b, c, d, v_values, thin = 1, burnin
   #return(list(plot_H))
 }
 
+
+
+
+#####
+# Function to monitor the  Effective Sample Size, acceptance rate and Gelman-Rubin diagnostic (R-hat) for different values of v and precision (prop_prec) provided
+#####
+# "N" is the sample size to be generated.
+# "prop_prec" is the precision set for the algorithm. 
+# "a", "b", "c", and "d" are given values for the parameters.
+# "v" is the given value for X2.
+# "option" allows you to select the entire sample ("all") or just the last value generated ("end").
+# "thin" and "burnin" are parameters for the function Gen_FC_X1_X2.
+# "thin" is the thinning interval for MCMC. Every "thin" generated samples, one is stored to reduce autocorrelation.
+# "burnin" is the number of iterations to discard.
+# The seed type can be specified with "X10_given" to be "random" or "fixed".
+# "target_acceptance" is the acceptable tolerance rate for acceptance.
+# "dig_tol" is the number of decimal places for -X10^2 + X10 - v, and -yt^2 + yt - v to be different from zero. 
+# This criterion is important in the numerical method to avoid numerical problems.
+# "v_values" is the list of values that variance can take.
+
+
+results_Mon_Measure = function(N, prop_prec_values, a, b, c, d, v_values, thin = 1, burnin = 1, target_acceptance = 0.3) {
+  # Get the total number of cores
+  num_cores <- detectCores()
+  
+  # Use half of the available cores
+  cl <- makeCluster(num_cores %/% 2)
+  
+  # Register the cluster for use with foreach
+  registerDoParallel(cl)
+  
+  # Initialize an empty data.frame
+  df <- data.frame()
+  
+  # Use foreach to iterate in parallel
+  results_list <- foreach(v = v_values, .combine = 'rbind', .export = c('Gen_FC_X1_X2', 'FC_X1_Given_v'), 
+                          .packages = c('coda', 'betafunctions')) %dopar% {
+                            tmp_df <- data.frame()
+                            for (prop_prec in prop_prec_values) {
+                              results <- Gen_FC_X1_X2(N, prop_prec, a, b, c, d, v, option = "all", thin, burnin, target_acceptance = target_acceptance)
+                              result_AR <- results$acc_rate
+                              mcmc_obj <- mcmc(results$thinned_chain)
+                              result_ESS <- effectiveSize(mcmc_obj)
+                              tmp_df <- rbind(tmp_df, data.frame(v = v, Precision = prop_prec, Accept_Rate = result_AR, ESS = result_ESS))
+                            }
+                            tmp_df
+                          }
+  
+  # Stop the cluster
+  stopCluster(cl)
+  #print((N - burnin) / thin)
+  
+  df <- rbind(df, results_list)
+  return(df)
+}
+
+results_Mon_R_Hat = function(N, prop_prec_values, a, b, c, d, v_values, thin = 1, burnin = 1, target_acceptance=0.3) {
+  # Get the total number of cores
+  num_cores <- detectCores()
+  
+  # Use half of the available cores
+  cl <- makeCluster(num_cores %/% 2)
+  
+  # Register the cluster for use with foreach
+  registerDoParallel(cl)
+  
+  # Initialize an empty data.frame
+  df <- data.frame()
+  
+  # Use foreach to iterate in parallel
+  results_list <- foreach(v = v_values, .combine = 'rbind', .export = c('Gen_FC_X1_X2'), 
+                          .packages = c('coda', 'betafunctions')) %dopar% {
+                            tmp_df <- data.frame()
+                            for (prop_prec in prop_prec_values) {
+                              sample1 = Gen_FC_X1_X2(N, prop_prec, a, b, c, d, v, option = "all", thin, burnin, X10_given = "random", target_acceptance)
+                              sample2 = Gen_FC_X1_X2(N, prop_prec, a, b, c, d, v, option = "all", thin, burnin, X10_given = "random", target_acceptance)
+                              sample3 = Gen_FC_X1_X2(N, prop_prec, a, b, c, d, v, option = "all", thin, burnin, X10_given = "random", target_acceptance)
+                              Gelm_Rud = gelman.diag(list(mcmc(sample1$thinned_chain), mcmc(sample2$thinned_chain),
+                                                          mcmc(sample3$thinned_chain)))$psrf[1]
+                              tmp_df <- rbind(tmp_df, data.frame(v = v, Precision = prop_prec, Gelman_Rubin = Gelm_Rud))
+                            }
+                            tmp_df
+                          }
+  
+  # Stop the cluster
+  stopCluster(cl)
+  
+  df <- rbind(df, results_list)
+  return(df)
+}
+
+# Function to create the three plots and arrange them vertically
+Generate_Figure3_Panels <- function(df_ess_ar, df_rhat, prop_prec_values) {
+  
+  # Function to apply a consistent theme
+  custom_theme <- theme_minimal(base_size = 10) +
+    theme(
+      axis.title = element_text(size = 12),
+      axis.text = element_text(size = 9),
+      legend.title = element_text(size = 10),
+      legend.text = element_text(size = 9),
+      plot.margin = margin(10, 10, 10, 10)
+    )
+  
+  ### Plot 3a: Effective Size ###
+  measure_quantile_ESS <- quantile(df_ess_ar$ESS, probs = c(0.25, 0.5, 0.75))
+  plot_ESS <- ggplot(df_ess_ar, aes(x = v, y = Precision, fill = ESS)) +
+    geom_tile() +
+    scale_fill_gradientn(colors = c("red", "white", "blue"),
+                         values = scales::rescale(c(measure_quantile_ESS[1], mean(df_ess_ar$ESS), measure_quantile_ESS[3])),
+                         name = "Effective Size",
+                         breaks = measure_quantile_ESS,
+                         labels = sprintf("%.2f", measure_quantile_ESS)) +
+    scale_x_continuous(breaks = seq(0, 0.25, by = 0.05)) +
+    scale_y_continuous(breaks = seq(min(prop_prec_values), max(prop_prec_values), by = 2)) +
+    labs(title = "(a) Effective Sample Size", 
+         x = expression("Conditioning Variable Value"~ (X[2]==v)),
+         y = "Precision Parameter (φ)") +
+    custom_theme + 
+    theme(legend.position = "right") # Alinea la leyenda a la derecha
+  
+  ### Plot 3b: Acceptance Rate ###
+  measure_quantile_AR <- quantile(df_ess_ar$Accept_Rate, probs = c(0, 0.25, 0.5, 0.75, 1))
+  plot_AR <- ggplot(df_ess_ar, aes(x = v, y = Precision, fill = Accept_Rate)) +
+    geom_tile() +
+    scale_fill_gradientn(colors = c("red", "white", "blue"),
+                         values = scales::rescale(c(measure_quantile_AR[1], mean(df_ess_ar$Accept_Rate), measure_quantile_AR[5])),
+                         name = "Acceptance Rate",
+                         breaks = measure_quantile_AR,
+                         labels = sprintf("%.2f", measure_quantile_AR)) +
+    scale_x_continuous(breaks = seq(0, 0.25, by = 0.05)) +
+    scale_y_continuous(breaks = seq(min(prop_prec_values), max(prop_prec_values), by = 2)) +
+    labs(title = "(b) Acceptance Rate",
+         x = expression("Conditioning Variable Value"~ (X[2]==v)),
+         y = "Precision Parameter (φ)") +
+    custom_theme + 
+    theme(legend.position = "right") # Alinea la leyenda a la derecha
+  
+  ### Plot 3c: R-hat ###
+  measure_quantile_Rhat <- quantile(df_rhat$Gelman_Rubin, probs = c(0.2, 0.94, 0.96, 0.98, 1))
+  plot_Rhat <- ggplot(df_rhat, aes(x = v, y = Precision, fill = Gelman_Rubin)) +
+    geom_tile() +
+    scale_fill_gradientn(colors = c("red", "white", "blue"),
+                         values = scales::rescale(c(measure_quantile_Rhat[1], mean(df_rhat$Gelman_Rubin), measure_quantile_Rhat[5])),
+                         name = "R-hat Diagnostic",
+                         breaks = measure_quantile_Rhat,
+                         labels = sprintf("%.2f", measure_quantile_Rhat)) +
+    scale_x_continuous(breaks = seq(0, 0.25, by = 0.05)) +
+    scale_y_continuous(breaks = seq(min(prop_prec_values), max(prop_prec_values), by = 2)) +
+    labs(title = "(c) R-hat Diagnostic",
+         x = expression("Conditioning Variable Value"~ (X[2]==v)),
+         y = "Precision Parameter (φ)") +
+    custom_theme + 
+    theme(legend.position = "right") # Alinea la leyenda a la derecha
+  
+  ### Arrange all plots vertically ###
+  grid.arrange(plot_ESS, plot_AR, plot_Rhat, ncol = 1, heights = c(1.2, 1.2, 1.2)) # Ajusta las proporciones de cada panel
+}
+
 #####
 # Function that plots the histogram, density, trace, and convergence control using the average.
 #####
@@ -398,34 +562,44 @@ Mon_R_Hat = function(N, prop_prec_values, a, b, c, d, v_values, thin = 1, burnin
 # "lscatt" is an increment to the minimum value generated. It allows plotting the line at an "lscatt" distance from the trace to enhance visualization.
 # "uscatt" is an increment to the maximum value generated. It allows plotting the line at an "uscatt" distance from the trace to enhance visualization.
 Graphs = function(dataset, nameaxisy, width = 10, lscatt = 0.05, uscatt = 0.05) {
+  # Function to apply a consistent theme
+  custom_theme <- theme_minimal(base_size = 10) +
+    theme(
+      axis.title = element_text(size = 13),
+      axis.text = element_text(size = 10),
+      legend.title = element_text(size = 10),
+      legend.text = element_text(size = 9),
+      plot.margin = margin(10, 10, 10, 10)
+    )
+  
   # Histogram with density
   l = length(dataset[, 1])
   hist = ggplot(dataset, aes(x = dataset[, 1])) + 
     geom_histogram(aes(y = after_stat(density)), colour = 1, fill = "white") +
     geom_density(lwd = 1.2, linetype = 2, colour = 2, fill = 4, alpha = 0.25) +
-    labs(title = "Histogram and Density") + ylab("Density") +
-    xlab(if(nameaxisy == "X2") { expression(X[2]^(t)) } 
-         else if(nameaxisy == "X1") { expression(X[1]^(t)) }
-         else if(nameaxisy == "Y1") { expression(Y[1]^(t)) }
-         else if(nameaxisy == "Y2") { expression(Y[2]^(t)) }
+    labs(title = "(a) Histogram and Density") + ylab("Density") +
+    xlab(if(nameaxisy == "X2") { expression("Chain Values of" ~ X[2]^(t)) } 
+         else if(nameaxisy == "X1") { expression("Chain Values of" ~ X[1]^(t))}
+         else if(nameaxisy == "Y1") { expression("Chain Values of" ~ Y[1]^(t)) }
+         else if(nameaxisy == "Y2") { expression("Chain Values of" ~ Y[2]^(t)) }
          else { substitute(va, list(va = as.name(nameaxisy))) }) +
-    theme(plot.title = element_text(size = 11))
+    custom_theme
   
   # Trace plot with maximum and minimum
   trace = ggplot(dataset, aes(x = 1:l, y = dataset[, 1])) +
-    geom_line() + xlab("t") +
-    ylab(if(nameaxisy == "X2") { expression(X[2]^(t)) } 
-         else if(nameaxisy == "X1") { expression(X[1]^(t)) }
-         else if(nameaxisy == "Y1") { expression(Y[1]^(t)) }
-         else if(nameaxisy == "Y2") { expression(Y[2]^(t)) }
+    geom_line() + xlab("Chain Iterations (t)") +
+    ylab(if(nameaxisy == "X2") { expression("Chain of" ~ X[2]^(t)) } 
+         else if(nameaxisy == "X1") { expression("Chain of" ~ X[1]^(t)) }
+         else if(nameaxisy == "Y1") { expression("Chain of" ~ Y[1]^(t)) }
+         else if(nameaxisy == "Y2") { expression("Chain of" ~ Y[2]^(t)) }
          else { substitute(va, list(va = as.name(nameaxisy))) }) +
     ylim(c(min(dataset) - lscatt, max(dataset) + uscatt)) +
     geom_hline(aes(yintercept = min(dataset[, 1])), colour = "red", linetype = 2) +
     geom_text(aes(l - l / 10, min(dataset[, 1]), label = round(min(dataset[, 1]), 3), vjust = 2), colour = "red") +
     geom_hline(aes(yintercept = max(dataset[, 1])), colour = "red", linetype = 2) +
     geom_text(aes(l - l / 10, max(dataset[, 1]), label = round(max(dataset[, 1]), 3), vjust = -1), colour = "red") +
-    labs(title = substitute(list("Trace of the random sample of size", n), list(n = l))) +
-    theme(plot.title = element_text(size = 11))
+    labs(title = substitute(list("(b) Trace of the random sample of size", n), list(n = l))) +
+    custom_theme
   
   # Acf plot
   alfa = 0.05
@@ -436,10 +610,10 @@ Graphs = function(dataset, nameaxisy, width = 10, lscatt = 0.05, uscatt = 0.05) 
   acfplot = ggplot(acf_data, aes(x = Lag, y = ACF)) +
     geom_bar(stat = "identity") +
     geom_hline(yintercept = c(lim, -lim), linetype = "dashed") +
-    labs(title = "Autocorrelation Function",
+    labs(title = "(d) Autocorrelation Function",
          x = "Lag",
          y = "ACF") +
-    theme_minimal() + theme(plot.title = element_text(size = 11))  
+    custom_theme  
   
   # Convergence control using averaging
   dataset$estintden = cumsum(dataset[, 1]) / (1:l)
@@ -449,15 +623,15 @@ Graphs = function(dataset, nameaxisy, width = 10, lscatt = 0.05, uscatt = 0.05) 
     geom_line(aes(x = 1:l, y = estintden - 1.95 * esterrden, colour = "Upper")) +
     geom_line(aes(x = 1:l, y = estintden + 1.95 * esterrden, colour = "Lower")) +
     ylim(mean(dataset$estintden) + width * c(-dataset$esterrden[l], dataset$esterrden[l])) +
-    ylab(if(nameaxisy == "X2") { expression(X[2]^(t)) } 
-         else if(nameaxisy == "X1") { expression(X[1]^(t)) }
-         else if(nameaxisy == "Y1") { expression(Y[1]^(t)) }
-         else if(nameaxisy == "Y2") { expression(Y[2]^(t)) }
+    ylab(if(nameaxisy == "X2") {expression("Accumulated Average of" ~ X[2]^(t)) } 
+         else if(nameaxisy == "X1") { expression("Accumulated Average of" ~ X[1]^(t)) }
+         else if(nameaxisy == "Y1") { expression("Accumulated Average of" ~ Y[1]^(t)) }
+         else if(nameaxisy == "Y2") { expression("Accumulated Average of" ~ Y[2]^(t)) }
          else { substitute(va, list(va = as.name(nameaxisy))) }) +
-    xlab("t") + geom_hline(yintercept = mean(dataset[, 1]), colour = "red", linetype = 2) +
+    xlab("Chain Iterations (t)") + geom_hline(yintercept = mean(dataset[, 1]), colour = "red", linetype = 2) +
     geom_text(aes(l - l / 10, mean(dataset[, 1]), label = round(mean(dataset[, 1]), 3), vjust = -2), colour = "red") +
-    labs(title = "Convergence Control using Averaging", color = "Bounds") + 
-    scale_shape_discrete(name = " ") + theme(plot.title = element_text(size = 11), legend.position = "top", legend.box = "horizontal")
+    labs(title = "(c) Convergence Control using Averaging", color = "Bounds") + 
+    scale_shape_discrete(name = " ") + custom_theme
   
   # Plots of histogram, trace, convergence control, and acf.
   grid.arrange(hist, trace, mean_X1_X2, acfplot, 
