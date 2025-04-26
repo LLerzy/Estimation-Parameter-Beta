@@ -138,11 +138,11 @@ ExampleFC_X1_X2_seedgiven_cum$Sim=rep(1:N,9)
       plot.margin = margin(10, 10, 10, 10)
     )
 # Graphic
-Piece1_Grap_FC=ggplot(ExampleFC_X1_X2_seedgiven_cum,aes(x=Sim ,y=FCmu,group= Seed, color=Seed))+geom_line()+ylab(expression("Accumulated Average " ~ hat(X)[1]^(t)))+xlab("Chain Iterations (t)")+xlim(0,50)+custom_theme
+Piece1_Grap_FC=ggplot(ExampleFC_X1_X2_seedgiven_cum,aes(x=Sim ,y=FCmu,group= Seed, color=Seed))+geom_line()+ylab(expression("Accumulated Average " ~ hat(X)[1]^(t)))+xlab("Chain Iterations (t)")+xlim(0,50)+labs(title = "(a)")+custom_theme
 
-Piece2_Grap_FC=ggplot(ExampleFC_X1_X2_seedgiven_cum,aes(x=Sim ,y=FCmu,group= Seed, color=Seed))+geom_line()+ylab(expression("Accumulated Average " ~ hat(X)[1]^(t)))+xlab("Chain Iterations (t)")+xlim(0,250)+custom_theme
+Piece2_Grap_FC=ggplot(ExampleFC_X1_X2_seedgiven_cum,aes(x=Sim ,y=FCmu,group= Seed, color=Seed))+geom_line()+ylab(expression("Accumulated Average " ~ hat(X)[1]^(t)))+xlab("Chain Iterations (t)")+xlim(0,250)+labs(title = "(b)")+custom_theme
 
-Full_Grap_FC=ggplot(ExampleFC_X1_X2_seedgiven_cum,aes(x=Sim ,y=FCmu,group= Seed, color=Seed))+geom_line()+ylab(expression("Accumulated Average " ~ hat(X)[1]^(t)))+xlab("Chain Iterations (t)")+custom_theme
+Full_Grap_FC=ggplot(ExampleFC_X1_X2_seedgiven_cum,aes(x=Sim ,y=FCmu,group= Seed, color=Seed))+geom_line()+ylab(expression("Accumulated Average " ~ hat(X)[1]^(t)))+xlab("Chain Iterations (t)")+labs(title = "(c)")+custom_theme
 
 grid.arrange(arrangeGrob(Piece1_Grap_FC, Piece2_Grap_FC, Full_Grap_FC,ncol=2, nrow=2, widths=c(2, 2), heights=c(2,2),layout_matrix=rbind(c(1,2),c(3,3))),bottom="Convergence control using averaging")
 ```
