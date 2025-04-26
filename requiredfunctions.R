@@ -225,13 +225,6 @@ Gen_FC_X1_X2 <- function(N, prop_prec, a, b, c, d, v, option = "end", thin = 1, 
       
       prop_prec = prop_prec + (1/k) * (target_acceptance-acceptance_rate)
       
-      #prop_prec = prop_prec + (1/k) * (target_acceptance-acceptance_rate) * ( 1/sd(burnin_chain[-100]) )
-      #if (acceptance_rate < target_acceptance) {
-      #  prop_prec <- prop_prec * 0.95
-      #} else if (acceptance_rate > target_acceptance) {
-      #  prop_prec <- prop_prec * 1.05
-      #}
-      
       burnin_accepted <- 0
     }
     proposals = proposals + 1
