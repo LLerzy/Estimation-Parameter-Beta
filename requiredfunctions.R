@@ -152,9 +152,11 @@ Graph_Fc_X1=function(v1, v1name, v2, v2name, v3, v3name, ae, be, ce, de) {
 # The seed type can be specified with "X10_given" to be "random" or "fixed".
 # "target_acceptance" is the acceptable tolerance rate for acceptance.
 # "dig_tol" is the number of decimal places for -X10^2 + X10 - v, and -yt^2 + yt - v to be different from zero. 
+# "batch_adapt_acceptance_rate" is the number of iterations with which the accuracy is adjusted in the burn-in period
 # This criterion is important in the numerical method to avoid numerical problems.
+
 Gen_FC_X1_X2 <- function(N, prop_prec, a, b, c, d, v, option = "end", thin = 1, burnin = 0, 
-                         X10_given = "random", target_acceptance = 0.3, dig_tol = 15) {
+                         X10_given = "random", target_acceptance = 0.3, dig_tol = 15,batch_adapt_acceptance_rate=100) {
   X1_lower = 0.5 - 0.5 * sqrt(1 - 4 * v)
   X1_upper = 0.5 + 0.5 * sqrt(1 - 4 * v)
   
@@ -220,8 +222,8 @@ Gen_FC_X1_X2 <- function(N, prop_prec, a, b, c, d, v, option = "end", thin = 1, 
     }
     
     # Adaptive adjustment of the precision parameter during burn-in
-    if (k <= burnin && k %% 100 == 0 && target_acceptance!=0) {
-      acceptance_rate <- burnin_accepted / 100
+    if (k <= burnin && k %% batch_adapt_acceptance_rate == 0 && target_acceptance!=0) {
+      acceptance_rate <- burnin_accepted / batch_adapt_acceptance_rate
       
       prop_prec = prop_prec + (1/k) * (target_acceptance-acceptance_rate)
       
@@ -648,14 +650,16 @@ Graphs = function(dataset, nameaxisy, width = 10, lscatt = 0.05, uscatt = 0.05) 
 # The seed type can be specified with "X10_given" as "random" or "fixed".
 # "lower_epsilon": lower limit for the conditional distribution of the variance given a value for the mean.
 # "dig_tol" in Gen_FC_X1_X2: number of decimal places for -X10^2 + X10 - v, and -yt^2 + yt - v to be different from zero.
-Gen_Joint_Dist = function(N1, N2, prop_prec, a, b, c, d, thin = 1, X10_given = "random", lower_epsilon = 0, dig_tol = 15, target_acceptance = 0.3) {
+# "batch_adapt_acceptance_rate" is the number of iterations with which the accuracy is adjusted in the burn-in period
+
+Gen_Joint_Dist = function(N1, N2, prop_prec, a, b, c, d, thin = 1, X10_given = "random", lower_epsilon = 0, dig_tol = 15, target_acceptance = 0.3,batch_adapt_acceptance_rate=100) {
   SampleGen = matrix(data = NA, nrow = N1, ncol = 2, dimnames = list(NULL, c("X2", "X1")))
   SampleGen = as.data.frame(SampleGen)
   SampleGen$X1[1] = rbeta(1, a, b)
   SampleGen$X2[1] = rBeta.4P(1, l = 0, u = SampleGen$X1[1] * (1 - SampleGen$X1[1]), alpha = c, beta = d)
   for (t in 2:N1) {
     # Generate X1[t] using the Metropolis-Hastings algorithm
-    SampleGen$X1[t] = Gen_FC_X1_X2(N2, prop_prec, a, b, c, d, SampleGen$X2[t-1], option = "end", thin, burnin = 0, X10_given, target_acceptance, dig_tol)$thinned_chain
+    SampleGen$X1[t] = Gen_FC_X1_X2(N2, prop_prec, a, b, c, d, SampleGen$X2[t-1], option = "end", thin, burnin = 0, X10_given, target_acceptance, dig_tol,batch_adapt_acceptance_rate=batch_adapt_acceptance_rate)$thinned_chain
     # Generate X2[t] using the conditional distribution
     SampleGen$X2[t] = rBeta.4P(1, l = lower_epsilon, u = SampleGen$X1[t] * (1 - SampleGen$X1[t]), alpha = c, beta = d)
   }
@@ -703,19 +707,113 @@ Mom_Prior_Dist = function(l1, l2, a, b, c, d) {
 # thin and burnin are parameters applied to select the data elements to be used for determining numerical measures.
 # digits: number of decimal places for numerical measures.
 # a, b, c, and d are hyperparameter values of the proposed distribution.
-Measure_Diagnostic = function(data1, data2, var = "original", burnin, thin, digits = 5, a, b, c, d) {
+Measure_Diagnostic = function(data1, data2, var = "original", burnin, thin, digits = 5, a, b, c, d, cred_level = 0.95, batch_size = 100) {
+  # Function to calculate the standard error using the batch means method
+  batch_means_stderr_var <- function(chain, batch_size) {
+    n <- length(chain)
+    num_batches <- floor(n / batch_size)
+    if (num_batches < 2) {
+      warning("Se necesitan al menos 2 batches para estimar el error estándar.")
+      return(NA)
+    }
+    batch_means_var <- numeric(num_batches)
+    for (i in 1:num_batches) {
+      start_index <- (i - 1) * batch_size + 1
+      end_index <- min(i * batch_size, n)
+      batch_means_var[i] <- var(chain[start_index:end_index])
+    }
+    return(sd(batch_means_var) / sqrt(num_batches))
+  }
+  
+  # Function to calculate the credibility region for the mean.
+  Cred_Interval <- function(x, level = 0.95) {
+    quantile(x, probs = c((1 - level)/2, 1 - (1 - level)/2))
+  }
+  
+  # Function to calculate the credibility region for the variance.
+  Cred_Interval_V <- function(x, level = 0.95) {
+    n_bootstrap <- 10000
+    bootstrap_variances <- replicate(n_bootstrap, var(sample(x, size = length(x), replace = TRUE)))
+    credibility_interval_variance_bootstrap <- quantile(bootstrap_variances, probs = c((1 - level) / 2, 1 - (1 - level) / 2))
+    return(c(round(credibility_interval_variance_bootstrap[1], 3), round(credibility_interval_variance_bootstrap[2], 3)))
+  }
+  
+  # Función para determinar el error estándar de la covarianza.
+  batch_means_stderr_cov <- function(chain, batch_size = 100) {
+    n <- nrow(chain)
+    num_batches <- floor(n / batch_size)
+    if (num_batches < 2) {
+      warning("Se necesitan al menos 2 batches para estimar el error estándar.")
+      return(NA)
+    }
+    batch_covariances <- numeric(num_batches)
+    for (i in 1:num_batches) {
+      start_index <- (i - 1) * batch_size + 1
+      end_index <- min(i * batch_size, n)
+      batch_covariances[i] <- cov(chain[start_index:end_index, 1],
+                                  chain[start_index:end_index, 2])
+    }
+    return(sd(batch_covariances) / sqrt(num_batches))
+  }
+  
+  # Función para calcular la región de credibilidad para la covarianza.
+  Cred_Interval_Cov <- function(x, level = 0.95) {
+    n_bootstrap <- 10000
+    bootstrap_covariances <- numeric(n_bootstrap)
+    n_samples <- nrow(x)
+    for (i in 1:n_bootstrap) {
+      # Remuestrear las filas de x con reemplazo
+      bootstrap_indices <- sample(1:n_samples, size = n_samples, replace = TRUE)
+      bootstrap_sample <- x[bootstrap_indices, ]
+      bootstrap_covariances[i] <- cov(bootstrap_sample[, 1], bootstrap_sample[, 2])
+    }
+    credibility_interval_covariance_bootstrap <- quantile(bootstrap_covariances,
+                                                          probs = c((1 - level) / 2, 1 - (1 - level) / 2))
+    return(c(round(credibility_interval_covariance_bootstrap[1], 3), round(credibility_interval_covariance_bootstrap[2], 3)))
+  }
+  
   N = length(data1)
   data1 <- data1[seq((burnin + 1), N, by = thin)]
   data2 <- data2[seq((burnin + 1), N, by = thin)]
   
+      
   if (var == "original") {
-    new_names = c("Mean_X1", "Var_X1", "ESS_X1", "Mean_X2", "Var_X2", "ESS_X2", "Cov", "Length")
+    new_names = c("Mean_X1", "Var_X1", "ESS_X1", "STDERR_Mean_X1", "STDERR_Var_X1", "CI_Mean1_Lower", "CI_Mean1_Upper","CI_Var1_Lower", "CI_Var1_Upper",
+                  "Mean_X2", "Var_X2", "ESS_X2", "STDERR_Mean_X2", "STDERR_Var_X2", "CI_Mean2_Lower", "CI_Mean2_Upper","CI_Var2_Lower", "CI_Var2_Upper",
+                  "Cov", "STDERR_Cov", "CI_Cov_Lower", "CI_Cov_Upper", "Length")
+    CIM1 = Cred_Interval(data1, level = cred_level)
+    CIM2 = Cred_Interval(data2, level = cred_level)
+    CIV1 = Cred_Interval_V(data1, level = cred_level)
+    CIV2 = Cred_Interval_V(data2, level = cred_level)
+    CIcov= Cred_Interval_Cov(matrix(c(data1,data2),ncol=2), level = cred_level)
     
     # Numerical results
     Numerical_results = round(data.frame(
-      "mean1" = mean(data1), "var1" = var(data1), "ESS1" = effectiveSize(mcmc(data1))[[1]],
-      "mean2" = mean(data2), "var2" = var(data2), "ESS2" = effectiveSize(mcmc(data2))[[1]],
-      "cov12" = cov(data1, data2), "length" = length(data1)
+      "mean1" = mean(data1), 
+      "var1" = var(data1), 
+      "ESS1" = effectiveSize(mcmc(data1))[[1]],
+      "stderr_mean.1" = sd(data1)/sqrt(effectiveSize(mcmc(data1))[[1]]),
+      "stderr_var.1" = batch_means_stderr_var(data1, batch_size),
+      "CIM1_lower" = CIM1[1],
+      "CIM1_upper" = CIM1[2],
+      "CIV1_lower" = CIV1[1],
+      "CIV1_upper" = CIV1[2],
+      
+      "mean2" = mean(data2), 
+      "var2" = var(data2), 
+      "ESS2" = effectiveSize(mcmc(data2))[[1]],
+      "stderr_mean.2" = sd(data2)/sqrt(effectiveSize(mcmc(data2))[[1]]),
+      "stderr_var.2" = batch_means_stderr_var(data2, batch_size),
+      "CIM2_lower" = CIM2[1],
+      "CIM2_upper" = CIM2[2],
+      "CIV2_lower" = CIV2[1],
+      "CIV2_upper" = CIV2[2],
+      
+      "cov12" = cov(data1, data2), 
+      "stderr_cov" = batch_means_stderr_cov(matrix(c(data1,data2),ncol=2), batch_size),
+      "CIcov_lower" = CIcov[1],
+      "CIcov_upper" = CIcov[2],
+      "length" = length(data1),
     ), digits)
     
     names(Numerical_results) = new_names
@@ -726,15 +824,47 @@ Measure_Diagnostic = function(data1, data2, var = "original", burnin, thin, digi
     piece = (data1 * (1 - data1) / data2 - 1)
     new_data1 = data1 * piece
     new_data2 = (1 - data1) * piece
-    new_names = c("Mean_Y1", "Var_Y1", "ESS_Y1", "Mean_Y2", "Var_Y2", "ESS_Y2", "Cov", "Length")
+    
+    new_names = c("Mean_X1", "Var_X1", "ESS_X1", "STDERR_Mean_X1", "STDERR_Var_X1", "CI_Mean1_Lower", "CI_Mean1_Upper","CI_Var1_Lower", "CI_Var1_Upper",
+                  "Mean_X2", "Var_X2", "ESS_X2", "STDERR_Mean_X2", "STDERR_Var_X2", "CI_Mean2_Lower", "CI_Mean2_Upper","CI_Var2_Lower", "CI_Var2_Upper",
+                  "Cov", "STDERR_Cov", "CI_Cov_Lower", "CI_Cov_Upper", "Length")
+    
+    CIM1 = Cred_Interval(new_data1, level = cred_level)
+    CIM2 = Cred_Interval(new_data2, level = cred_level)
+    CIV1 = Cred_Interval_V(new_data1, level = cred_level)
+    CIV2 = Cred_Interval_V(new_data2, level = cred_level)
+    CIcov= Cred_Interval_Cov(matrix(c(new_data1,new_data2),ncol=2), level = cred_level)
     
     # Numerical results
     Numerical_results = round(data.frame(
-      "mean1" = mean(new_data1), "var1" = var(new_data1), "ESS1" = effectiveSize(mcmc(new_data1))[[1]],
-      "mean2" = mean(new_data2), "var2" = var(new_data2), "ESS2" = effectiveSize(mcmc(new_data2))[[1]],
-      "cov12" = cov(new_data1, new_data2), "length" = length(new_data1)
+      "mean1" = mean(new_data1), 
+      "var1" = var(new_data1), 
+      "ESS1" = effectiveSize(mcmc(new_data1))[[1]],
+      "stderr_mean.1" = sd(new_data1)/sqrt(effectiveSize(mcmc(new_data1))[[1]]),
+      "stderr_var.1" = batch_means_stderr_var(new_data1, batch_size),
+      "CIM1_lower" = CIM1[1],
+      "CIM1_upper" = CIM1[2],
+      "CIV1_lower" = CIV1[1],
+      "CIV1_upper" = CIV1[2],
+      
+      "mean2" = mean(new_data2), 
+      "var2" = var(new_data2), 
+      "ESS2" = effectiveSize(mcmc(new_data2))[[1]],
+      "stderr_mean.2" = sd(new_data2)/sqrt(effectiveSize(mcmc(new_data2))[[1]]),
+      "stderr_var.2" = batch_means_stderr_var(new_data2, batch_size),
+      "CIM2_lower" = CIM2[1],
+      "CIM2_upper" = CIM2[2],
+      "CIV2_lower" = CIV2[1],
+      "CIV2_upper" = CIV2[2],
+      
+      "cov12" = cov(new_data1, new_data2),
+      "stderr_cov" = batch_means_stderr_cov(matrix(c(new_data1,new_data2),ncol=2), batch_size),
+      "CIcov_lower" = CIcov[1],
+      "CIcov_upper" = CIcov[2],
+      "length" = length(new_data1)
     ), digits)
     names(Numerical_results) = new_names
+    row.names(Numerical_results)="Numerical Results"
     
     # Analytical results
     K = Mom_Prior_Dist(0, 0, a, b, c, d)
@@ -742,19 +872,42 @@ Measure_Diagnostic = function(data1, data2, var = "original", burnin, thin, digi
       "Mean.1" = Mom_Prior_Dist(1, 0, a, b, c, d) / K,
       "Var.1" = Mom_Prior_Dist(2, 0, a, b, c, d) / K - (Mom_Prior_Dist(1, 0, a, b, c, d) / K)^2,
       "ESS.1" = length(new_data1),
+      "stderr_mean.1" = NA,
+      "stderr_var.1" = NA,
+      "CIM1_lower" = NA,
+      "CIM1_upper" = NA,
+      "CIV1_lower" = NA,
+      "CIV1_upper" = NA,
+      
       "Mean.2" = Mom_Prior_Dist(0, 1, a, b, c, d) / K,
       "Var.2" = Mom_Prior_Dist(0, 2, a, b, c, d) / K - (Mom_Prior_Dist(0, 1, a, b, c, d) / K)^2,
       "ESS.2" = length(new_data1),
+      "stderr_mean.2" = NA,
+      "stderr_var.2" = NA,
+      "CIM2_lower" = NA,
+      "CIM2_upper" = NA,
+      "CIV2_lower" = NA,
+      "CIV2_upper" = NA,
+
       "Cov" = Mom_Prior_Dist(1, 1, a, b, c, d) / K - (Mom_Prior_Dist(1, 0, a, b, c, d) / K) * Mom_Prior_Dist(0, 1, a, b, c, d) / K,
+      "stderr_cov" = NA,
+      "CIcov_lower" = NA,
+      "CIcov_upper" = NA,
       "length" = length(new_data1)
     ), digits)
     names(Analytic_results) = new_names
+    row.names(Analytic_results)="Theoretical Results"
     
     # Differences between analytical and numerical results.
     Differences = round(Analytic_results - Numerical_results, digits)
+    row.names(Differences)="Differences"
     return(list(Numerical = Numerical_results, Analytical = Analytic_results, Differences = Differences))
   }
 }
+
+
+
+
 
 ##########################################################
 ##########################################################
