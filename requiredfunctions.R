@@ -695,7 +695,7 @@ Mtovar_vs2 = function(q1, q2, low, upp, alp) {
 # l2 is the marginal order for beta
 # a, b, c, and d are hyperparameter values.
 Mom_Prior_Dist = function(l1, l2, a, b, c, d) {
-  beta(c - l1 - l2, l1 + l2 + d) * beta(l1 + a, l2 + b)
+  exp(log(beta(c - l1 - l2, l1 + l2 + d)) + log(beta(l1 + a, l2 + b)))
 }
 
 ##########################################################
@@ -869,8 +869,10 @@ Measure_Diagnostic = function(data1, data2, var = "original", burnin, thin, digi
     # Analytical results
     K = Mom_Prior_Dist(0, 0, a, b, c, d)
     Analytic_results = round(data.frame(
-      "Mean.1" = Mom_Prior_Dist(1, 0, a, b, c, d) / K,
-      "Var.1" = Mom_Prior_Dist(2, 0, a, b, c, d) / K - (Mom_Prior_Dist(1, 0, a, b, c, d) / K)^2,
+      "Mean.1" = exp(log(beta(c - 1 - 0, 1 + 0 + d)) + log(beta(1 + a, 0 + b)) - (log(beta(c - 0 - 0, 0 + 0 + d)) + log(beta(0 + a, 0 + b))) ), 
+      #"Mean.1" =  Mom_Prior_Dist(1, 0, a, b, c, d) / K,
+      "Var.1" = exp(log(beta(c - 2 - 0, 2 + 0 + d)) + log(beta(2 + a, 0 + b)) - (log(beta(c - 0 - 0, 0 + 0 + d)) + log(beta(0 + a, 0 + b))) ) - (exp(log(beta(c - 1 - 0, 1 + 0 + d)) + log(beta(1 + a, 0 + b)) - (log(beta(c - 0 - 0, 0 + 0 + d)) + log(beta(0 + a, 0 + b))) ))^2,
+      #"Var.1" = Mom_Prior_Dist(2, 0, a, b, c, d) / K - (Mom_Prior_Dist(1, 0, a, b, c, d) / K)^2,
       "ESS.1" = length(new_data1),
       "stderr_mean.1" = NA,
       "stderr_var.1" = NA,
@@ -879,8 +881,10 @@ Measure_Diagnostic = function(data1, data2, var = "original", burnin, thin, digi
       "CIV1_lower" = NA,
       "CIV1_upper" = NA,
       
-      "Mean.2" = Mom_Prior_Dist(0, 1, a, b, c, d) / K,
-      "Var.2" = Mom_Prior_Dist(0, 2, a, b, c, d) / K - (Mom_Prior_Dist(0, 1, a, b, c, d) / K)^2,
+      "Mean.2" = exp(log(beta(c - 0 - 1, 0 + 1 + d)) + log(beta(0 + a, 1 + b)) - (log(beta(c - 0 - 0, 0 + 0 + d)) + log(beta(0 + a, 0 + b))) ), 
+      #Mom_Prior_Dist(0, 1, a, b, c, d) / K,
+      "Var.2" =  exp(log(beta(c - 0 - 2, 0 + 2 + d)) + log(beta(0 + a, 2 + b)) - (log(beta(c - 0 - 0, 0 + 0 + d)) + log(beta(0 + a, 0 + b))) ) - (exp(log(beta(c - 0 - 1, 0 + 1 + d)) + log(beta(0 + a, 1 + b)) - (log(beta(c - 0 - 0, 0 + 0 + d)) + log(beta(0 + a, 0 + b))) ))^2,
+        #Mom_Prior_Dist(0, 2, a, b, c, d) / K - (Mom_Prior_Dist(0, 1, a, b, c, d) / K)^2,
       "ESS.2" = length(new_data1),
       "stderr_mean.2" = NA,
       "stderr_var.2" = NA,
@@ -889,7 +893,9 @@ Measure_Diagnostic = function(data1, data2, var = "original", burnin, thin, digi
       "CIV2_lower" = NA,
       "CIV2_upper" = NA,
 
-      "Cov" = Mom_Prior_Dist(1, 1, a, b, c, d) / K - (Mom_Prior_Dist(1, 0, a, b, c, d) / K) * Mom_Prior_Dist(0, 1, a, b, c, d) / K,
+      "Cov" = exp(log(beta(c - 1 - 1, 1 + 1 + d)) + log(beta(1 + a, 1 + b)) - (log(beta(c - 0 - 0, 0 + 0 + d)) + log(beta(0 + a, 0 + b))) )-
+        exp(2*log(beta(c - 1, 1 + d)) + log(beta( a, 1 + b)) - 2*(log(beta(c, d)) + log(beta(a, b))) + log(beta(1 + a, b)) ),
+        #Mom_Prior_Dist(1, 1, a, b, c, d) / K - (Mom_Prior_Dist(1, 0, a, b, c, d) / K) * Mom_Prior_Dist(0, 1, a, b, c, d) / K,
       "stderr_cov" = NA,
       "CIcov_lower" = NA,
       "CIcov_upper" = NA,

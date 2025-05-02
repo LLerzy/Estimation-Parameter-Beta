@@ -164,15 +164,15 @@ df <- data.frame(
   "ESS" = effectiveSize(ExampleFC_X1_X2$thinned_chain),
   "Length" = length(ExampleFC_X1_X2$thinned_chain),
   "Precision" = ExampleFC_X1_X2$precision,
-  row.names = "Chain Measurements"  # Cambia el nombre de la fila
+  row.names = "Chain Measurements"
 )
 df
 ```
 
-    ##                    Acceptance.Rate Acceptance.Rate.Post.Burn.in      ESS Length
-    ## Chain Measurements       0.5588156                     0.558048 3279.327   3800
+    ##                    Acceptance.Rate Acceptance.Rate.Post.Burn.in     ESS Length
+    ## Chain Measurements       0.5650557                    0.5643954 3433.86   3800
     ##                    Precision
-    ## Chain Measurements  2.992333
+    ## Chain Measurements  2.991663
 
 ## Convergence Monitoring with Fixed Seeds
 
@@ -228,7 +228,7 @@ round(apply(ExampleFC_X1_X2_seedgiven[1:3800,], 2, mean),3)
 ```
 
     ##   0.1   0.2   0.3   0.4   0.5   0.6   0.7   0.8   0.9 
-    ## 0.505 0.496 0.499 0.497 0.507 0.503 0.493 0.499 0.498
+    ## 0.497 0.497 0.501 0.503 0.494 0.506 0.497 0.494 0.500
 
 # Gibbs Sampling
 
@@ -353,39 +353,39 @@ numerical_df <- as.data.frame.matrix(t(results_measure_diag$Numerical))
 analytical_df <- as.data.frame.matrix(t(results_measure_diag$Analytical))
 differences_df <- as.data.frame.matrix(t(results_measure_diag$Differences)) 
 
-# Combinamos los tres data frames en uno solo
+# Combine the three data frames into one
 combined_df <- cbind(numerical_df, analytical_df[,1],differences_df[,1])
 names(combined_df)=c("Numerical Results", "Theoretical Results", "Differences")
 
-# Creamos la tabla con kable y le aplicamos estilo
+# The table is created with kable
 combined_df %>%
   kable(caption = "Summary Statistics for Different Measures", digits = 3)
 ```
 
 |                | Numerical Results | Theoretical Results | Differences |
 |:---------------|------------------:|--------------------:|------------:|
-| Mean_X1        |             0.893 |               0.917 |       0.024 |
-| Var_X1         |             2.479 |               7.851 |       5.372 |
-| ESS_X1         |          3800.000 |            3800.000 |       0.000 |
-| STDERR_Mean_X1 |             0.025 |                  NA |          NA |
-| STDERR_Var_X1  |             0.422 |                  NA |          NA |
-| CI_Mean1_Lower |             0.040 |                  NA |          NA |
-| CI_Mean1_Upper |             4.406 |                  NA |          NA |
-| CI_Var1_Lower  |             1.681 |                  NA |          NA |
-| CI_Var1_Upper  |             3.492 |                  NA |          NA |
-| Mean_X2        |             0.967 |               0.917 |      -0.050 |
-| Var_X2         |            13.128 |               7.851 |      -5.277 |
+| Mean_X1        |             0.928 |               0.917 |      -0.012 |
+| Var_X1         |             3.436 |               7.851 |       4.415 |
+| ESS_X1         |          4153.223 |            3800.000 |    -353.223 |
+| STDERR_Mean_X1 |             0.029 |                  NA |          NA |
+| STDERR_Var_X1  |             0.605 |                  NA |          NA |
+| CI_Mean1_Lower |             0.039 |                  NA |          NA |
+| CI_Mean1_Upper |             4.550 |                  NA |          NA |
+| CI_Var1_Lower  |             2.343 |                  NA |          NA |
+| CI_Var1_Upper  |             4.801 |                  NA |          NA |
+| Mean_X2        |             0.900 |               0.917 |       0.017 |
+| Var_X2         |             4.305 |               7.851 |       3.546 |
 | ESS_X2         |          3800.000 |            3800.000 |       0.000 |
-| STDERR_Mean_X2 |             0.059 |                  NA |          NA |
-| STDERR_Var_X2  |             9.642 |                  NA |          NA |
-| CI_Mean2_Lower |             0.036 |                  NA |          NA |
-| CI_Mean2_Upper |             4.424 |                  NA |          NA |
-| CI_Var2_Lower  |             2.378 |                  NA |          NA |
-| CI_Var2_Upper  |            33.436 |                  NA |          NA |
-| Cov            |             3.345 |               5.135 |       1.790 |
-| STDERR_Cov     |             1.730 |                  NA |          NA |
-| CI_Cov_Lower   |             1.224 |                  NA |          NA |
-| CI_Cov_Upper   |             7.189 |                  NA |          NA |
+| STDERR_Mean_X2 |             0.034 |                  NA |          NA |
+| STDERR_Var_X2  |             1.933 |                  NA |          NA |
+| CI_Mean2_Lower |             0.037 |                  NA |          NA |
+| CI_Mean2_Upper |             4.202 |                  NA |          NA |
+| CI_Var2_Lower  |             1.727 |                  NA |          NA |
+| CI_Var2_Upper  |             8.766 |                  NA |          NA |
+| Cov            |             2.079 |               5.135 |       3.056 |
+| STDERR_Cov     |             0.518 |                  NA |          NA |
+| CI_Cov_Lower   |             1.213 |                  NA |          NA |
+| CI_Cov_Upper   |             3.265 |                  NA |          NA |
 | Length         |          3800.000 |            3800.000 |       0.000 |
 
 Summary Statistics for Different Measures
@@ -412,7 +412,7 @@ Gelm_Rud_X2 = gelman.diag(list(mcmc(sample1$X2[seq((burnin+1), N, by=thin)]), mc
 print(c(Gelm_Rud_X1,Gelm_Rud_X2))
 ```
 
-    ## [1] 0.9998731 1.0005821
+    ## [1] 1.000875 1.000143
 
 # Comparison Using an Alternative Parameter Configuration
 
@@ -439,39 +439,39 @@ numerical_df <- as.data.frame.matrix(t(results_measure_diag1$Numerical))
 analytical_df <- as.data.frame.matrix(t(results_measure_diag1$Analytical))
 differences_df <- as.data.frame.matrix(t(results_measure_diag1$Differences)) 
 
-# Combinamos los tres data frames en uno solo
+# Combine the three data frames into one
 combined_df <- cbind(numerical_df, analytical_df[,1],differences_df[,1])
 names(combined_df)=c("Numerical Results", "Theoretical Results", "Differences")
 
-# Creamos la tabla con kable y le aplicamos estilo
+# The table is created with kable
 combined_df %>%
   kable(caption = "Summary Statistics for Different Measures", digits = 3) 
 ```
 
 |                | Numerical Results | Theoretical Results | Differences |
 |:---------------|------------------:|--------------------:|------------:|
-| Mean_X1        |             1.083 |                 1.0 |      -0.083 |
-| Var_X1         |             1.690 |                 1.8 |       0.110 |
-| ESS_X1         |         19609.108 |             19000.0 |    -609.108 |
-| STDERR_Mean_X1 |             0.009 |                  NA |          NA |
-| STDERR_Var_X1  |             0.150 |                  NA |          NA |
-| CI_Mean1_Lower |             0.145 |                  NA |          NA |
-| CI_Mean1_Upper |             4.089 |                  NA |          NA |
-| CI_Var1_Lower  |             1.429 |                  NA |          NA |
-| CI_Var1_Upper  |             2.022 |                  NA |          NA |
-| Mean_X2        |             1.932 |                 2.0 |       0.068 |
-| Var_X2         |             5.171 |                 5.8 |       0.629 |
-| ESS_X2         |         19000.000 |             19000.0 |       0.000 |
+| Mean_X1        |             1.069 |                 1.0 |      -0.069 |
+| Var_X1         |             1.909 |                 1.8 |      -0.109 |
+| ESS_X1         |         19000.000 |             19000.0 |       0.000 |
+| STDERR_Mean_X1 |             0.010 |                  NA |          NA |
+| STDERR_Var_X1  |             0.268 |                  NA |          NA |
+| CI_Mean1_Lower |             0.144 |                  NA |          NA |
+| CI_Mean1_Upper |             4.137 |                  NA |          NA |
+| CI_Var1_Lower  |             1.494 |                  NA |          NA |
+| CI_Var1_Upper  |             2.515 |                  NA |          NA |
+| Mean_X2        |             1.902 |                 2.0 |       0.098 |
+| Var_X2         |             4.532 |                 5.8 |       1.268 |
+| ESS_X2         |         18018.001 |             19000.0 |     981.999 |
 | STDERR_Mean_X2 |             0.016 |                  NA |          NA |
-| STDERR_Var_X2  |             0.690 |                  NA |          NA |
-| CI_Mean2_Lower |             0.311 |                  NA |          NA |
-| CI_Mean2_Upper |             6.895 |                  NA |          NA |
-| CI_Var2_Lower  |             4.002 |                  NA |          NA |
-| CI_Var2_Upper  |             6.742 |                  NA |          NA |
-| Cov            |             2.224 |                 2.2 |      -0.024 |
-| STDERR_Cov     |             0.211 |                  NA |          NA |
-| CI_Cov_Lower   |             1.845 |                  NA |          NA |
-| CI_Cov_Upper   |             2.688 |                  NA |          NA |
+| STDERR_Var_X2  |             0.271 |                  NA |          NA |
+| CI_Mean2_Lower |             0.315 |                  NA |          NA |
+| CI_Mean2_Upper |             6.965 |                  NA |          NA |
+| CI_Var2_Lower  |             4.035 |                  NA |          NA |
+| CI_Var2_Upper  |             5.093 |                  NA |          NA |
+| Cov            |             2.166 |                 2.2 |       0.034 |
+| STDERR_Cov     |             0.189 |                  NA |          NA |
+| CI_Cov_Lower   |             1.848 |                  NA |          NA |
+| CI_Cov_Upper   |             2.590 |                  NA |          NA |
 | Length         |         19000.000 |             19000.0 |       0.000 |
 
 Summary Statistics for Different Measures
@@ -496,4 +496,76 @@ Gelm_Rud_X2 = gelman.diag(list(mcmc(sample1$X2[seq((burnin+1), N, by=thin)]), mc
 print(c(Gelm_Rud_X1,Gelm_Rud_X2))
 ```
 
-    ## [1] 0.9999085 1.0001929
+    ## [1] 1.0000538 0.9999126
+
+# Application
+
+``` r
+a3=141.6457; b3=2263.205; c3=39.48316; d3=3092.636
+Example_Joint_Dist3=Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec=3,a = a3,b = b3,c = c3,d = d3,thin = 2, X10_given = "random",target_acceptance = 0.4)
+
+results_measure_diag3=Measure_Diagnostic(data1 = Example_Joint_Dist3$X1,data2 = Example_Joint_Dist3$X2, var ="transform", digits = 3, a = a3, b = b3, c = c3, d = d3, burnin = 5000, thin = 5)
+```
+
+``` r
+library(knitr)
+library(kableExtra)
+
+numerical_df <- as.data.frame.matrix(t(results_measure_diag3$Numerical))
+analytical_df <- as.data.frame.matrix(t(results_measure_diag3$Analytical))
+differences_df <- as.data.frame.matrix(t(results_measure_diag3$Differences)) 
+
+# Combine the three data frames into one
+combined_df <- cbind(numerical_df, analytical_df[,1],differences_df[,1])
+names(combined_df)=c("Numerical Results", "Theoretical Results", "Differences")
+
+# The table is created with kable
+combined_df %>%
+  kable(caption = "Summary Statistics for Different Measures", digits = 3) 
+```
+
+|                | Numerical Results | Theoretical Results | Differences |
+|:---------------|------------------:|--------------------:|------------:|
+| Mean_X1        |             4.783 |               4.733 |      -0.050 |
+| Var_X1         |             0.773 |               0.758 |      -0.015 |
+| ESS_X1         |         19000.000 |           19000.000 |       0.000 |
+| STDERR_Mean_X1 |             0.006 |                  NA |          NA |
+| STDERR_Var_X1  |             0.009 |                  NA |          NA |
+| CI_Mean1_Lower |             3.335 |                  NA |          NA |
+| CI_Mean1_Upper |             6.753 |                  NA |          NA |
+| CI_Var1_Lower  |             0.754 |                  NA |          NA |
+| CI_Var1_Upper  |             0.791 |                  NA |          NA |
+| Mean_X2        |            75.629 |              75.630 |       0.001 |
+| Var_X2         |           154.110 |             154.651 |       0.541 |
+| ESS_X2         |         19000.000 |           19000.000 |       0.000 |
+| STDERR_Mean_X2 |             0.090 |                  NA |          NA |
+| STDERR_Var_X2  |             1.810 |                  NA |          NA |
+| CI_Mean2_Lower |            55.103 |                  NA |          NA |
+| CI_Mean2_Upper |           103.392 |                  NA |          NA |
+| CI_Var2_Lower  |           150.439 |                  NA |          NA |
+| CI_Var2_Upper  |           157.875 |                  NA |          NA |
+| Cov            |             9.587 |               9.517 |      -0.070 |
+| STDERR_Cov     |             0.122 |                  NA |          NA |
+| CI_Cov_Lower   |             9.345 |                  NA |          NA |
+| CI_Cov_Upper   |             9.831 |                  NA |          NA |
+| Length         |         19000.000 |           19000.000 |       0.000 |
+
+Summary Statistics for Different Measures
+
+``` r
+sample1 = Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec = 3,a3,b3,c3,d3,thin = 2,X10_given ="random",target_acceptance = 0.4)
+
+sample2 = Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec = 3,a3,b3,c3,d3,thin = 2,X10_given ="random",target_acceptance = 0.4)
+
+sample3 = Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec = 3,a3,b3,c3,d3,thin = 2,X10_given ="random",target_acceptance = 0.4)
+
+burnin=5000;thin=25
+
+Gelm_Rud_X1 = gelman.diag(list(mcmc(sample1$X1[seq((burnin+1), N, by=thin)]), mcmc(sample2$X1[seq((burnin+1), N, by=thin)]),mcmc(sample3$X1[seq((burnin+1), N, by=thin)])))$psrf[1]
+
+Gelm_Rud_X2 = gelman.diag(list(mcmc(sample1$X2[seq((burnin+1), N, by=thin)]), mcmc(sample2$X2[seq((burnin+1), N, by=thin)]),mcmc(sample3$X2[seq((burnin+1), N, by=thin)])))$psrf[1]
+
+print(c(Gelm_Rud_X1,Gelm_Rud_X2))
+```
+
+    ## [1] 1.001263 1.000680

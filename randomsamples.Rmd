@@ -102,7 +102,7 @@ df <- data.frame(
   "ESS" = effectiveSize(ExampleFC_X1_X2$thinned_chain),
   "Length" = length(ExampleFC_X1_X2$thinned_chain),
   "Precision" = ExampleFC_X1_X2$precision,
-  row.names = "Chain Measurements"  # Cambia el nombre de la fila
+  row.names = "Chain Measurements"
 )
 df
 ```
@@ -238,11 +238,11 @@ numerical_df <- as.data.frame.matrix(t(results_measure_diag$Numerical))
 analytical_df <- as.data.frame.matrix(t(results_measure_diag$Analytical))
 differences_df <- as.data.frame.matrix(t(results_measure_diag$Differences)) 
 
-# Combinamos los tres data frames en uno solo
+# Combine the three data frames into one
 combined_df <- cbind(numerical_df, analytical_df[,1],differences_df[,1])
 names(combined_df)=c("Numerical Results", "Theoretical Results", "Differences")
 
-# Creamos la tabla con kable y le aplicamos estilo
+# The table is created with kable
 combined_df %>%
   kable(caption = "Summary Statistics for Different Measures", digits = 3)
 ```
@@ -286,11 +286,11 @@ numerical_df <- as.data.frame.matrix(t(results_measure_diag1$Numerical))
 analytical_df <- as.data.frame.matrix(t(results_measure_diag1$Analytical))
 differences_df <- as.data.frame.matrix(t(results_measure_diag1$Differences)) 
 
-# Combinamos los tres data frames en uno solo
+# Combine the three data frames into one
 combined_df <- cbind(numerical_df, analytical_df[,1],differences_df[,1])
 names(combined_df)=c("Numerical Results", "Theoretical Results", "Differences")
 
-# Creamos la tabla con kable y le aplicamos estilo
+# The table is created with kable
 combined_df %>%
   kable(caption = "Summary Statistics for Different Measures", digits = 3) 
 ```
@@ -303,6 +303,48 @@ sample1 = Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec = 3,a2,b2,c2,d2,thin = 2,X10
 sample2 = Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec = 3,a2,b2,c2,d2,thin = 2,X10_given ="random",target_acceptance = 0.4)
 
 sample3 = Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec = 3,a2,b2,c2,d2,thin = 2,X10_given ="random",target_acceptance = 0.4)
+
+burnin=5000;thin=25
+
+Gelm_Rud_X1 = gelman.diag(list(mcmc(sample1$X1[seq((burnin+1), N, by=thin)]), mcmc(sample2$X1[seq((burnin+1), N, by=thin)]),mcmc(sample3$X1[seq((burnin+1), N, by=thin)])))$psrf[1]
+
+Gelm_Rud_X2 = gelman.diag(list(mcmc(sample1$X2[seq((burnin+1), N, by=thin)]), mcmc(sample2$X2[seq((burnin+1), N, by=thin)]),mcmc(sample3$X2[seq((burnin+1), N, by=thin)])))$psrf[1]
+
+print(c(Gelm_Rud_X1,Gelm_Rud_X2))
+```
+
+# Application
+
+```{r, echo=TRUE, warning=FALSE, results='hide'}
+a3=141.6457; b3=2263.205; c3=39.48316; d3=3092.636
+Example_Joint_Dist3=Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec=3,a = a3,b = b3,c = c3,d = d3,thin = 2, X10_given = "random",target_acceptance = 0.4)
+
+results_measure_diag3=Measure_Diagnostic(data1 = Example_Joint_Dist3$X1,data2 = Example_Joint_Dist3$X2, var ="transform", digits = 3, a = a3, b = b3, c = c3, d = d3, burnin = 5000, thin = 5)
+```
+
+```{r}
+library(knitr)
+library(kableExtra)
+
+numerical_df <- as.data.frame.matrix(t(results_measure_diag3$Numerical))
+analytical_df <- as.data.frame.matrix(t(results_measure_diag3$Analytical))
+differences_df <- as.data.frame.matrix(t(results_measure_diag3$Differences)) 
+
+# Combine the three data frames into one
+combined_df <- cbind(numerical_df, analytical_df[,1],differences_df[,1])
+names(combined_df)=c("Numerical Results", "Theoretical Results", "Differences")
+
+# The table is created with kable
+combined_df %>%
+  kable(caption = "Summary Statistics for Different Measures", digits = 3) 
+```
+
+```{r}
+sample1 = Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec = 3,a3,b3,c3,d3,thin = 2,X10_given ="random",target_acceptance = 0.4)
+
+sample2 = Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec = 3,a3,b3,c3,d3,thin = 2,X10_given ="random",target_acceptance = 0.4)
+
+sample3 = Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec = 3,a3,b3,c3,d3,thin = 2,X10_given ="random",target_acceptance = 0.4)
 
 burnin=5000;thin=25
 
