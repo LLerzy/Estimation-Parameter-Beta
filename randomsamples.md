@@ -3,7 +3,7 @@ RandomSample
 
 # Introduction
 
-This document presents a simulation framework for generating random
+This Markdown presents a simulation framework for generating random
 samples from a newly proposed bivariate probability distribution,
 characterized by the parameter vector $\phi = (a, b, c, d)$ and the
 following joint probability density function:
@@ -92,16 +92,16 @@ values of the **precision parameter** (used in the proposal
 distribution) and the **conditioning variable** $X_2 = v$
 
 ``` r
-df_ess_ar <- results_Mon_Measure(N=10^4, prop_prec_values=seq(1, 20, by = 1), a=a1, b=b1, c=c1, d=d1, v_values=seq(0.01, 0.24, length.out = 10),thin = 5,burnin = 1000,target_acceptance = 0.4)
- df_rhat <- results_Mon_R_Hat(N=10^4, prop_prec_values=seq(1, 20, by = 1), a=a1, b=b1, c=c1, d=d1, v_values=seq(0.01, 0.24, length.out = 10),thin = 5,burnin = 1000,target_acceptance = 0.4)
+df_ess_ar <- results_Mon_Measure(N=10^4, prop_prec_values=seq(1, 20, by = 1), a=a1, b=b1, c=c1, d=d1, v_values=seq(0.01, 0.24, length.out = 10),thin = 2,burnin = 1000,target_acceptance = 0.4)
+ df_rhat <- results_Mon_R_Hat(N=10^4, prop_prec_values=seq(1, 20, by = 1), a=a1, b=b1, c=c1, d=d1, v_values=seq(0.01, 0.24, length.out = 10),thin = 2,burnin = 1000,target_acceptance = 0.4)
 ```
 
 The desired convergence behavior is as follows: - The **acceptance
 rate** (Figure 3b) should ideally remain between **0.3 and 0.7**. - The
 **effective sample size** (Figure 3a) should be close to the post
 burn-in sample size. For the configuration used in this study, the ESS
-is expected to exceed **465** and approach $(10^4 - 1000) / 5 = 1800$,
-given the thinning interval of 5 and burn-in of 1000 from a total of
+is expected to exceed **465** and approach $(10^4 - 1000) / 2 = 4500$,
+given the thinning interval of 2 and burn-in of 1000 from a total of
 10,000 iterations.
 
 Additionally, the **R-hat diagnostic** (Figure 3c) is computed to
@@ -126,14 +126,18 @@ Generate_Figure3_Panels(df_ess_ar, df_rhat, prop_prec_values=seq(1, 20, by = 1))
 
 ![](randomsamples_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
 
-## Another random sample generated for the conditional distribution of $X_1$ given $X_2$
+## Another Random Sample from the Conditional Distribution of $X_1$ given $X_2$
 
-Another sample of size $N=10^5$ is generated using
-$\phi = (2.2, 2.2, 2.2, 2.2)$ with a precision of 3, thinning of 25,
-burn-in of 5000, $X_2 = v = 0.05$, and target acceptance of 0.4. This
-latter value controls the increase or decrease of the precision during
-the simulation, meaning the algorithm adjusts itself, which allows for a
-rapid reduction in the autocorrelation of the chain.
+A new sample of size $N = 10^5$ was generated from the conditional
+distribution of $X_1$ given $X_2 = v = 0.05$, using the parameter vector
+$\phi = (2.2, 2.2, 2.2, 2.2)$. The simulation was configured with a
+precision parameter of 3, a thinning interval of 25, a burn-in of 5000
+iterations, and a target acceptance rate of 0.4. This acceptance rate
+governs the adaptive adjustment of the precision parameter $\varphi$
+during the burn-in period, allowing the algorithm to automatically
+increase or decrease precision in response to the observed acceptance
+rate. This mechanism facilitates faster reduction in autocorrelation and
+improves the overall mixing of the chain.
 
 ``` r
 ExampleFC_X1_X2=Gen_FC_X1_X2(N=10^5, prop_prec = 3, a=a1, b=b1, c=c1, d=d1, v=0.05, option="all",thin = 25, burnin = 5000, X10_given = "random", target_acceptance = 0.4, dig_tol=15)
@@ -144,10 +148,11 @@ Graphs(as.data.frame(ExampleFC_X1_X2$thinned_chain), "X1", width = 40, lscatt = 
 
 ![](randomsamples_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
 
-For the results of ExampleFC_X1_X2, the following table presents the
-acceptance rate before and after the burn-in period, the effective
-sample size, chain length, and the adjusted precision value. The
-adjustment period corresponds to the burn-in segment of the chain.
+The results of the `ExampleFC_X1_X2` simulation are summarized in the
+following table, which reports the acceptance rate before and after the
+burn-in period, the effective sample size (ESS), the final chain length,
+and the final value of the adjusted precision parameter. The adjustment
+process is limited to the burn-in phase of the simulation.
 
 ``` r
 library(knitr)
@@ -165,15 +170,17 @@ df
 ```
 
     ##                    Acceptance.Rate Acceptance.Rate.Post.Burn.in      ESS Length
-    ## Chain Measurements       0.5641456                    0.5630901 3233.412   3800
+    ## Chain Measurements       0.5588156                     0.558048 3279.327   3800
     ##                    Precision
-    ## Chain Measurements  2.991442
+    ## Chain Measurements  2.992333
 
 ## Convergence Monitoring with Fixed Seeds
 
-The previously simulated samples assumed that the seed was generated
-randomly. Now, we consider nine user-specified seeds and monitor the
-convergence of the mean of each generated chain.
+In the previous simulations, the random number generator seed was
+selected randomly for each run. In this section, we instead fix nine
+user-defined seeds to examine the impact of initial conditions on the
+convergence behavior of the Markov chains. Specifically, we assess the
+stability of the posterior mean estimate for each generated chain.
 
 ``` r
 N=10^5;burnin=5000;thin=25; target_acceptance=0.4
@@ -202,23 +209,26 @@ ExampleFC_X1_X2_seedgiven_cum$Sim=rep(1:N,9)
       plot.margin = margin(10, 10, 10, 10)
     )
 # Graphic
-Piece1_Grap_FC=ggplot(ExampleFC_X1_X2_seedgiven_cum,aes(x=Sim ,y=FCmu,group= Seed, color=Seed))+geom_line()+ylab(expression("Accumulated Average " ~ hat(X)[1]^(t)))+xlab("Chain Iterations (t)")+xlim(0,50)+custom_theme
+Piece1_Grap_FC=ggplot(ExampleFC_X1_X2_seedgiven_cum,aes(x=Sim ,y=FCmu,group= Seed, color=Seed))+geom_line()+ylab(expression("Accumulated Average " ~ hat(X)[1]^(t)))+xlab("Chain Iterations (t)")+xlim(0,50)+labs(title = "(a)")+custom_theme
 
-Piece2_Grap_FC=ggplot(ExampleFC_X1_X2_seedgiven_cum,aes(x=Sim ,y=FCmu,group= Seed, color=Seed))+geom_line()+ylab(expression("Accumulated Average " ~ hat(X)[1]^(t)))+xlab("Chain Iterations (t)")+xlim(0,250)+custom_theme
+Piece2_Grap_FC=ggplot(ExampleFC_X1_X2_seedgiven_cum,aes(x=Sim ,y=FCmu,group= Seed, color=Seed))+geom_line()+ylab(expression("Accumulated Average " ~ hat(X)[1]^(t)))+xlab("Chain Iterations (t)")+xlim(0,250)+labs(title = "(b)")+custom_theme
 
-Full_Grap_FC=ggplot(ExampleFC_X1_X2_seedgiven_cum,aes(x=Sim ,y=FCmu,group= Seed, color=Seed))+geom_line()+ylab(expression("Accumulated Average " ~ hat(X)[1]^(t)))+xlab("Chain Iterations (t)")+custom_theme
+Full_Grap_FC=ggplot(ExampleFC_X1_X2_seedgiven_cum,aes(x=Sim ,y=FCmu,group= Seed, color=Seed))+geom_line()+ylab(expression("Accumulated Average " ~ hat(X)[1]^(t)))+xlab("Chain Iterations (t)")+labs(title = "(c)")+custom_theme
 
 grid.arrange(arrangeGrob(Piece1_Grap_FC, Piece2_Grap_FC, Full_Grap_FC,ncol=2, nrow=2, widths=c(2, 2), heights=c(2,2),layout_matrix=rbind(c(1,2),c(3,3))),bottom="Convergence control using averaging")
 ```
 
 ![](randomsamples_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
 
+The posterior mean of each \$X_1\$ chain generated under the nine fixed
+seeds is presented in the following table:
+
 ``` r
 round(apply(ExampleFC_X1_X2_seedgiven[1:3800,], 2, mean),3)
 ```
 
     ##   0.1   0.2   0.3   0.4   0.5   0.6   0.7   0.8   0.9 
-    ## 0.500 0.502 0.498 0.500 0.503 0.494 0.499 0.501 0.502
+    ## 0.505 0.496 0.499 0.497 0.507 0.503 0.493 0.499 0.498
 
 # Gibbs Sampling
 
@@ -233,7 +243,7 @@ density versus histogram, trace, cumulative mean, and autocorrelation.
 
 ``` r
 N=10^5
-Example_Joint_Dist=Gen_Joint_Dist(N1 = N,N2 = 2,prop_prec = 3,a1,b1,c1,d1,thin = 2,X10_given ="random",target_acceptance = 0.4)
+Example_Joint_Dist=Gen_Joint_Dist(N1 = N,N2 = 102,prop_prec = 3,a1,b1,c1,d1,thin = 2,X10_given ="random",target_acceptance = 0.4,batch_adapt_acceptance_rate=20)
 burnin=5000;thin=25
 Graphs(as.data.frame(Example_Joint_Dist$X2[seq((burnin+1), N, by=thin)]),"X2",width = 40,uscatt = 0.06,lscatt = 0.05)
 ```
@@ -252,7 +262,7 @@ Graphs(as.data.frame(Example_Joint_Dist$X1[seq((burnin+1), N, by=thin)]),"X1",wi
 
 ### Contour Plots and Scatter Plot for the Generated Sample of $(X_1, X_2)$
 
-The scatter plot of the generated sample Example_Joint_Dist is plotted
+The scatter plot of the generated sample `Example_Joint_Dist` is plotted
 over the contour lines associated with the bivariate distribution
 $(X_1, X_2)$ with parameters $\phi = (2.2, 2.2, 2.2, 2.2)$.
 
@@ -273,7 +283,7 @@ ggplot()+geom_contour(aes(dta$X1, dta$X2, z = (dta$Z)),bins = 50) +
 
 ### Convergence Monitoring
 
-The generated sample Example_Joint_Dist for the vector $(X_1, X_2)$ is
+The generated sample `Example_Joint_Dist` for the vector $(X_1, X_2)$ is
 now transformed into a sample for the vector $(Y_1, Y_2)$ using the
 transformation presented at the beginning of this document. For
 convergence monitoring of the chains for $Y_1$ and $Y_2$, the density
@@ -322,77 +332,168 @@ ggplot()+geom_contour(aes(dta$X1, dta$X2, z = dta$Z),bins = 50)+
 
 # Comparison Between Numerical and Analytical Moments
 
-The function Measure_Diagnostic is used with the sample
-Example_Joint_Dist to determine the numerical moments, analytical
-moments, and the difference between them for the vector $(Y_1, Y_2)$. In
-the implementation of this function, a burn-in of 5000 and a thinning of
-25 are used.
+The function `Measure_Diagnostic` was applied to the sample
+`Example_Joint_Dist` to compute the numerical moments, the corresponding
+theoretical values, and their differences for the vector $(Y_1, Y_2)$.
+The function was executed using a burn-in of 5000 iterations and a
+thinning interval of 25.
 
 ``` r
 results_measure_diag=Measure_Diagnostic(data1 = Example_Joint_Dist$X1,data2 = Example_Joint_Dist$X2, var ="transform", digits = 4, a = a1, b = b1, c = c1, d = d1, burnin = 5000, thin = 25)
 ```
 
-The numerical results were:
+The table below summarizes the numerical estimates, theoretical values,
+and their respective differences for key descriptive measures.
 
 ``` r
-results_measure_diag$Numerical
+library(knitr)
+library(kableExtra)
+
+numerical_df <- as.data.frame.matrix(t(results_measure_diag$Numerical))
+analytical_df <- as.data.frame.matrix(t(results_measure_diag$Analytical))
+differences_df <- as.data.frame.matrix(t(results_measure_diag$Differences)) 
+
+# Combinamos los tres data frames en uno solo
+combined_df <- cbind(numerical_df, analytical_df[,1],differences_df[,1])
+names(combined_df)=c("Numerical Results", "Theoretical Results", "Differences")
+
+# Creamos la tabla con kable y le aplicamos estilo
+combined_df %>%
+  kable(caption = "Summary Statistics for Different Measures", digits = 3)
 ```
 
-    ##   Mean_Y1 Var_Y1 ESS_Y1 Mean_Y2 Var_Y2 ESS_Y2    Cov Length
-    ## 1  0.8859 2.5196   3800  0.8981 2.3915   3800 1.6648   3800
+|                | Numerical Results | Theoretical Results | Differences |
+|:---------------|------------------:|--------------------:|------------:|
+| Mean_X1        |             0.893 |               0.917 |       0.024 |
+| Var_X1         |             2.479 |               7.851 |       5.372 |
+| ESS_X1         |          3800.000 |            3800.000 |       0.000 |
+| STDERR_Mean_X1 |             0.025 |                  NA |          NA |
+| STDERR_Var_X1  |             0.422 |                  NA |          NA |
+| CI_Mean1_Lower |             0.040 |                  NA |          NA |
+| CI_Mean1_Upper |             4.406 |                  NA |          NA |
+| CI_Var1_Lower  |             1.681 |                  NA |          NA |
+| CI_Var1_Upper  |             3.492 |                  NA |          NA |
+| Mean_X2        |             0.967 |               0.917 |      -0.050 |
+| Var_X2         |            13.128 |               7.851 |      -5.277 |
+| ESS_X2         |          3800.000 |            3800.000 |       0.000 |
+| STDERR_Mean_X2 |             0.059 |                  NA |          NA |
+| STDERR_Var_X2  |             9.642 |                  NA |          NA |
+| CI_Mean2_Lower |             0.036 |                  NA |          NA |
+| CI_Mean2_Upper |             4.424 |                  NA |          NA |
+| CI_Var2_Lower  |             2.378 |                  NA |          NA |
+| CI_Var2_Upper  |            33.436 |                  NA |          NA |
+| Cov            |             3.345 |               5.135 |       1.790 |
+| STDERR_Cov     |             1.730 |                  NA |          NA |
+| CI_Cov_Lower   |             1.224 |                  NA |          NA |
+| CI_Cov_Upper   |             7.189 |                  NA |          NA |
+| Length         |          3800.000 |            3800.000 |       0.000 |
 
-The analytical results were:
+Summary Statistics for Different Measures
+
+The Gelman–Rubin diagnostic (R-hat) was computed for the chains of $Y_1$
+and $Y_2$ generated using the same configuration: $10^5$ iterations, a
+burn-in of 5000, thinning of 25, and a precision parameter
+$\varphi = 3$. The R-hat calculation was based on three independent
+chains, as illustrated in the following code block.
 
 ``` r
-results_measure_diag$Analytical
+sample1 = Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec = 3,a1,b1,c1,d1,thin = 2,X10_given ="random",target_acceptance = 0.4)
+
+sample2 = Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec = 3,a1,b1,c1,d1,thin = 2,X10_given ="random",target_acceptance = 0.4)
+
+sample3 = Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec = 3,a1,b1,c1,d1,thin = 2,X10_given ="random",target_acceptance = 0.4)
+
+burnin=5000;thin=25
+
+Gelm_Rud_X1 = gelman.diag(list(mcmc(sample1$X1[seq((burnin+1), N, by=thin)]), mcmc(sample2$X1[seq((burnin+1), N, by=thin)]),mcmc(sample3$X1[seq((burnin+1), N, by=thin)])))$psrf[1]
+
+Gelm_Rud_X2 = gelman.diag(list(mcmc(sample1$X2[seq((burnin+1), N, by=thin)]), mcmc(sample2$X2[seq((burnin+1), N, by=thin)]),mcmc(sample3$X2[seq((burnin+1), N, by=thin)])))$psrf[1]
+
+print(c(Gelm_Rud_X1,Gelm_Rud_X2))
 ```
 
-    ##   Mean_Y1 Var_Y1 ESS_Y1 Mean_Y2 Var_Y2 ESS_Y2   Cov Length
-    ## 1  0.9167 7.8511   3800  0.9167 7.8511   3800 5.135   3800
+    ## [1] 0.9998731 1.0005821
 
-The difference between the numerical and analytical descriptive measures
-is as follows:
+# Comparison Using an Alternative Parameter Configuration
 
-``` r
-results_measure_diag$Differences
-```
-
-    ##   Mean_Y1 Var_Y1 ESS_Y1 Mean_Y2 Var_Y2 ESS_Y2    Cov Length
-    ## 1  0.0308 5.3315      0  0.0186 5.4596      0 3.4702      0
-
-# Comparison Using a Different Parameter Configuration
+To further evaluate the performance of the simulation scheme, an
+alternative parameter vector $\phi = (3, 6, 3, 6)$ was considered. The
+simulation setup remains the same as in the previous sections, except
+that the thinning factor was reduced to 5.
 
 ``` r
 a2=3;b2=6;c2=3;d2=6
-Example_Joint_Dist1=Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec=4,a = a2,b = b2,c = c2,d = d2,thin = 5, X10_given = "random",target_acceptance = 0.4)
+Example_Joint_Dist1=Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec=3,a = a2,b = b2,c = c2,d = d2,thin = 2, X10_given = "random",target_acceptance = 0.4)
 
-results_measure_diag1=Measure_Diagnostic(data1 = Example_Joint_Dist1$X1,data2 = Example_Joint_Dist1$X2, var ="transform", digits = 4, a = a2, b = b2, c = c2, d = d2, burnin = 5000, thin = 5)
+results_measure_diag1=Measure_Diagnostic(data1 = Example_Joint_Dist1$X1,data2 = Example_Joint_Dist1$X2, var ="transform", digits = 3, a = a2, b = b2, c = c2, d = d2, burnin = 5000, thin = 5)
 ```
 
-The numerical results were:
+The table below presents the updated numerical estimates, theoretical
+values, and their differences under this new configuration.
 
 ``` r
-results_measure_diag1$Numerical
+library(knitr)
+library(kableExtra)
+
+numerical_df <- as.data.frame.matrix(t(results_measure_diag1$Numerical))
+analytical_df <- as.data.frame.matrix(t(results_measure_diag1$Analytical))
+differences_df <- as.data.frame.matrix(t(results_measure_diag1$Differences)) 
+
+# Combinamos los tres data frames en uno solo
+combined_df <- cbind(numerical_df, analytical_df[,1],differences_df[,1])
+names(combined_df)=c("Numerical Results", "Theoretical Results", "Differences")
+
+# Creamos la tabla con kable y le aplicamos estilo
+combined_df %>%
+  kable(caption = "Summary Statistics for Different Measures", digits = 3) 
 ```
 
-    ##   Mean_Y1 Var_Y1   ESS_Y1 Mean_Y2 Var_Y2 ESS_Y2    Cov Length
-    ## 1  1.0659 1.5674 18507.72  1.8793 4.0436  19000 1.8981  19000
+|                | Numerical Results | Theoretical Results | Differences |
+|:---------------|------------------:|--------------------:|------------:|
+| Mean_X1        |             1.083 |                 1.0 |      -0.083 |
+| Var_X1         |             1.690 |                 1.8 |       0.110 |
+| ESS_X1         |         19609.108 |             19000.0 |    -609.108 |
+| STDERR_Mean_X1 |             0.009 |                  NA |          NA |
+| STDERR_Var_X1  |             0.150 |                  NA |          NA |
+| CI_Mean1_Lower |             0.145 |                  NA |          NA |
+| CI_Mean1_Upper |             4.089 |                  NA |          NA |
+| CI_Var1_Lower  |             1.429 |                  NA |          NA |
+| CI_Var1_Upper  |             2.022 |                  NA |          NA |
+| Mean_X2        |             1.932 |                 2.0 |       0.068 |
+| Var_X2         |             5.171 |                 5.8 |       0.629 |
+| ESS_X2         |         19000.000 |             19000.0 |       0.000 |
+| STDERR_Mean_X2 |             0.016 |                  NA |          NA |
+| STDERR_Var_X2  |             0.690 |                  NA |          NA |
+| CI_Mean2_Lower |             0.311 |                  NA |          NA |
+| CI_Mean2_Upper |             6.895 |                  NA |          NA |
+| CI_Var2_Lower  |             4.002 |                  NA |          NA |
+| CI_Var2_Upper  |             6.742 |                  NA |          NA |
+| Cov            |             2.224 |                 2.2 |      -0.024 |
+| STDERR_Cov     |             0.211 |                  NA |          NA |
+| CI_Cov_Lower   |             1.845 |                  NA |          NA |
+| CI_Cov_Upper   |             2.688 |                  NA |          NA |
+| Length         |         19000.000 |             19000.0 |       0.000 |
 
-The analytical results were:
+Summary Statistics for Different Measures
+
+The R-hat values for the chains of $Y_1$ and $Y_2$, generated under the
+new parameter configuration, burn-in, and thinning settings, are
+reported below:
 
 ``` r
-results_measure_diag1$Analytical
+sample1 = Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec = 3,a2,b2,c2,d2,thin = 2,X10_given ="random",target_acceptance = 0.4)
+
+sample2 = Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec = 3,a2,b2,c2,d2,thin = 2,X10_given ="random",target_acceptance = 0.4)
+
+sample3 = Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec = 3,a2,b2,c2,d2,thin = 2,X10_given ="random",target_acceptance = 0.4)
+
+burnin=5000;thin=25
+
+Gelm_Rud_X1 = gelman.diag(list(mcmc(sample1$X1[seq((burnin+1), N, by=thin)]), mcmc(sample2$X1[seq((burnin+1), N, by=thin)]),mcmc(sample3$X1[seq((burnin+1), N, by=thin)])))$psrf[1]
+
+Gelm_Rud_X2 = gelman.diag(list(mcmc(sample1$X2[seq((burnin+1), N, by=thin)]), mcmc(sample2$X2[seq((burnin+1), N, by=thin)]),mcmc(sample3$X2[seq((burnin+1), N, by=thin)])))$psrf[1]
+
+print(c(Gelm_Rud_X1,Gelm_Rud_X2))
 ```
 
-    ##   Mean_Y1 Var_Y1 ESS_Y1 Mean_Y2 Var_Y2 ESS_Y2 Cov Length
-    ## 1       1    1.8  19000       2    5.8  19000 2.2  19000
-
-The difference between the numerical and analytical descriptive measures
-is as follows:
-
-``` r
-results_measure_diag1$Differences
-```
-
-    ##   Mean_Y1 Var_Y1   ESS_Y1 Mean_Y2 Var_Y2 ESS_Y2    Cov Length
-    ## 1 -0.0659 0.2326 492.2768  0.1207 1.7564      0 0.3019      0
+    ## [1] 0.9999085 1.0001929
