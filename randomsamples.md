@@ -169,10 +169,10 @@ df <- data.frame(
 df
 ```
 
-    ##                    Acceptance.Rate Acceptance.Rate.Post.Burn.in     ESS Length
-    ## Chain Measurements       0.5650557                    0.5643954 3433.86   3800
+    ##                    Acceptance.Rate Acceptance.Rate.Post.Burn.in      ESS Length
+    ## Chain Measurements       0.5655857                    0.5647638 3453.489   3800
     ##                    Precision
-    ## Chain Measurements  2.991663
+    ## Chain Measurements  2.991299
 
 ## Convergence Monitoring with Fixed Seeds
 
@@ -228,7 +228,7 @@ round(apply(ExampleFC_X1_X2_seedgiven[1:3800,], 2, mean),3)
 ```
 
     ##   0.1   0.2   0.3   0.4   0.5   0.6   0.7   0.8   0.9 
-    ## 0.497 0.497 0.501 0.503 0.494 0.506 0.497 0.494 0.500
+    ## 0.500 0.501 0.498 0.502 0.503 0.494 0.505 0.504 0.496
 
 # Gibbs Sampling
 
@@ -364,28 +364,28 @@ combined_df %>%
 
 |                | Numerical Results | Theoretical Results | Differences |
 |:---------------|------------------:|--------------------:|------------:|
-| Mean_X1        |             0.928 |               0.917 |      -0.012 |
-| Var_X1         |             3.436 |               7.851 |       4.415 |
-| ESS_X1         |          4153.223 |            3800.000 |    -353.223 |
-| STDERR_Mean_X1 |             0.029 |                  NA |          NA |
-| STDERR_Var_X1  |             0.605 |                  NA |          NA |
-| CI_Mean1_Lower |             0.039 |                  NA |          NA |
-| CI_Mean1_Upper |             4.550 |                  NA |          NA |
-| CI_Var1_Lower  |             2.343 |                  NA |          NA |
-| CI_Var1_Upper  |             4.801 |                  NA |          NA |
-| Mean_X2        |             0.900 |               0.917 |       0.017 |
-| Var_X2         |             4.305 |               7.851 |       3.546 |
+| Mean_X1        |             0.886 |               0.917 |       0.031 |
+| Var_X1         |             2.311 |               7.851 |       5.541 |
+| ESS_X1         |          3800.000 |            3800.000 |       0.000 |
+| STDERR_Mean_X1 |             0.025 |                  NA |          NA |
+| STDERR_Var_X1  |             0.396 |                  NA |          NA |
+| CI_Mean1_Lower |             0.041 |                  NA |          NA |
+| CI_Mean1_Upper |             4.140 |                  NA |          NA |
+| CI_Var1_Lower  |             1.630 |                  NA |          NA |
+| CI_Var1_Upper  |             3.147 |                  NA |          NA |
+| Mean_X2        |             0.873 |               0.917 |       0.043 |
+| Var_X2         |             2.210 |               7.851 |       5.641 |
 | ESS_X2         |          3800.000 |            3800.000 |       0.000 |
-| STDERR_Mean_X2 |             0.034 |                  NA |          NA |
-| STDERR_Var_X2  |             1.933 |                  NA |          NA |
+| STDERR_Mean_X2 |             0.024 |                  NA |          NA |
+| STDERR_Var_X2  |             0.493 |                  NA |          NA |
 | CI_Mean2_Lower |             0.037 |                  NA |          NA |
-| CI_Mean2_Upper |             4.202 |                  NA |          NA |
-| CI_Var2_Lower  |             1.727 |                  NA |          NA |
-| CI_Var2_Upper  |             8.766 |                  NA |          NA |
-| Cov            |             2.079 |               5.135 |       3.056 |
-| STDERR_Cov     |             0.518 |                  NA |          NA |
-| CI_Cov_Lower   |             1.213 |                  NA |          NA |
-| CI_Cov_Upper   |             3.265 |                  NA |          NA |
+| CI_Mean2_Upper |             4.338 |                  NA |          NA |
+| CI_Var2_Lower  |             1.481 |                  NA |          NA |
+| CI_Var2_Upper  |             3.342 |                  NA |          NA |
+| Cov            |             1.428 |               5.135 |       3.707 |
+| STDERR_Cov     |             0.354 |                  NA |          NA |
+| CI_Cov_Lower   |             0.900 |                  NA |          NA |
+| CI_Cov_Upper   |             2.223 |                  NA |          NA |
 | Length         |          3800.000 |            3800.000 |       0.000 |
 
 Summary Statistics for Different Measures
@@ -412,7 +412,7 @@ Gelm_Rud_X2 = gelman.diag(list(mcmc(sample1$X2[seq((burnin+1), N, by=thin)]), mc
 print(c(Gelm_Rud_X1,Gelm_Rud_X2))
 ```
 
-    ## [1] 1.000875 1.000143
+    ## [1] 1.000084 1.000262
 
 # Comparison Using an Alternative Parameter Configuration
 
@@ -423,7 +423,7 @@ that the thinning factor was reduced to 5.
 
 ``` r
 a2=3;b2=6;c2=3;d2=6
-Example_Joint_Dist1=Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec=3,a = a2,b = b2,c = c2,d = d2,thin = 2, X10_given = "random",target_acceptance = 0.4)
+Example_Joint_Dist1=Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec=4,a = a2,b = b2,c = c2,d = d2,thin = 2, X10_given = "random",target_acceptance = 0.4)
 
 results_measure_diag1=Measure_Diagnostic(data1 = Example_Joint_Dist1$X1,data2 = Example_Joint_Dist1$X2, var ="transform", digits = 3, a = a2, b = b2, c = c2, d = d2, burnin = 5000, thin = 5)
 ```
@@ -450,28 +450,28 @@ combined_df %>%
 
 |                | Numerical Results | Theoretical Results | Differences |
 |:---------------|------------------:|--------------------:|------------:|
-| Mean_X1        |             1.069 |                 1.0 |      -0.069 |
-| Var_X1         |             1.909 |                 1.8 |      -0.109 |
+| Mean_X1        |             1.086 |                 1.0 |      -0.086 |
+| Var_X1         |             1.828 |                 1.8 |      -0.028 |
 | ESS_X1         |         19000.000 |             19000.0 |       0.000 |
 | STDERR_Mean_X1 |             0.010 |                  NA |          NA |
-| STDERR_Var_X1  |             0.268 |                  NA |          NA |
-| CI_Mean1_Lower |             0.144 |                  NA |          NA |
-| CI_Mean1_Upper |             4.137 |                  NA |          NA |
-| CI_Var1_Lower  |             1.494 |                  NA |          NA |
-| CI_Var1_Upper  |             2.515 |                  NA |          NA |
-| Mean_X2        |             1.902 |                 2.0 |       0.098 |
-| Var_X2         |             4.532 |                 5.8 |       1.268 |
-| ESS_X2         |         18018.001 |             19000.0 |     981.999 |
-| STDERR_Mean_X2 |             0.016 |                  NA |          NA |
-| STDERR_Var_X2  |             0.271 |                  NA |          NA |
-| CI_Mean2_Lower |             0.315 |                  NA |          NA |
-| CI_Mean2_Upper |             6.965 |                  NA |          NA |
-| CI_Var2_Lower  |             4.035 |                  NA |          NA |
-| CI_Var2_Upper  |             5.093 |                  NA |          NA |
-| Cov            |             2.166 |                 2.2 |       0.034 |
-| STDERR_Cov     |             0.189 |                  NA |          NA |
-| CI_Cov_Lower   |             1.848 |                  NA |          NA |
-| CI_Cov_Upper   |             2.590 |                  NA |          NA |
+| STDERR_Var_X1  |             0.253 |                  NA |          NA |
+| CI_Mean1_Lower |             0.148 |                  NA |          NA |
+| CI_Mean1_Upper |             4.258 |                  NA |          NA |
+| CI_Var1_Lower  |             1.438 |                  NA |          NA |
+| CI_Var1_Upper  |             2.403 |                  NA |          NA |
+| Mean_X2        |             1.942 |                 2.0 |       0.058 |
+| Var_X2         |             5.252 |                 5.8 |       0.548 |
+| ESS_X2         |         19000.000 |             19000.0 |       0.000 |
+| STDERR_Mean_X2 |             0.017 |                  NA |          NA |
+| STDERR_Var_X2  |             0.698 |                  NA |          NA |
+| CI_Mean2_Lower |             0.309 |                  NA |          NA |
+| CI_Mean2_Upper |             7.204 |                  NA |          NA |
+| CI_Var2_Lower  |             4.193 |                  NA |          NA |
+| CI_Var2_Upper  |             6.891 |                  NA |          NA |
+| Cov            |             2.466 |                 2.2 |      -0.266 |
+| STDERR_Cov     |             0.408 |                  NA |          NA |
+| CI_Cov_Lower   |             1.871 |                  NA |          NA |
+| CI_Cov_Upper   |             3.443 |                  NA |          NA |
 | Length         |         19000.000 |             19000.0 |       0.000 |
 
 Summary Statistics for Different Measures
@@ -496,7 +496,7 @@ Gelm_Rud_X2 = gelman.diag(list(mcmc(sample1$X2[seq((burnin+1), N, by=thin)]), mc
 print(c(Gelm_Rud_X1,Gelm_Rud_X2))
 ```
 
-    ## [1] 1.0000538 0.9999126
+    ## [1] 1.0002408 0.9999794
 
 # Application
 
@@ -519,35 +519,35 @@ differences_df <- as.data.frame.matrix(t(results_measure_diag3$Differences))
 combined_df <- cbind(numerical_df, analytical_df[,1],differences_df[,1])
 names(combined_df)=c("Numerical Results", "Theoretical Results", "Differences")
 
-# The table is created with kable
+# The table is created with kable 
 combined_df %>%
   kable(caption = "Summary Statistics for Different Measures", digits = 3) 
 ```
 
 |                | Numerical Results | Theoretical Results | Differences |
 |:---------------|------------------:|--------------------:|------------:|
-| Mean_X1        |             4.783 |               4.733 |      -0.050 |
-| Var_X1         |             0.773 |               0.758 |      -0.015 |
+| Mean_X1        |             4.784 |               4.733 |      -0.051 |
+| Var_X1         |             0.781 |               0.758 |      -0.023 |
 | ESS_X1         |         19000.000 |           19000.000 |       0.000 |
 | STDERR_Mean_X1 |             0.006 |                  NA |          NA |
-| STDERR_Var_X1  |             0.009 |                  NA |          NA |
-| CI_Mean1_Lower |             3.335 |                  NA |          NA |
-| CI_Mean1_Upper |             6.753 |                  NA |          NA |
-| CI_Var1_Lower  |             0.754 |                  NA |          NA |
-| CI_Var1_Upper  |             0.791 |                  NA |          NA |
-| Mean_X2        |            75.629 |              75.630 |       0.001 |
-| Var_X2         |           154.110 |             154.651 |       0.541 |
+| STDERR_Var_X1  |             0.011 |                  NA |          NA |
+| CI_Mean1_Lower |             3.329 |                  NA |          NA |
+| CI_Mean1_Upper |             6.786 |                  NA |          NA |
+| CI_Var1_Lower  |             0.762 |                  NA |          NA |
+| CI_Var1_Upper  |             0.801 |                  NA |          NA |
+| Mean_X2        |            75.526 |              75.630 |       0.104 |
+| Var_X2         |           155.367 |             154.651 |      -0.716 |
 | ESS_X2         |         19000.000 |           19000.000 |       0.000 |
 | STDERR_Mean_X2 |             0.090 |                  NA |          NA |
-| STDERR_Var_X2  |             1.810 |                  NA |          NA |
-| CI_Mean2_Lower |            55.103 |                  NA |          NA |
-| CI_Mean2_Upper |           103.392 |                  NA |          NA |
-| CI_Var2_Lower  |           150.439 |                  NA |          NA |
-| CI_Var2_Upper  |           157.875 |                  NA |          NA |
-| Cov            |             9.587 |               9.517 |      -0.070 |
-| STDERR_Cov     |             0.122 |                  NA |          NA |
-| CI_Cov_Lower   |             9.345 |                  NA |          NA |
-| CI_Cov_Upper   |             9.831 |                  NA |          NA |
+| STDERR_Var_X2  |             2.126 |                  NA |          NA |
+| CI_Mean2_Lower |            54.872 |                  NA |          NA |
+| CI_Mean2_Upper |           103.797 |                  NA |          NA |
+| CI_Var2_Lower  |           151.491 |                  NA |          NA |
+| CI_Var2_Upper  |           159.359 |                  NA |          NA |
+| Cov            |             9.719 |               9.517 |      -0.202 |
+| STDERR_Cov     |             0.145 |                  NA |          NA |
+| CI_Cov_Lower   |             9.461 |                  NA |          NA |
+| CI_Cov_Upper   |             9.989 |                  NA |          NA |
 | Length         |         19000.000 |           19000.000 |       0.000 |
 
 Summary Statistics for Different Measures
@@ -568,4 +568,4 @@ Gelm_Rud_X2 = gelman.diag(list(mcmc(sample1$X2[seq((burnin+1), N, by=thin)]), mc
 print(c(Gelm_Rud_X1,Gelm_Rud_X2))
 ```
 
-    ## [1] 1.001263 1.000680
+    ## [1] 1.0000941 0.9998833

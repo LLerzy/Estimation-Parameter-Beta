@@ -271,7 +271,7 @@ To further evaluate the performance of the simulation scheme, an alternative par
 
 ```{r, echo=TRUE, warning=FALSE, results='hide'}
 a2=3;b2=6;c2=3;d2=6
-Example_Joint_Dist1=Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec=3,a = a2,b = b2,c = c2,d = d2,thin = 2, X10_given = "random",target_acceptance = 0.4)
+Example_Joint_Dist1=Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec=4,a = a2,b = b2,c = c2,d = d2,thin = 2, X10_given = "random",target_acceptance = 0.4)
 
 results_measure_diag1=Measure_Diagnostic(data1 = Example_Joint_Dist1$X1,data2 = Example_Joint_Dist1$X2, var ="transform", digits = 3, a = a2, b = b2, c = c2, d = d2, burnin = 5000, thin = 5)
 ```
@@ -334,7 +334,7 @@ differences_df <- as.data.frame.matrix(t(results_measure_diag3$Differences))
 combined_df <- cbind(numerical_df, analytical_df[,1],differences_df[,1])
 names(combined_df)=c("Numerical Results", "Theoretical Results", "Differences")
 
-# The table is created with kable
+# The table is created with kable 
 combined_df %>%
   kable(caption = "Summary Statistics for Different Measures", digits = 3) 
 ```
