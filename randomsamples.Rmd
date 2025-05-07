@@ -163,7 +163,7 @@ The Gibbs Sampling algorithm is used to generate a random sample of the vector $
 
 ```{r, echo=TRUE, warning=FALSE, results='hide', fig.width=8, fig.height=5.5}
 N=10^5
-Example_Joint_Dist=Gen_Joint_Dist(N1 = N,N2 = 102,prop_prec = 3,a1,b1,c1,d1,thin = 2,X10_given ="random",target_acceptance = 0.4,batch_adapt_acceptance_rate=20)
+Example_Joint_Dist=Gen_Joint_Dist(N1 = N,N2 = 2,prop_prec = 3,a1,b1,c1,d1,thin = 2,X10_given ="random",target_acceptance = 0.4,batch_adapt_acceptance_rate=100)
 burnin=5000;thin=25
 Graphs(as.data.frame(Example_Joint_Dist$X2[seq((burnin+1), N, by=thin)]),"X2",width = 40,uscatt = 0.06,lscatt = 0.05)
 ```
@@ -271,9 +271,9 @@ To further evaluate the performance of the simulation scheme, an alternative par
 
 ```{r, echo=TRUE, warning=FALSE, results='hide'}
 a2=3;b2=6;c2=3;d2=6
-Example_Joint_Dist1=Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec=4,a = a2,b = b2,c = c2,d = d2,thin = 2, X10_given = "random",target_acceptance = 0.4)
+Example_Joint_Dist1=Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec=3,a = a2,b = b2,c = c2,d = d2,thin = 2, X10_given = "random",target_acceptance = 0.4)
 
-results_measure_diag1=Measure_Diagnostic(data1 = Example_Joint_Dist1$X1,data2 = Example_Joint_Dist1$X2, var ="transform", digits = 3, a = a2, b = b2, c = c2, d = d2, burnin = 5000, thin = 5)
+results_measure_diag1=Measure_Diagnostic(data1 = Example_Joint_Dist1$X1,data2 = Example_Joint_Dist1$X2, var ="transform", digits = 3, a = a2, b = b2, c = c2, d = d2, burnin = 5000, thin = 25)
 ```
 
 The table below presents the updated numerical estimates, theoretical values, and their differences under this new configuration.
@@ -319,7 +319,7 @@ print(c(Gelm_Rud_X1,Gelm_Rud_X2))
 a3=141.6457; b3=2263.205; c3=39.48316; d3=3092.636
 Example_Joint_Dist3=Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec=3,a = a3,b = b3,c = c3,d = d3,thin = 2, X10_given = "random",target_acceptance = 0.4)
 
-results_measure_diag3=Measure_Diagnostic(data1 = Example_Joint_Dist3$X1,data2 = Example_Joint_Dist3$X2, var ="transform", digits = 3, a = a3, b = b3, c = c3, d = d3, burnin = 5000, thin = 5)
+results_measure_diag3=Measure_Diagnostic(data1 = Example_Joint_Dist3$X1,data2 = Example_Joint_Dist3$X2, var ="transform", digits = 3, a = a3, b = b3, c = c3, d = d3, burnin = 5000, thin = 25)
 ```
 
 ```{r}
