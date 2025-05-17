@@ -348,3 +348,87 @@ writeData(wb, sheet = "Beta", x = Parameters$Results_Scen_Beta, colNames = TRUE,
 addWorksheet(wb, "Difference")
 writeData(wb, sheet = "Difference", x =Parameters$Results_Scen_Diff, colNames = TRUE, rowNames = TRUE)
 saveWorkbook(wb, file = titulo_xlsx, overwrite = TRUE)
+
+
+
+
+# Function to plot the scenarios jointly in 5 rows and 3 columns per parameter (alpha, beta).
+plot_scenarios_grid <- function(list_scenarios, parameter = c("alpha", "beta")) {
+  parameter <- match.arg(parameter)
+  
+  metrics <- c("Mean", "Bias", "MSE", "Coverage", "Length")
+  metric_labels <- if (parameter == "alpha") {
+    c("Alpha", "Bias", "MSE", "Coverage", "Length")
+  } else {
+    c("Beta", "Bias", "MSE", "Coverage", "Length")
+  }
+  
+  list_data <- lapply(list_scenarios, function(x) {
+    if (parameter == "alpha") x$Results_Scen_Alpha else x$Results_Scen_Beta
+  })
+  
+  titles <- if (parameter == "alpha") {
+    c(expression(alpha == 0.5), expression(alpha == 16), expression(alpha == 3))
+  } else {
+    c(expression(beta == 0.5), expression(beta == 4), expression(beta == 12))
+  }
+  
+  # Prepare auxiliary plot for the legend.
+  df_legend <- list_data[[1]]
+  df_legend$Method <- factor(df_legend$Method, levels = unique(df_legend$Method))
+  
+  legend_plot <- ggplot(df_legend)+aes(x = SampleSize, y = Mean, color = Method, shape = Method) +
+    scale_shape_manual(values = c(16, 17, 15, 3, 8, 4, 1, 2, 7, 9))+  # 10 unique ways.
+    geom_line() +
+    geom_point(size = 3) +
+    theme_minimal() +
+    guides(color = guide_legend(title = "Hyperparameters"), shape = guide_legend(title = "Hyperparameters")) +
+    theme(
+      legend.position = "right",
+      legend.text = element_text(size = 9),
+      legend.margin = margin(t = 0, b = 0)#,
+      #legend.box.spacing = unit(0.01, "cm")
+    )
+  legend <- cowplot::get_legend(legend_plot)
+  
+  # Constructing the individual plots.
+  plot_list <- list()
+  for (i in seq_along(metrics)) {
+    for (j in seq_along(list_data)) {
+      df <- list_data[[j]]
+      df$Method <- factor(df$Method, levels = unique(df_legend$Method))
+      
+      p <- ggplot(df, aes(x = SampleSize, y = .data[[metrics[i]]], color = Method, shape = Method)) +
+        geom_line() +
+        geom_point(size = 0.8) +
+        scale_shape_manual(values = c(16, 17, 15, 3, 8, 4, 1, 2, 7, 9)) + 
+        theme_minimal(base_size = 10) +
+        theme(
+          legend.position = "none",
+          axis.title.y = if (j == 1) element_text() else element_blank()
+        ) +
+        xlab(if (i == length(metrics)) "Sample Size" else "") +
+        ylab(if (j == 1) metric_labels[i] else NULL)
+      
+      if (i == 1) {
+        p <- p + ggtitle(titles[[j]])
+      }
+      
+      plot_list[[length(plot_list) + 1]] <- p
+    }
+  }
+  
+  # Assembling the final figure.
+  grid_plots <- gridExtra::arrangeGrob(grobs = plot_list, nrow = 5, ncol = 3)
+  gridExtra::grid.arrange(grid_plots, legend, ncol = 2, widths = c(8, 2))
+}
+
+  # Save as PNG image (300 dpi, high resolution).
+png("Par_Beta_Panel.png", width = 6.5, height = 8, units = "in", res = 300)
+
+plot_scenarios_grid(
+  list_scenarios = list(Parameters_Scenario1, Parameters_Scenario2, Parameters_Scenario3),
+  parameter = "beta"
+)
+
+dev.off()
