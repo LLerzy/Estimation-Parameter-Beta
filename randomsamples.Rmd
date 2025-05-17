@@ -316,10 +316,11 @@ print(c(Gelm_Rud_X1,Gelm_Rud_X2))
 # Application
 
 ```{r, echo=TRUE, warning=FALSE, results='hide'}
+N=10^5
 a3=141.6457; b3=2263.205; c3=39.48316; d3=3092.636
 Example_Joint_Dist3=Gen_Joint_Dist(N1 = 10^5,N2 = 2,prop_prec=3,a = a3,b = b3,c = c3,d = d3,thin = 2, X10_given = "random",target_acceptance = 0.4)
 
-results_measure_diag3=Measure_Diagnostic(data1 = Example_Joint_Dist3$X1,data2 = Example_Joint_Dist3$X2, var ="transform", digits = 3, a = a3, b = b3, c = c3, d = d3, burnin = 5000, thin = 25)
+results_measure_diag3=Measure_Diagnostic(data1 = Example_Joint_Dist3$X1,data2 = Example_Joint_Dist3$X2, var ="transform", digits = 5, a = a3, b = b3, c = c3, d = d3, burnin = 5000, thin = 5)
 ```
 
 ```{r}

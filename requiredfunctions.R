@@ -799,8 +799,8 @@ Measure_Diagnostic = function(data1, data2, var = "original", burnin, thin, digi
       "CIV1_lower" = CIV1[1],
       "CIV1_upper" = CIV1[2],
       
-      "mean2" = mean(data2), 
-      "var2" = var(data2), 
+      "mean2" = mean(data2),
+      "var2" = var(data2),
       "ESS2" = effectiveSize(mcmc(data2))[[1]],
       "stderr_mean.2" = sd(data2)/sqrt(effectiveSize(mcmc(data2))[[1]]),
       "stderr_var.2" = batch_means_stderr_var(data2, batch_size),
@@ -813,7 +813,7 @@ Measure_Diagnostic = function(data1, data2, var = "original", burnin, thin, digi
       "stderr_cov" = batch_means_stderr_cov(matrix(c(data1,data2),ncol=2), batch_size),
       "CIcov_lower" = CIcov[1],
       "CIcov_upper" = CIcov[2],
-      "length" = length(data1),
+      "length" = length(data1)
     ), digits)
     
     names(Numerical_results) = new_names
@@ -869,9 +869,11 @@ Measure_Diagnostic = function(data1, data2, var = "original", burnin, thin, digi
     # Analytical results
     K = Mom_Prior_Dist(0, 0, a, b, c, d)
     Analytic_results = round(data.frame(
-      "Mean.1" = exp(log(beta(c - 1 - 0, 1 + 0 + d)) + log(beta(1 + a, 0 + b)) - (log(beta(c - 0 - 0, 0 + 0 + d)) + log(beta(0 + a, 0 + b))) ), 
+      "Mean.1" = exp(lbeta(c - 1 - 0, 1 + 0 + d) + lbeta(1 + a, 0 + b) - (lbeta(c - 0 - 0, 0 + 0 + d) + lbeta(0 + a, 0 + b)) ), 
+      #"Mean.1" = exp(log(beta(c - 1 - 0, 1 + 0 + d)) + log(beta(1 + a, 0 + b)) - (log(beta(c - 0 - 0, 0 + 0 + d)) + log(beta(0 + a, 0 + b))) ), 
       #"Mean.1" =  Mom_Prior_Dist(1, 0, a, b, c, d) / K,
-      "Var.1" = exp(log(beta(c - 2 - 0, 2 + 0 + d)) + log(beta(2 + a, 0 + b)) - (log(beta(c - 0 - 0, 0 + 0 + d)) + log(beta(0 + a, 0 + b))) ) - (exp(log(beta(c - 1 - 0, 1 + 0 + d)) + log(beta(1 + a, 0 + b)) - (log(beta(c - 0 - 0, 0 + 0 + d)) + log(beta(0 + a, 0 + b))) ))^2,
+      "Var.1" = exp(lbeta(c - 2, 2 + d) + lbeta(2 + a, b) - (lbeta(c,d) + lbeta(a,b)) ) - exp(2*lbeta(c - 1, 1+ d) + 2*lbeta(1 + a, b) - 2*(lbeta(c,d) + lbeta(a,b)) ),
+      #"Var.1" = exp(log(beta(c - 2 - 0, 2 + 0 + d)) + log(beta(2 + a, 0 + b)) - (log(beta(c - 0 - 0, 0 + 0 + d)) + log(beta(0 + a, 0 + b))) ) - (exp(log(beta(c - 1 - 0, 1 + 0 + d)) + log(beta(1 + a, 0 + b)) - (log(beta(c - 0 - 0, 0 + 0 + d)) + log(beta(0 + a, 0 + b))) ))^2,
       #"Var.1" = Mom_Prior_Dist(2, 0, a, b, c, d) / K - (Mom_Prior_Dist(1, 0, a, b, c, d) / K)^2,
       "ESS.1" = length(new_data1),
       "stderr_mean.1" = NA,
@@ -881,9 +883,11 @@ Measure_Diagnostic = function(data1, data2, var = "original", burnin, thin, digi
       "CIV1_lower" = NA,
       "CIV1_upper" = NA,
       
-      "Mean.2" = exp(log(beta(c - 0 - 1, 0 + 1 + d)) + log(beta(0 + a, 1 + b)) - (log(beta(c - 0 - 0, 0 + 0 + d)) + log(beta(0 + a, 0 + b))) ), 
+      "Mean.2" = exp(lbeta(c - 0 - 1, 0 + 1 + d) + lbeta(0 + a, 1 + b) - (lbeta(c - 0 - 0, 0 + 0 + d) + lbeta(0 + a, 0 + b)) ), 
+      #"Mean.2" = exp(log(beta(c - 0 - 1, 0 + 1 + d)) + log(beta(0 + a, 1 + b)) - (log(beta(c - 0 - 0, 0 + 0 + d)) + log(beta(0 + a, 0 + b))) ), 
       #Mom_Prior_Dist(0, 1, a, b, c, d) / K,
-      "Var.2" =  exp(log(beta(c - 0 - 2, 0 + 2 + d)) + log(beta(0 + a, 2 + b)) - (log(beta(c - 0 - 0, 0 + 0 + d)) + log(beta(0 + a, 0 + b))) ) - (exp(log(beta(c - 0 - 1, 0 + 1 + d)) + log(beta(0 + a, 1 + b)) - (log(beta(c - 0 - 0, 0 + 0 + d)) + log(beta(0 + a, 0 + b))) ))^2,
+      "Var.2" =  exp(lbeta(c - 2, 2 + d) + lbeta( a, 2 + b) - (lbeta(c,d) + lbeta(a,b)) ) - (exp(lbeta(c - 1, 1 + d) + lbeta( a, 1 + b) - (lbeta(c, d) + lbeta(a,b)) ))^2,
+      #"Var.2" =  exp(log(beta(c - 0 - 2, 0 + 2 + d)) + log(beta(0 + a, 2 + b)) - (log(beta(c - 0 - 0, 0 + 0 + d)) + log(beta(0 + a, 0 + b))) ) - (exp(log(beta(c - 0 - 1, 0 + 1 + d)) + log(beta(0 + a, 1 + b)) - (log(beta(c - 0 - 0, 0 + 0 + d)) + log(beta(0 + a, 0 + b))) ))^2,
         #Mom_Prior_Dist(0, 2, a, b, c, d) / K - (Mom_Prior_Dist(0, 1, a, b, c, d) / K)^2,
       "ESS.2" = length(new_data1),
       "stderr_mean.2" = NA,
@@ -893,8 +897,9 @@ Measure_Diagnostic = function(data1, data2, var = "original", burnin, thin, digi
       "CIV2_lower" = NA,
       "CIV2_upper" = NA,
 
-      "Cov" = exp(log(beta(c - 1 - 1, 1 + 1 + d)) + log(beta(1 + a, 1 + b)) - (log(beta(c - 0 - 0, 0 + 0 + d)) + log(beta(0 + a, 0 + b))) )-
-        exp(2*log(beta(c - 1, 1 + d)) + log(beta( a, 1 + b)) - 2*(log(beta(c, d)) + log(beta(a, b))) + log(beta(1 + a, b)) ),
+      "Cov" = exp(lbeta(c - 2, 2 + d) + lbeta(1 + a, 1 + b) - (lbeta(c,d) + lbeta(a,b)) )-exp(2*lbeta(c - 1, 1 + d) + lbeta( a, 1 + b) - 2*(lbeta(c, d) + lbeta(a, b)) + lbeta(1 + a, b) ),
+      #"Cov" = exp(log(beta(c - 1 - 1, 1 + 1 + d)) + log(beta(1 + a, 1 + b)) - (log(beta(c - 0 - 0, 0 + 0 + d)) + log(beta(0 + a, 0 + b))) )-
+      #  exp(2*log(beta(c - 1, 1 + d)) + log(beta( a, 1 + b)) - 2*(log(beta(c, d)) + log(beta(a, b))) + log(beta(1 + a, b)) ),
         #Mom_Prior_Dist(1, 1, a, b, c, d) / K - (Mom_Prior_Dist(1, 0, a, b, c, d) / K) * Mom_Prior_Dist(0, 1, a, b, c, d) / K,
       "stderr_cov" = NA,
       "CIcov_lower" = NA,
@@ -1052,9 +1057,9 @@ Est_Post = function(ssample, N, N_FC, Precision, a, b, c, d, thin1, thin2, burni
   x0 = prod(ssample)
   y0 = prod(1 - ssample)
   
-  zeta=exp((sample_alpha-1)*log(x0)+(sample_beta-1)*log(y0)-(length(ssample))*log(beta(sample_alpha,sample_beta)))
+  zeta=exp((sample_alpha-1)*log(x0)+(sample_beta-1)*log(y0)-(length(ssample))*lbeta(sample_alpha,sample_beta))
   
-  marginalike=sum(zeta)/length(sample_beta)
+  marginalike=sum(zeta)#/length(sample_beta)
   
   meanpalpha=sum(zeta*exp(log(sample_alpha)-log(marginalike)))
   varpalpha=sum(zeta*exp(2*log(sample_alpha)-log(marginalike)))-meanpalpha^2
@@ -1068,7 +1073,7 @@ Est_Post = function(ssample, N, N_FC, Precision, a, b, c, d, thin1, thin2, burni
                                    digits = 4, burnin, thin = thin2, a, b, c, d)
   return(list(EstPost=data.frame(Prior_Lik=marginalike,P_A=meanpalpha,P_B=meanpbeta,VP_A=varpalpha,VP_B=varpbeta,CP_AB=covalphabeta),
               Descriptivo=Descriptivo,
-              SA=sample_alpha,SB=sample_beta,SX1=Example_Joint_Dist$X1,SX2=Example_Joint_Dist$X2))
+              SA=sample_alpha,SB=sample_beta,SX1=Example_Joint_Dist$X1,SX2=Example_Joint_Dist$X2,Zeta=zeta))
 }
 
 
