@@ -947,10 +947,22 @@ Measure_Analy = function(a, b, c, d, digits) {
 # digits: number of decimal places for the Bootstrap quantile interval for the mean and variance.
 # graphs_boot: logical indicator to generate a histogram, T or F.
 # Q_E_mu and Q_E_cv: quantiles for the mean and variance obtained from the expert.
+# language: Indicates the language in which the titles and labels of the generated graphs are presented.
 
 Hyperparameters = function(ssample, r_boostrap = 100, q_boostrap = c(0.025, 0.975), option_mu = "moments", 
                            sig_mu = 0.05, bound_var = "max", sig_var = 0.05, digits = 4, 
-                           graphs_boot = F, Q_E_mu = 0, Q_E_cv = 0) {
+                           graphs_boot = F, Q_E_mu = 0, Q_E_cv = 0, language = "English") {
+  if (language == "English"){
+    labels_title = c("a. Original Sample", "b. Bootstrap for the CV", "c. Bootstrap for the Mean")
+    labels_x = c("X", "CV of X", "Mean of X")
+    labels_y = c("Density")
+  } else if (language == "Spanish"){
+    labels_title = c("a. Muestra original", "b. Bootstrap para el CV", "c. Bootstrap para la media")
+    labels_x = c("X", "CV de X", "Media de X")
+    labels_y = c("Densidad")
+  }
+    
+    
   if (r_boostrap != 0) {
     n_sample = length(ssample)
     boot = matrix(sample(ssample, size = r_boostrap * n_sample, replace = T), nrow = n_sample, ncol = r_boostrap)
@@ -998,20 +1010,17 @@ Hyperparameters = function(ssample, r_boostrap = 100, q_boostrap = c(0.025, 0.97
     hist_orig = ggplot(as.data.frame(ssample), aes(x = ssample)) + 
       geom_histogram(aes(y = after_stat(density)), colour = 1, fill = "white") +
       geom_density(lwd = 1.2, linetype = 2, colour = 2, fill = 4, alpha = 0.25) +
-      labs(title = "Original Sample") + ylab("Density") +
-      xlab(substitute(va, list(va = "X")))
+      labs(title = labels_title[1]) + ylab(labels_y[1]) + xlab(substitute(va, list(va = "X")))
     if (r_boostrap != 0) {
       hist_boot_mean = ggplot(as.data.frame(boots_mean), aes(x = boots_mean)) + 
         geom_histogram(aes(y = ..density..), colour = 1, fill = "white") +
         geom_density(lwd = 1.2, linetype = 2, colour = 2, fill = 4, alpha = 0.25) +
-        labs(title = "Bootstrap for the Mean") + ylab("Density") +
-        xlab(substitute(va, list(va = "Mean of X")))
+        labs(title = labels_title[3]) + ylab("") + xlab(substitute(va, list(va = labels_x[3])))
       
       hist_boot_cv = ggplot(as.data.frame(boots_cv), aes(x = boots_cv)) + 
         geom_histogram(aes(y = ..density..), colour = 1, fill = "white") +
         geom_density(lwd = 1.2, linetype = 2, colour = 2, fill = 4, alpha = 0.25) +
-        labs(title = "Bootstrap for the CV") + ylab("Density") +
-        xlab(substitute(va, list(va = "CV of X")))
+        labs(title = labels_title[2]) + ylab(labels_y[1]) + xlab(substitute(va, list(va = labels_x[2])))
       
       grid.arrange(hist_orig, hist_boot_cv, hist_boot_mean, 
                    ncol = 2, nrow = 2, widths = c(2, 2), heights = c(2, 2), layout_matrix = rbind(c(1, 1), c(2, 3)))
