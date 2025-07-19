@@ -67,6 +67,7 @@
 ##########################################################
 library(ggplot2)
 library(gridExtra)
+library(cowplot)
 library(tidyr) # provides tools for tidying up data and especially useful for its pipe operator (%>%), which streamlines data manipulation and transformation.
 library(plotly) # used for interactive visualization of contour plots
 library(coda)
@@ -695,7 +696,7 @@ Mtovar_vs2 = function(q1, q2, low, upp, alp) {
 # l2 is the marginal order for beta
 # a, b, c, and d are hyperparameter values.
 Mom_Prior_Dist = function(l1, l2, a, b, c, d) {
-  exp(log(beta(c - l1 - l2, l1 + l2 + d)) + log(beta(l1 + a, l2 + b)))
+  exp(lbeta(c - l1 - l2, l1 + l2 + d) + lbeta(l1 + a, l2 + b))
 }
 
 ##########################################################
@@ -713,7 +714,7 @@ Measure_Diagnostic = function(data1, data2, var = "original", burnin, thin, digi
     n <- length(chain)
     num_batches <- floor(n / batch_size)
     if (num_batches < 2) {
-      warning("Se necesitan al menos 2 batches para estimar el error estándar.")
+      warning("At least two batches are needed to estimate the standard error reliably.")
       return(NA)
     }
     batch_means_var <- numeric(num_batches)
@@ -738,12 +739,12 @@ Measure_Diagnostic = function(data1, data2, var = "original", burnin, thin, digi
     return(c(round(credibility_interval_variance_bootstrap[1], 3), round(credibility_interval_variance_bootstrap[2], 3)))
   }
   
-  # Función para determinar el error estándar de la covarianza.
+  # Function to calculate the standard error of the covariance.
   batch_means_stderr_cov <- function(chain, batch_size = 100) {
     n <- nrow(chain)
     num_batches <- floor(n / batch_size)
     if (num_batches < 2) {
-      warning("Se necesitan al menos 2 batches para estimar el error estándar.")
+      warning("At least two batches are needed to estimate the standard error reliably.")
       return(NA)
     }
     batch_covariances <- numeric(num_batches)
@@ -756,13 +757,13 @@ Measure_Diagnostic = function(data1, data2, var = "original", burnin, thin, digi
     return(sd(batch_covariances) / sqrt(num_batches))
   }
   
-  # Función para calcular la región de credibilidad para la covarianza.
+  # Function to calculate the credible region for the covariance.
   Cred_Interval_Cov <- function(x, level = 0.95) {
     n_bootstrap <- 10000
     bootstrap_covariances <- numeric(n_bootstrap)
     n_samples <- nrow(x)
     for (i in 1:n_bootstrap) {
-      # Remuestrear las filas de x con reemplazo
+      # Resample the rows of x with replacement.
       bootstrap_indices <- sample(1:n_samples, size = n_samples, replace = TRUE)
       bootstrap_sample <- x[bootstrap_indices, ]
       bootstrap_covariances[i] <- cov(bootstrap_sample[, 1], bootstrap_sample[, 2])
@@ -776,7 +777,7 @@ Measure_Diagnostic = function(data1, data2, var = "original", burnin, thin, digi
   data1 <- data1[seq((burnin + 1), N, by = thin)]
   data2 <- data2[seq((burnin + 1), N, by = thin)]
   
-      
+  
   if (var == "original") {
     new_names = c("Mean_X1", "Var_X1", "ESS_X1", "STDERR_Mean_X1", "STDERR_Var_X1", "CI_Mean1_Lower", "CI_Mean1_Upper","CI_Var1_Lower", "CI_Var1_Upper",
                   "Mean_X2", "Var_X2", "ESS_X2", "STDERR_Mean_X2", "STDERR_Var_X2", "CI_Mean2_Lower", "CI_Mean2_Upper","CI_Var2_Lower", "CI_Var2_Upper",
@@ -825,8 +826,8 @@ Measure_Diagnostic = function(data1, data2, var = "original", burnin, thin, digi
     new_data1 = data1 * piece
     new_data2 = (1 - data1) * piece
     
-    new_names = c("Mean_X1", "Var_X1", "ESS_X1", "STDERR_Mean_X1", "STDERR_Var_X1", "CI_Mean1_Lower", "CI_Mean1_Upper","CI_Var1_Lower", "CI_Var1_Upper",
-                  "Mean_X2", "Var_X2", "ESS_X2", "STDERR_Mean_X2", "STDERR_Var_X2", "CI_Mean2_Lower", "CI_Mean2_Upper","CI_Var2_Lower", "CI_Var2_Upper",
+    new_names = c("Mean_Y1", "Var_Y1", "ESS_Y1", "STDERR_Mean_Y1", "STDERR_Var_Y1", "CI_Mean1_Lower", "CI_Mean1_Upper","CI_Var1_Lower", "CI_Var1_Upper",
+                  "Mean_Y2", "Var_Y2", "ESS_Y2", "STDERR_Mean_Y2", "STDERR_Var_Y2", "CI_Mean2_Lower", "CI_Mean2_Upper","CI_Var2_Lower", "CI_Var2_Upper",
                   "Cov", "STDERR_Cov", "CI_Cov_Lower", "CI_Cov_Upper", "Length")
     
     CIM1 = Cred_Interval(new_data1, level = cred_level)
@@ -869,12 +870,8 @@ Measure_Diagnostic = function(data1, data2, var = "original", burnin, thin, digi
     # Analytical results
     K = Mom_Prior_Dist(0, 0, a, b, c, d)
     Analytic_results = round(data.frame(
-      "Mean.1" = exp(lbeta(c - 1 - 0, 1 + 0 + d) + lbeta(1 + a, 0 + b) - (lbeta(c - 0 - 0, 0 + 0 + d) + lbeta(0 + a, 0 + b)) ), 
-      #"Mean.1" = exp(log(beta(c - 1 - 0, 1 + 0 + d)) + log(beta(1 + a, 0 + b)) - (log(beta(c - 0 - 0, 0 + 0 + d)) + log(beta(0 + a, 0 + b))) ), 
-      #"Mean.1" =  Mom_Prior_Dist(1, 0, a, b, c, d) / K,
+      "Mean.1" = exp(lbeta(c - 1, 1 + d) + lbeta(1 + a, b) - (lbeta(c, d) + lbeta(a, b)) ), 
       "Var.1" = exp(lbeta(c - 2, 2 + d) + lbeta(2 + a, b) - (lbeta(c,d) + lbeta(a,b)) ) - exp(2*lbeta(c - 1, 1+ d) + 2*lbeta(1 + a, b) - 2*(lbeta(c,d) + lbeta(a,b)) ),
-      #"Var.1" = exp(log(beta(c - 2 - 0, 2 + 0 + d)) + log(beta(2 + a, 0 + b)) - (log(beta(c - 0 - 0, 0 + 0 + d)) + log(beta(0 + a, 0 + b))) ) - (exp(log(beta(c - 1 - 0, 1 + 0 + d)) + log(beta(1 + a, 0 + b)) - (log(beta(c - 0 - 0, 0 + 0 + d)) + log(beta(0 + a, 0 + b))) ))^2,
-      #"Var.1" = Mom_Prior_Dist(2, 0, a, b, c, d) / K - (Mom_Prior_Dist(1, 0, a, b, c, d) / K)^2,
       "ESS.1" = length(new_data1),
       "stderr_mean.1" = NA,
       "stderr_var.1" = NA,
@@ -883,12 +880,8 @@ Measure_Diagnostic = function(data1, data2, var = "original", burnin, thin, digi
       "CIV1_lower" = NA,
       "CIV1_upper" = NA,
       
-      "Mean.2" = exp(lbeta(c - 0 - 1, 0 + 1 + d) + lbeta(0 + a, 1 + b) - (lbeta(c - 0 - 0, 0 + 0 + d) + lbeta(0 + a, 0 + b)) ), 
-      #"Mean.2" = exp(log(beta(c - 0 - 1, 0 + 1 + d)) + log(beta(0 + a, 1 + b)) - (log(beta(c - 0 - 0, 0 + 0 + d)) + log(beta(0 + a, 0 + b))) ), 
-      #Mom_Prior_Dist(0, 1, a, b, c, d) / K,
+      "Mean.2" = exp(lbeta(c - 1, 1 + d) + lbeta( a, 1 + b) - (lbeta(c, d) + lbeta(a, b)) ), 
       "Var.2" =  exp(lbeta(c - 2, 2 + d) + lbeta( a, 2 + b) - (lbeta(c,d) + lbeta(a,b)) ) - (exp(lbeta(c - 1, 1 + d) + lbeta( a, 1 + b) - (lbeta(c, d) + lbeta(a,b)) ))^2,
-      #"Var.2" =  exp(log(beta(c - 0 - 2, 0 + 2 + d)) + log(beta(0 + a, 2 + b)) - (log(beta(c - 0 - 0, 0 + 0 + d)) + log(beta(0 + a, 0 + b))) ) - (exp(log(beta(c - 0 - 1, 0 + 1 + d)) + log(beta(0 + a, 1 + b)) - (log(beta(c - 0 - 0, 0 + 0 + d)) + log(beta(0 + a, 0 + b))) ))^2,
-        #Mom_Prior_Dist(0, 2, a, b, c, d) / K - (Mom_Prior_Dist(0, 1, a, b, c, d) / K)^2,
       "ESS.2" = length(new_data1),
       "stderr_mean.2" = NA,
       "stderr_var.2" = NA,
@@ -896,11 +889,8 @@ Measure_Diagnostic = function(data1, data2, var = "original", burnin, thin, digi
       "CIM2_upper" = NA,
       "CIV2_lower" = NA,
       "CIV2_upper" = NA,
-
+      
       "Cov" = exp(lbeta(c - 2, 2 + d) + lbeta(1 + a, 1 + b) - (lbeta(c,d) + lbeta(a,b)) )-exp(2*lbeta(c - 1, 1 + d) + lbeta( a, 1 + b) - 2*(lbeta(c, d) + lbeta(a, b)) + lbeta(1 + a, b) ),
-      #"Cov" = exp(log(beta(c - 1 - 1, 1 + 1 + d)) + log(beta(1 + a, 1 + b)) - (log(beta(c - 0 - 0, 0 + 0 + d)) + log(beta(0 + a, 0 + b))) )-
-      #  exp(2*log(beta(c - 1, 1 + d)) + log(beta( a, 1 + b)) - 2*(log(beta(c, d)) + log(beta(a, b))) + log(beta(1 + a, b)) ),
-        #Mom_Prior_Dist(1, 1, a, b, c, d) / K - (Mom_Prior_Dist(1, 0, a, b, c, d) / K) * Mom_Prior_Dist(0, 1, a, b, c, d) / K,
       "stderr_cov" = NA,
       "CIcov_lower" = NA,
       "CIcov_upper" = NA,
@@ -957,10 +947,22 @@ Measure_Analy = function(a, b, c, d, digits) {
 # digits: number of decimal places for the Bootstrap quantile interval for the mean and variance.
 # graphs_boot: logical indicator to generate a histogram, T or F.
 # Q_E_mu and Q_E_cv: quantiles for the mean and variance obtained from the expert.
+# language: Indicates the language in which the titles and labels of the generated graphs are presented.
 
 Hyperparameters = function(ssample, r_boostrap = 100, q_boostrap = c(0.025, 0.975), option_mu = "moments", 
                            sig_mu = 0.05, bound_var = "max", sig_var = 0.05, digits = 4, 
-                           graphs_boot = F, Q_E_mu = 0, Q_E_cv = 0) {
+                           graphs_boot = F, Q_E_mu = 0, Q_E_cv = 0, language = "English") {
+  if (language == "English"){
+    labels_title = c("a. Original Sample", "b. Bootstrap for the CV", "c. Bootstrap for the Mean")
+    labels_x = c("X", "CV of X", "Mean of X")
+    labels_y = c("Density")
+  } else if (language == "Spanish"){
+    labels_title = c("a. Muestra original", "b. Bootstrap para el CV", "c. Bootstrap para la media")
+    labels_x = c("X", "CV de X", "Media de X")
+    labels_y = c("Densidad")
+  }
+    
+    
   if (r_boostrap != 0) {
     n_sample = length(ssample)
     boot = matrix(sample(ssample, size = r_boostrap * n_sample, replace = T), nrow = n_sample, ncol = r_boostrap)
@@ -1008,20 +1010,17 @@ Hyperparameters = function(ssample, r_boostrap = 100, q_boostrap = c(0.025, 0.97
     hist_orig = ggplot(as.data.frame(ssample), aes(x = ssample)) + 
       geom_histogram(aes(y = after_stat(density)), colour = 1, fill = "white") +
       geom_density(lwd = 1.2, linetype = 2, colour = 2, fill = 4, alpha = 0.25) +
-      labs(title = "Original Sample") + ylab("Density") +
-      xlab(substitute(va, list(va = "X")))
+      labs(title = labels_title[1]) + ylab(labels_y[1]) + xlab(substitute(va, list(va = "X")))
     if (r_boostrap != 0) {
       hist_boot_mean = ggplot(as.data.frame(boots_mean), aes(x = boots_mean)) + 
         geom_histogram(aes(y = ..density..), colour = 1, fill = "white") +
         geom_density(lwd = 1.2, linetype = 2, colour = 2, fill = 4, alpha = 0.25) +
-        labs(title = "Bootstrap for the Mean") + ylab("Density") +
-        xlab(substitute(va, list(va = "Mean of X")))
+        labs(title = labels_title[3]) + ylab("") + xlab(substitute(va, list(va = labels_x[3])))
       
       hist_boot_cv = ggplot(as.data.frame(boots_cv), aes(x = boots_cv)) + 
         geom_histogram(aes(y = ..density..), colour = 1, fill = "white") +
         geom_density(lwd = 1.2, linetype = 2, colour = 2, fill = 4, alpha = 0.25) +
-        labs(title = "Bootstrap for the CV") + ylab("Density") +
-        xlab(substitute(va, list(va = "CV of X")))
+        labs(title = labels_title[2]) + ylab(labels_y[1]) + xlab(substitute(va, list(va = labels_x[2])))
       
       grid.arrange(hist_orig, hist_boot_cv, hist_boot_mean, 
                    ncol = 2, nrow = 2, widths = c(2, 2), heights = c(2, 2), layout_matrix = rbind(c(1, 1), c(2, 3)))
@@ -1059,7 +1058,7 @@ Est_Post = function(ssample, N, N_FC, Precision, a, b, c, d, thin1, thin2, burni
   
   zeta=exp((sample_alpha-1)*log(x0)+(sample_beta-1)*log(y0)-(length(ssample))*lbeta(sample_alpha,sample_beta))
   
-  marginalike=sum(zeta)#/length(sample_beta)
+  marginalike=sum(zeta)
   
   meanpalpha=sum(zeta*exp(log(sample_alpha)-log(marginalike)))
   varpalpha=sum(zeta*exp(2*log(sample_alpha)-log(marginalike)))-meanpalpha^2
@@ -1313,4 +1312,3 @@ Comparison_Hyper = function(data, value_real, lim_x, title_text, y_Text) {
     widths = c(7, 1)
   )
 }
-
