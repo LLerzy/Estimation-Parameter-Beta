@@ -10,6 +10,7 @@
 #                                                                         #
 # Author: Llerzy Torres Ome                                               #
 # Creation Date: September 16, 2024                                       #
+# Update Date: April 25, 2025                                             #
 #                                                                         #
 # Functions included:                                                     #
 # 1. Prior: Defines the proposed prior probability density function.      #
@@ -22,28 +23,32 @@
 #    of v and precision.                                                  #
 # 6. Mon_R_Hat: Monitors the Gelman-Rubin diagnostic (R-hat) for          #
 #    different values of v and precision.                                 #
-# 7. Graphs: Plots histograms, density, trace, and convergence control    #
+# 7. results_Mon_Measure: similar to Mon_Measure but does not graph.      #
+# 8. results_Mon_R_Hat: similar to Mon_R_Hat but not graphical.           #
+# 9. Generate_Figure3_Panels: Generates the graphs resulting from         #
+#    monitoring convergence.                                              #
+# 10. Graphs: Plots histograms, density, trace, and convergence control   #
 #    using the average.                                                   #
-# 8. Gen_Joint_Dist: Gibbs sampling for generating joint distributions    #
+# 11. Gen_Joint_Dist: Gibbs sampling for generating joint distributions   #
 #    of X1 and X2.                                                        #
-# 9. Mtovar_vs2: Generalizes Tovar's method for obtaining hyperparameter  #
+# 12. Mtovar_vs2: Generalizes Tovar's method for obtaining hyperparameter #
 #    values.                                                              #
-# 10. Mom_Prior_Dist: Calculates joint moments of order l for the proposed  #
+# 13. Mom_Prior_Dist: Calculates joint moments of order l for the proposed#
 #     prior distribution.                                                 #
-# 11. Measure_Diagnostic: Compares analytical and numerical results for   #
+# 14. Measure_Diagnostic: Compares analytical and numerical results for   #
 #     given data samples.                                                 #
-# 12. Measure_Analy: Computes analytical results for the proposed prior   #
+# 15. Measure_Analy: Computes analytical results for the proposed prior   #
 #     distribution.                                                       #
-# 13. Hyperparameters: Obtains hyperparameters using empirical Bayes and  #
+# 16. Hyperparameters: Obtains hyperparameters using empirical Bayes and  #
 #     subjective approaches.                                              #
-# 14. Est_Post: Posterior estimation for alpha and beta parameters of the #
+# 17. Est_Post: Posterior estimation for alpha and beta parameters of the #
 #     beta distribution using importance sampling.                        #
-# 15. Sim_study: Conducts simulation studies to compare posterior       #
+# 18. Sim_study: Conducts simulation studies to compare posterior         #
 #     estimates using different hyperparameters and sample sizes.         #
-# 16. Individual_Graphs: Creates individual graphs to monitor posterior   #
+# 19. Individual_Graphs: Creates individual graphs to monitor posterior   #
 #     estimates using bias and MSE as indicators.                         #
-# 17. Comparison_Hyper: Compares joint functions for different hyperparam- #
-#     eter sets.                                                          #
+# 20. Comparison_Hyper: Compares joint functions for different            #
+#     hyperparameter sets.                                                #
 #                                                                         #
 # Notes:                                                                  #
 # 1. It's recommended to review and adapt each function according to the  #
@@ -62,6 +67,7 @@
 ##########################################################
 library(ggplot2)
 library(gridExtra)
+library(cowplot)
 library(tidyr) # provides tools for tidying up data and especially useful for its pipe operator (%>%), which streamlines data manipulation and transformation.
 library(plotly) # used for interactive visualization of contour plots
 library(coda)
@@ -129,7 +135,7 @@ Graph_Fc_X1=function(v1, v1name, v2, v2name, v3, v3name, ae, be, ce, de) {
          caption=substitute(
            list("Plot of", f[X[1]/X[2]](x[1]/v)==x[1]^(a-c-d) * (1-x[1])^(b-c-d) * (x[1]*(1-x[1])-v)^(d-1),
                 "with", a==ae, b==be, c==ce, d==de), list(ae=ae, be=be, ce=ce, de=de))) +
-    xlab(expression(x[1])) + ylab("Density") +
+    xlab(expression("Values of " ~ X[1]~"given"~X[2]==v)) + ylab("Density") +
     scale_colour_manual(values = c("red", "black", "purple"), name=expression(X[2]==v))
 }
 #####
@@ -147,9 +153,11 @@ Graph_Fc_X1=function(v1, v1name, v2, v2name, v3, v3name, ae, be, ce, de) {
 # The seed type can be specified with "X10_given" to be "random" or "fixed".
 # "target_acceptance" is the acceptable tolerance rate for acceptance.
 # "dig_tol" is the number of decimal places for -X10^2 + X10 - v, and -yt^2 + yt - v to be different from zero. 
+# "batch_adapt_acceptance_rate" is the number of iterations with which the accuracy is adjusted in the burn-in period
 # This criterion is important in the numerical method to avoid numerical problems.
+
 Gen_FC_X1_X2 <- function(N, prop_prec, a, b, c, d, v, option = "end", thin = 1, burnin = 0, 
-                         X10_given = "random", target_acceptance = 0.3, dig_tol = 15) {
+                         X10_given = "random", target_acceptance = 0.3, dig_tol = 15,batch_adapt_acceptance_rate=100) {
   X1_lower = 0.5 - 0.5 * sqrt(1 - 4 * v)
   X1_upper = 0.5 + 0.5 * sqrt(1 - 4 * v)
   
@@ -215,13 +223,11 @@ Gen_FC_X1_X2 <- function(N, prop_prec, a, b, c, d, v, option = "end", thin = 1, 
     }
     
     # Adaptive adjustment of the precision parameter during burn-in
-    if (k <= burnin && k %% 100 == 0 && target_acceptance!=0) {
-      acceptance_rate <- burnin_accepted / 100
-      if (acceptance_rate < target_acceptance) {
-        prop_prec <- prop_prec * 0.95
-      } else if (acceptance_rate > target_acceptance) {
-        prop_prec <- prop_prec * 1.05
-      }
+    if (k <= burnin && k %% batch_adapt_acceptance_rate == 0 && target_acceptance!=0) {
+      acceptance_rate <- burnin_accepted / batch_adapt_acceptance_rate
+      
+      prop_prec = prop_prec + (1/k) * (target_acceptance-acceptance_rate)
+      
       burnin_accepted <- 0
     }
     proposals = proposals + 1
@@ -390,6 +396,165 @@ Mon_R_Hat = function(N, prop_prec_values, a, b, c, d, v_values, thin = 1, burnin
   #return(list(plot_H))
 }
 
+
+
+
+#####
+# Function to monitor the  Effective Sample Size, acceptance rate and Gelman-Rubin diagnostic (R-hat) for different values of v and precision (prop_prec) provided
+#####
+# "N" is the sample size to be generated.
+# "prop_prec" is the precision set for the algorithm. 
+# "a", "b", "c", and "d" are given values for the parameters.
+# "v" is the given value for X2.
+# "option" allows you to select the entire sample ("all") or just the last value generated ("end").
+# "thin" and "burnin" are parameters for the function Gen_FC_X1_X2.
+# "thin" is the thinning interval for MCMC. Every "thin" generated samples, one is stored to reduce autocorrelation.
+# "burnin" is the number of iterations to discard.
+# The seed type can be specified with "X10_given" to be "random" or "fixed".
+# "target_acceptance" is the acceptable tolerance rate for acceptance.
+# "dig_tol" is the number of decimal places for -X10^2 + X10 - v, and -yt^2 + yt - v to be different from zero. 
+# This criterion is important in the numerical method to avoid numerical problems.
+# "v_values" is the list of values that variance can take.
+
+
+results_Mon_Measure = function(N, prop_prec_values, a, b, c, d, v_values, thin = 1, burnin = 1, target_acceptance = 0.3) {
+  # Get the total number of cores
+  num_cores <- detectCores()
+  
+  # Use half of the available cores
+  cl <- makeCluster(num_cores %/% 2)
+  
+  # Register the cluster for use with foreach
+  registerDoParallel(cl)
+  
+  # Initialize an empty data.frame
+  df <- data.frame()
+  
+  # Use foreach to iterate in parallel
+  results_list <- foreach(v = v_values, .combine = 'rbind', .export = c('Gen_FC_X1_X2', 'FC_X1_Given_v'), 
+                          .packages = c('coda', 'betafunctions')) %dopar% {
+                            tmp_df <- data.frame()
+                            for (prop_prec in prop_prec_values) {
+                              results <- Gen_FC_X1_X2(N, prop_prec, a, b, c, d, v, option = "all", thin, burnin, target_acceptance = target_acceptance)
+                              result_AR <- results$acc_rate
+                              mcmc_obj <- mcmc(results$thinned_chain)
+                              result_ESS <- effectiveSize(mcmc_obj)
+                              tmp_df <- rbind(tmp_df, data.frame(v = v, Precision = prop_prec, Accept_Rate = result_AR, ESS = result_ESS))
+                            }
+                            tmp_df
+                          }
+  
+  # Stop the cluster
+  stopCluster(cl)
+  #print((N - burnin) / thin)
+  
+  df <- rbind(df, results_list)
+  return(df)
+}
+
+results_Mon_R_Hat = function(N, prop_prec_values, a, b, c, d, v_values, thin = 1, burnin = 1, target_acceptance=0.3) {
+  # Get the total number of cores
+  num_cores <- detectCores()
+  
+  # Use half of the available cores
+  cl <- makeCluster(num_cores %/% 2)
+  
+  # Register the cluster for use with foreach
+  registerDoParallel(cl)
+  
+  # Initialize an empty data.frame
+  df <- data.frame()
+  
+  # Use foreach to iterate in parallel
+  results_list <- foreach(v = v_values, .combine = 'rbind', .export = c('Gen_FC_X1_X2'), 
+                          .packages = c('coda', 'betafunctions')) %dopar% {
+                            tmp_df <- data.frame()
+                            for (prop_prec in prop_prec_values) {
+                              sample1 = Gen_FC_X1_X2(N, prop_prec, a, b, c, d, v, option = "all", thin, burnin, X10_given = "random", target_acceptance)
+                              sample2 = Gen_FC_X1_X2(N, prop_prec, a, b, c, d, v, option = "all", thin, burnin, X10_given = "random", target_acceptance)
+                              sample3 = Gen_FC_X1_X2(N, prop_prec, a, b, c, d, v, option = "all", thin, burnin, X10_given = "random", target_acceptance)
+                              Gelm_Rud = gelman.diag(list(mcmc(sample1$thinned_chain), mcmc(sample2$thinned_chain),
+                                                          mcmc(sample3$thinned_chain)))$psrf[1]
+                              tmp_df <- rbind(tmp_df, data.frame(v = v, Precision = prop_prec, Gelman_Rubin = Gelm_Rud))
+                            }
+                            tmp_df
+                          }
+  
+  # Stop the cluster
+  stopCluster(cl)
+  
+  df <- rbind(df, results_list)
+  return(df)
+}
+
+# Function to create the three plots and arrange them vertically
+Generate_Figure3_Panels <- function(df_ess_ar, df_rhat, prop_prec_values) {
+  
+  # Function to apply a consistent theme
+  custom_theme <- theme_minimal(base_size = 10) +
+    theme(
+      axis.title = element_text(size = 12),
+      axis.text = element_text(size = 9),
+      legend.title = element_text(size = 10),
+      legend.text = element_text(size = 9),
+      plot.margin = margin(10, 10, 10, 10)
+    )
+  
+  ### Plot 3a: Effective Size ###
+  measure_quantile_ESS <- quantile(df_ess_ar$ESS, probs = c(0.25, 0.5, 0.75))
+  plot_ESS <- ggplot(df_ess_ar, aes(x = v, y = Precision, fill = ESS)) +
+    geom_tile() +
+    scale_fill_gradientn(colors = c("red", "white", "blue"),
+                         values = scales::rescale(c(measure_quantile_ESS[1], mean(df_ess_ar$ESS), measure_quantile_ESS[3])),
+                         name = "Effective Size",
+                         breaks = measure_quantile_ESS,
+                         labels = sprintf("%.2f", measure_quantile_ESS)) +
+    scale_x_continuous(breaks = seq(0, 0.25, by = 0.05)) +
+    scale_y_continuous(breaks = seq(min(prop_prec_values), max(prop_prec_values), by = 2)) +
+    labs(title = "(a) Effective Sample Size", 
+         x = expression("Conditioning Variable Value"~ (X[2]==v)),
+         y = "Precision Parameter (φ)") +
+    custom_theme + 
+    theme(legend.position = "right") # Alinea la leyenda a la derecha
+  
+  ### Plot 3b: Acceptance Rate ###
+  measure_quantile_AR <- quantile(df_ess_ar$Accept_Rate, probs = c(0, 0.25, 0.5, 0.75, 1))
+  plot_AR <- ggplot(df_ess_ar, aes(x = v, y = Precision, fill = Accept_Rate)) +
+    geom_tile() +
+    scale_fill_gradientn(colors = c("red", "white", "blue"),
+                         values = scales::rescale(c(measure_quantile_AR[1], mean(df_ess_ar$Accept_Rate), measure_quantile_AR[5])),
+                         name = "Acceptance Rate",
+                         breaks = measure_quantile_AR,
+                         labels = sprintf("%.2f", measure_quantile_AR)) +
+    scale_x_continuous(breaks = seq(0, 0.25, by = 0.05)) +
+    scale_y_continuous(breaks = seq(min(prop_prec_values), max(prop_prec_values), by = 2)) +
+    labs(title = "(b) Acceptance Rate",
+         x = expression("Conditioning Variable Value"~ (X[2]==v)),
+         y = "Precision Parameter (φ)") +
+    custom_theme + 
+    theme(legend.position = "right") # Alinea la leyenda a la derecha
+  
+  ### Plot 3c: R-hat ###
+  measure_quantile_Rhat <- quantile(df_rhat$Gelman_Rubin, probs = c(0.2, 0.94, 0.96, 0.98, 1))
+  plot_Rhat <- ggplot(df_rhat, aes(x = v, y = Precision, fill = Gelman_Rubin)) +
+    geom_tile() +
+    scale_fill_gradientn(colors = c("red", "white", "blue"),
+                         values = scales::rescale(c(measure_quantile_Rhat[1], mean(df_rhat$Gelman_Rubin), measure_quantile_Rhat[5])),
+                         name = "R-hat Diagnostic",
+                         breaks = measure_quantile_Rhat,
+                         labels = sprintf("%.2f", measure_quantile_Rhat)) +
+    scale_x_continuous(breaks = seq(0, 0.25, by = 0.05)) +
+    scale_y_continuous(breaks = seq(min(prop_prec_values), max(prop_prec_values), by = 2)) +
+    labs(title = "(c) R-hat Diagnostic",
+         x = expression("Conditioning Variable Value"~ (X[2]==v)),
+         y = "Precision Parameter (φ)") +
+    custom_theme + 
+    theme(legend.position = "right") # Alinea la leyenda a la derecha
+  
+  ### Arrange all plots vertically ###
+  grid.arrange(plot_ESS, plot_AR, plot_Rhat, ncol = 1, heights = c(1.2, 1.2, 1.2)) # Ajusta las proporciones de cada panel
+}
+
 #####
 # Function that plots the histogram, density, trace, and convergence control using the average.
 #####
@@ -398,34 +563,44 @@ Mon_R_Hat = function(N, prop_prec_values, a, b, c, d, v_values, thin = 1, burnin
 # "lscatt" is an increment to the minimum value generated. It allows plotting the line at an "lscatt" distance from the trace to enhance visualization.
 # "uscatt" is an increment to the maximum value generated. It allows plotting the line at an "uscatt" distance from the trace to enhance visualization.
 Graphs = function(dataset, nameaxisy, width = 10, lscatt = 0.05, uscatt = 0.05) {
+  # Function to apply a consistent theme
+  custom_theme <- theme_minimal(base_size = 10) +
+    theme(
+      axis.title = element_text(size = 13),
+      axis.text = element_text(size = 10),
+      legend.title = element_text(size = 10),
+      legend.text = element_text(size = 9),
+      plot.margin = margin(10, 10, 10, 10)
+    )
+  
   # Histogram with density
   l = length(dataset[, 1])
   hist = ggplot(dataset, aes(x = dataset[, 1])) + 
     geom_histogram(aes(y = after_stat(density)), colour = 1, fill = "white") +
     geom_density(lwd = 1.2, linetype = 2, colour = 2, fill = 4, alpha = 0.25) +
-    labs(title = "Histogram and Density") + ylab("Density") +
-    xlab(if(nameaxisy == "X2") { expression(X[2]^(t)) } 
-         else if(nameaxisy == "X1") { expression(X[1]^(t)) }
-         else if(nameaxisy == "Y1") { expression(Y[1]^(t)) }
-         else if(nameaxisy == "Y2") { expression(Y[2]^(t)) }
+    labs(title = "(a) Histogram and Density") + ylab("Density") +
+    xlab(if(nameaxisy == "X2") { expression("Chain Values of" ~ X[2]^(t)) } 
+         else if(nameaxisy == "X1") { expression("Chain Values of" ~ X[1]^(t))}
+         else if(nameaxisy == "Y1") { expression("Chain Values of" ~ Y[1]^(t)) }
+         else if(nameaxisy == "Y2") { expression("Chain Values of" ~ Y[2]^(t)) }
          else { substitute(va, list(va = as.name(nameaxisy))) }) +
-    theme(plot.title = element_text(size = 11))
+    custom_theme
   
   # Trace plot with maximum and minimum
   trace = ggplot(dataset, aes(x = 1:l, y = dataset[, 1])) +
-    geom_line() + xlab("t") +
-    ylab(if(nameaxisy == "X2") { expression(X[2]^(t)) } 
-         else if(nameaxisy == "X1") { expression(X[1]^(t)) }
-         else if(nameaxisy == "Y1") { expression(Y[1]^(t)) }
-         else if(nameaxisy == "Y2") { expression(Y[2]^(t)) }
+    geom_line() + xlab("Chain Iterations (t)") +
+    ylab(if(nameaxisy == "X2") { expression("Chain of" ~ X[2]^(t)) } 
+         else if(nameaxisy == "X1") { expression("Chain of" ~ X[1]^(t)) }
+         else if(nameaxisy == "Y1") { expression("Chain of" ~ Y[1]^(t)) }
+         else if(nameaxisy == "Y2") { expression("Chain of" ~ Y[2]^(t)) }
          else { substitute(va, list(va = as.name(nameaxisy))) }) +
     ylim(c(min(dataset) - lscatt, max(dataset) + uscatt)) +
     geom_hline(aes(yintercept = min(dataset[, 1])), colour = "red", linetype = 2) +
     geom_text(aes(l - l / 10, min(dataset[, 1]), label = round(min(dataset[, 1]), 3), vjust = 2), colour = "red") +
     geom_hline(aes(yintercept = max(dataset[, 1])), colour = "red", linetype = 2) +
     geom_text(aes(l - l / 10, max(dataset[, 1]), label = round(max(dataset[, 1]), 3), vjust = -1), colour = "red") +
-    labs(title = substitute(list("Trace of the random sample of size", n), list(n = l))) +
-    theme(plot.title = element_text(size = 11))
+    labs(title = substitute(list("(b) Trace of the random sample of size", n), list(n = l))) +
+    custom_theme
   
   # Acf plot
   alfa = 0.05
@@ -436,10 +611,10 @@ Graphs = function(dataset, nameaxisy, width = 10, lscatt = 0.05, uscatt = 0.05) 
   acfplot = ggplot(acf_data, aes(x = Lag, y = ACF)) +
     geom_bar(stat = "identity") +
     geom_hline(yintercept = c(lim, -lim), linetype = "dashed") +
-    labs(title = "Autocorrelation Function",
+    labs(title = "(d) Autocorrelation Function",
          x = "Lag",
          y = "ACF") +
-    theme_minimal() + theme(plot.title = element_text(size = 11))  
+    custom_theme  
   
   # Convergence control using averaging
   dataset$estintden = cumsum(dataset[, 1]) / (1:l)
@@ -449,15 +624,15 @@ Graphs = function(dataset, nameaxisy, width = 10, lscatt = 0.05, uscatt = 0.05) 
     geom_line(aes(x = 1:l, y = estintden - 1.95 * esterrden, colour = "Upper")) +
     geom_line(aes(x = 1:l, y = estintden + 1.95 * esterrden, colour = "Lower")) +
     ylim(mean(dataset$estintden) + width * c(-dataset$esterrden[l], dataset$esterrden[l])) +
-    ylab(if(nameaxisy == "X2") { expression(X[2]^(t)) } 
-         else if(nameaxisy == "X1") { expression(X[1]^(t)) }
-         else if(nameaxisy == "Y1") { expression(Y[1]^(t)) }
-         else if(nameaxisy == "Y2") { expression(Y[2]^(t)) }
+    ylab(if(nameaxisy == "X2") {expression("Accumulated Average of" ~ X[2]^(t)) } 
+         else if(nameaxisy == "X1") { expression("Accumulated Average of" ~ X[1]^(t)) }
+         else if(nameaxisy == "Y1") { expression("Accumulated Average of" ~ Y[1]^(t)) }
+         else if(nameaxisy == "Y2") { expression("Accumulated Average of" ~ Y[2]^(t)) }
          else { substitute(va, list(va = as.name(nameaxisy))) }) +
-    xlab("t") + geom_hline(yintercept = mean(dataset[, 1]), colour = "red", linetype = 2) +
+    xlab("Chain Iterations (t)") + geom_hline(yintercept = mean(dataset[, 1]), colour = "red", linetype = 2) +
     geom_text(aes(l - l / 10, mean(dataset[, 1]), label = round(mean(dataset[, 1]), 3), vjust = -2), colour = "red") +
-    labs(title = "Convergence Control using Averaging", color = "Bounds") + 
-    scale_shape_discrete(name = " ") + theme(plot.title = element_text(size = 11), legend.position = "top", legend.box = "horizontal")
+    labs(title = "(c) Convergence Control using Averaging", color = "Bounds") + 
+    scale_shape_discrete(name = " ") + custom_theme
   
   # Plots of histogram, trace, convergence control, and acf.
   grid.arrange(hist, trace, mean_X1_X2, acfplot, 
@@ -476,14 +651,16 @@ Graphs = function(dataset, nameaxisy, width = 10, lscatt = 0.05, uscatt = 0.05) 
 # The seed type can be specified with "X10_given" as "random" or "fixed".
 # "lower_epsilon": lower limit for the conditional distribution of the variance given a value for the mean.
 # "dig_tol" in Gen_FC_X1_X2: number of decimal places for -X10^2 + X10 - v, and -yt^2 + yt - v to be different from zero.
-Gen_Joint_Dist = function(N1, N2, prop_prec, a, b, c, d, thin = 1, X10_given = "random", lower_epsilon = 0, dig_tol = 15, target_acceptance = 0.3) {
+# "batch_adapt_acceptance_rate" is the number of iterations with which the accuracy is adjusted in the burn-in period
+
+Gen_Joint_Dist = function(N1, N2, prop_prec, a, b, c, d, thin = 1, X10_given = "random", lower_epsilon = 0, dig_tol = 15, target_acceptance = 0.3,batch_adapt_acceptance_rate=100) {
   SampleGen = matrix(data = NA, nrow = N1, ncol = 2, dimnames = list(NULL, c("X2", "X1")))
   SampleGen = as.data.frame(SampleGen)
   SampleGen$X1[1] = rbeta(1, a, b)
   SampleGen$X2[1] = rBeta.4P(1, l = 0, u = SampleGen$X1[1] * (1 - SampleGen$X1[1]), alpha = c, beta = d)
   for (t in 2:N1) {
     # Generate X1[t] using the Metropolis-Hastings algorithm
-    SampleGen$X1[t] = Gen_FC_X1_X2(N2, prop_prec, a, b, c, d, SampleGen$X2[t-1], option = "end", thin, burnin = 0, X10_given, target_acceptance, dig_tol)$thinned_chain
+    SampleGen$X1[t] = Gen_FC_X1_X2(N2, prop_prec, a, b, c, d, SampleGen$X2[t-1], option = "end", thin, burnin = 0, X10_given, target_acceptance, dig_tol,batch_adapt_acceptance_rate=batch_adapt_acceptance_rate)$thinned_chain
     # Generate X2[t] using the conditional distribution
     SampleGen$X2[t] = rBeta.4P(1, l = lower_epsilon, u = SampleGen$X1[t] * (1 - SampleGen$X1[t]), alpha = c, beta = d)
   }
@@ -519,7 +696,7 @@ Mtovar_vs2 = function(q1, q2, low, upp, alp) {
 # l2 is the marginal order for beta
 # a, b, c, and d are hyperparameter values.
 Mom_Prior_Dist = function(l1, l2, a, b, c, d) {
-  beta(c - l1 - l2, l1 + l2 + d) * beta(l1 + a, l2 + b)
+  exp(lbeta(c - l1 - l2, l1 + l2 + d) + lbeta(l1 + a, l2 + b))
 }
 
 ##########################################################
@@ -531,19 +708,113 @@ Mom_Prior_Dist = function(l1, l2, a, b, c, d) {
 # thin and burnin are parameters applied to select the data elements to be used for determining numerical measures.
 # digits: number of decimal places for numerical measures.
 # a, b, c, and d are hyperparameter values of the proposed distribution.
-Measure_Diagnostic = function(data1, data2, var = "original", burnin, thin, digits = 5, a, b, c, d) {
+Measure_Diagnostic = function(data1, data2, var = "original", burnin, thin, digits = 5, a, b, c, d, cred_level = 0.95, batch_size = 100) {
+  # Function to calculate the standard error using the batch means method
+  batch_means_stderr_var <- function(chain, batch_size) {
+    n <- length(chain)
+    num_batches <- floor(n / batch_size)
+    if (num_batches < 2) {
+      warning("At least two batches are needed to estimate the standard error reliably.")
+      return(NA)
+    }
+    batch_means_var <- numeric(num_batches)
+    for (i in 1:num_batches) {
+      start_index <- (i - 1) * batch_size + 1
+      end_index <- min(i * batch_size, n)
+      batch_means_var[i] <- var(chain[start_index:end_index])
+    }
+    return(sd(batch_means_var) / sqrt(num_batches))
+  }
+  
+  # Function to calculate the credibility region for the mean.
+  Cred_Interval <- function(x, level = 0.95) {
+    quantile(x, probs = c((1 - level)/2, 1 - (1 - level)/2))
+  }
+  
+  # Function to calculate the credibility region for the variance.
+  Cred_Interval_V <- function(x, level = 0.95) {
+    n_bootstrap <- 10000
+    bootstrap_variances <- replicate(n_bootstrap, var(sample(x, size = length(x), replace = TRUE)))
+    credibility_interval_variance_bootstrap <- quantile(bootstrap_variances, probs = c((1 - level) / 2, 1 - (1 - level) / 2))
+    return(c(round(credibility_interval_variance_bootstrap[1], 3), round(credibility_interval_variance_bootstrap[2], 3)))
+  }
+  
+  # Function to calculate the standard error of the covariance.
+  batch_means_stderr_cov <- function(chain, batch_size = 100) {
+    n <- nrow(chain)
+    num_batches <- floor(n / batch_size)
+    if (num_batches < 2) {
+      warning("At least two batches are needed to estimate the standard error reliably.")
+      return(NA)
+    }
+    batch_covariances <- numeric(num_batches)
+    for (i in 1:num_batches) {
+      start_index <- (i - 1) * batch_size + 1
+      end_index <- min(i * batch_size, n)
+      batch_covariances[i] <- cov(chain[start_index:end_index, 1],
+                                  chain[start_index:end_index, 2])
+    }
+    return(sd(batch_covariances) / sqrt(num_batches))
+  }
+  
+  # Function to calculate the credible region for the covariance.
+  Cred_Interval_Cov <- function(x, level = 0.95) {
+    n_bootstrap <- 10000
+    bootstrap_covariances <- numeric(n_bootstrap)
+    n_samples <- nrow(x)
+    for (i in 1:n_bootstrap) {
+      # Resample the rows of x with replacement.
+      bootstrap_indices <- sample(1:n_samples, size = n_samples, replace = TRUE)
+      bootstrap_sample <- x[bootstrap_indices, ]
+      bootstrap_covariances[i] <- cov(bootstrap_sample[, 1], bootstrap_sample[, 2])
+    }
+    credibility_interval_covariance_bootstrap <- quantile(bootstrap_covariances,
+                                                          probs = c((1 - level) / 2, 1 - (1 - level) / 2))
+    return(c(round(credibility_interval_covariance_bootstrap[1], 3), round(credibility_interval_covariance_bootstrap[2], 3)))
+  }
+  
   N = length(data1)
   data1 <- data1[seq((burnin + 1), N, by = thin)]
   data2 <- data2[seq((burnin + 1), N, by = thin)]
   
+  
   if (var == "original") {
-    new_names = c("Mean_X1", "Var_X1", "ESS_X1", "Mean_X2", "Var_X2", "ESS_X2", "Cov", "Length")
+    new_names = c("Mean_X1", "Var_X1", "ESS_X1", "STDERR_Mean_X1", "STDERR_Var_X1", "CI_Mean1_Lower", "CI_Mean1_Upper","CI_Var1_Lower", "CI_Var1_Upper",
+                  "Mean_X2", "Var_X2", "ESS_X2", "STDERR_Mean_X2", "STDERR_Var_X2", "CI_Mean2_Lower", "CI_Mean2_Upper","CI_Var2_Lower", "CI_Var2_Upper",
+                  "Cov", "STDERR_Cov", "CI_Cov_Lower", "CI_Cov_Upper", "Length")
+    CIM1 = Cred_Interval(data1, level = cred_level)
+    CIM2 = Cred_Interval(data2, level = cred_level)
+    CIV1 = Cred_Interval_V(data1, level = cred_level)
+    CIV2 = Cred_Interval_V(data2, level = cred_level)
+    CIcov= Cred_Interval_Cov(matrix(c(data1,data2),ncol=2), level = cred_level)
     
     # Numerical results
     Numerical_results = round(data.frame(
-      "mean1" = mean(data1), "var1" = var(data1), "ESS1" = effectiveSize(mcmc(data1))[[1]],
-      "mean2" = mean(data2), "var2" = var(data2), "ESS2" = effectiveSize(mcmc(data2))[[1]],
-      "cov12" = cov(data1, data2), "length" = length(data1)
+      "mean1" = mean(data1), 
+      "var1" = var(data1), 
+      "ESS1" = effectiveSize(mcmc(data1))[[1]],
+      "stderr_mean.1" = sd(data1)/sqrt(effectiveSize(mcmc(data1))[[1]]),
+      "stderr_var.1" = batch_means_stderr_var(data1, batch_size),
+      "CIM1_lower" = CIM1[1],
+      "CIM1_upper" = CIM1[2],
+      "CIV1_lower" = CIV1[1],
+      "CIV1_upper" = CIV1[2],
+      
+      "mean2" = mean(data2),
+      "var2" = var(data2),
+      "ESS2" = effectiveSize(mcmc(data2))[[1]],
+      "stderr_mean.2" = sd(data2)/sqrt(effectiveSize(mcmc(data2))[[1]]),
+      "stderr_var.2" = batch_means_stderr_var(data2, batch_size),
+      "CIM2_lower" = CIM2[1],
+      "CIM2_upper" = CIM2[2],
+      "CIV2_lower" = CIV2[1],
+      "CIV2_upper" = CIV2[2],
+      
+      "cov12" = cov(data1, data2), 
+      "stderr_cov" = batch_means_stderr_cov(matrix(c(data1,data2),ncol=2), batch_size),
+      "CIcov_lower" = CIcov[1],
+      "CIcov_upper" = CIcov[2],
+      "length" = length(data1)
     ), digits)
     
     names(Numerical_results) = new_names
@@ -554,35 +825,90 @@ Measure_Diagnostic = function(data1, data2, var = "original", burnin, thin, digi
     piece = (data1 * (1 - data1) / data2 - 1)
     new_data1 = data1 * piece
     new_data2 = (1 - data1) * piece
-    new_names = c("Mean_Y1", "Var_Y1", "ESS_Y1", "Mean_Y2", "Var_Y2", "ESS_Y2", "Cov", "Length")
+    
+    new_names = c("Mean_Y1", "Var_Y1", "ESS_Y1", "STDERR_Mean_Y1", "STDERR_Var_Y1", "CI_Mean1_Lower", "CI_Mean1_Upper","CI_Var1_Lower", "CI_Var1_Upper",
+                  "Mean_Y2", "Var_Y2", "ESS_Y2", "STDERR_Mean_Y2", "STDERR_Var_Y2", "CI_Mean2_Lower", "CI_Mean2_Upper","CI_Var2_Lower", "CI_Var2_Upper",
+                  "Cov", "STDERR_Cov", "CI_Cov_Lower", "CI_Cov_Upper", "Length")
+    
+    CIM1 = Cred_Interval(new_data1, level = cred_level)
+    CIM2 = Cred_Interval(new_data2, level = cred_level)
+    CIV1 = Cred_Interval_V(new_data1, level = cred_level)
+    CIV2 = Cred_Interval_V(new_data2, level = cred_level)
+    CIcov= Cred_Interval_Cov(matrix(c(new_data1,new_data2),ncol=2), level = cred_level)
     
     # Numerical results
     Numerical_results = round(data.frame(
-      "mean1" = mean(new_data1), "var1" = var(new_data1), "ESS1" = effectiveSize(mcmc(new_data1))[[1]],
-      "mean2" = mean(new_data2), "var2" = var(new_data2), "ESS2" = effectiveSize(mcmc(new_data2))[[1]],
-      "cov12" = cov(new_data1, new_data2), "length" = length(new_data1)
+      "mean1" = mean(new_data1), 
+      "var1" = var(new_data1), 
+      "ESS1" = effectiveSize(mcmc(new_data1))[[1]],
+      "stderr_mean.1" = sd(new_data1)/sqrt(effectiveSize(mcmc(new_data1))[[1]]),
+      "stderr_var.1" = batch_means_stderr_var(new_data1, batch_size),
+      "CIM1_lower" = CIM1[1],
+      "CIM1_upper" = CIM1[2],
+      "CIV1_lower" = CIV1[1],
+      "CIV1_upper" = CIV1[2],
+      
+      "mean2" = mean(new_data2), 
+      "var2" = var(new_data2), 
+      "ESS2" = effectiveSize(mcmc(new_data2))[[1]],
+      "stderr_mean.2" = sd(new_data2)/sqrt(effectiveSize(mcmc(new_data2))[[1]]),
+      "stderr_var.2" = batch_means_stderr_var(new_data2, batch_size),
+      "CIM2_lower" = CIM2[1],
+      "CIM2_upper" = CIM2[2],
+      "CIV2_lower" = CIV2[1],
+      "CIV2_upper" = CIV2[2],
+      
+      "cov12" = cov(new_data1, new_data2),
+      "stderr_cov" = batch_means_stderr_cov(matrix(c(new_data1,new_data2),ncol=2), batch_size),
+      "CIcov_lower" = CIcov[1],
+      "CIcov_upper" = CIcov[2],
+      "length" = length(new_data1)
     ), digits)
     names(Numerical_results) = new_names
+    row.names(Numerical_results)="Numerical Results"
     
     # Analytical results
     K = Mom_Prior_Dist(0, 0, a, b, c, d)
     Analytic_results = round(data.frame(
-      "Mean.1" = Mom_Prior_Dist(1, 0, a, b, c, d) / K,
-      "Var.1" = Mom_Prior_Dist(2, 0, a, b, c, d) / K - (Mom_Prior_Dist(1, 0, a, b, c, d) / K)^2,
+      "Mean.1" = exp(lbeta(c - 1, 1 + d) + lbeta(1 + a, b) - (lbeta(c, d) + lbeta(a, b)) ), 
+      "Var.1" = exp(lbeta(c - 2, 2 + d) + lbeta(2 + a, b) - (lbeta(c,d) + lbeta(a,b)) ) - exp(2*lbeta(c - 1, 1+ d) + 2*lbeta(1 + a, b) - 2*(lbeta(c,d) + lbeta(a,b)) ),
       "ESS.1" = length(new_data1),
-      "Mean.2" = Mom_Prior_Dist(0, 1, a, b, c, d) / K,
-      "Var.2" = Mom_Prior_Dist(0, 2, a, b, c, d) / K - (Mom_Prior_Dist(0, 1, a, b, c, d) / K)^2,
+      "stderr_mean.1" = NA,
+      "stderr_var.1" = NA,
+      "CIM1_lower" = NA,
+      "CIM1_upper" = NA,
+      "CIV1_lower" = NA,
+      "CIV1_upper" = NA,
+      
+      "Mean.2" = exp(lbeta(c - 1, 1 + d) + lbeta( a, 1 + b) - (lbeta(c, d) + lbeta(a, b)) ), 
+      "Var.2" =  exp(lbeta(c - 2, 2 + d) + lbeta( a, 2 + b) - (lbeta(c,d) + lbeta(a,b)) ) - (exp(lbeta(c - 1, 1 + d) + lbeta( a, 1 + b) - (lbeta(c, d) + lbeta(a,b)) ))^2,
       "ESS.2" = length(new_data1),
-      "Cov" = Mom_Prior_Dist(1, 1, a, b, c, d) / K - (Mom_Prior_Dist(1, 0, a, b, c, d) / K) * Mom_Prior_Dist(0, 1, a, b, c, d) / K,
+      "stderr_mean.2" = NA,
+      "stderr_var.2" = NA,
+      "CIM2_lower" = NA,
+      "CIM2_upper" = NA,
+      "CIV2_lower" = NA,
+      "CIV2_upper" = NA,
+      
+      "Cov" = exp(lbeta(c - 2, 2 + d) + lbeta(1 + a, 1 + b) - (lbeta(c,d) + lbeta(a,b)) )-exp(2*lbeta(c - 1, 1 + d) + lbeta( a, 1 + b) - 2*(lbeta(c, d) + lbeta(a, b)) + lbeta(1 + a, b) ),
+      "stderr_cov" = NA,
+      "CIcov_lower" = NA,
+      "CIcov_upper" = NA,
       "length" = length(new_data1)
     ), digits)
     names(Analytic_results) = new_names
+    row.names(Analytic_results)="Theoretical Results"
     
     # Differences between analytical and numerical results.
     Differences = round(Analytic_results - Numerical_results, digits)
+    row.names(Differences)="Differences"
     return(list(Numerical = Numerical_results, Analytical = Analytic_results, Differences = Differences))
   }
 }
+
+
+
+
 
 ##########################################################
 ##########################################################
@@ -621,10 +947,22 @@ Measure_Analy = function(a, b, c, d, digits) {
 # digits: number of decimal places for the Bootstrap quantile interval for the mean and variance.
 # graphs_boot: logical indicator to generate a histogram, T or F.
 # Q_E_mu and Q_E_cv: quantiles for the mean and variance obtained from the expert.
+# language: Indicates the language in which the titles and labels of the generated graphs are presented.
 
 Hyperparameters = function(ssample, r_boostrap = 100, q_boostrap = c(0.025, 0.975), option_mu = "moments", 
                            sig_mu = 0.05, bound_var = "max", sig_var = 0.05, digits = 4, 
-                           graphs_boot = F, Q_E_mu = 0, Q_E_cv = 0) {
+                           graphs_boot = F, Q_E_mu = 0, Q_E_cv = 0, language = "English") {
+  if (language == "English"){
+    labels_title = c("a. Original Sample", "b. Bootstrap for the CV", "c. Bootstrap for the Mean")
+    labels_x = c("X", "CV of X", "Mean of X")
+    labels_y = c("Density")
+  } else if (language == "Spanish"){
+    labels_title = c("a. Muestra original", "b. Bootstrap para el CV", "c. Bootstrap para la media")
+    labels_x = c("X", "CV de X", "Media de X")
+    labels_y = c("Densidad")
+  }
+    
+    
   if (r_boostrap != 0) {
     n_sample = length(ssample)
     boot = matrix(sample(ssample, size = r_boostrap * n_sample, replace = T), nrow = n_sample, ncol = r_boostrap)
@@ -672,20 +1010,17 @@ Hyperparameters = function(ssample, r_boostrap = 100, q_boostrap = c(0.025, 0.97
     hist_orig = ggplot(as.data.frame(ssample), aes(x = ssample)) + 
       geom_histogram(aes(y = after_stat(density)), colour = 1, fill = "white") +
       geom_density(lwd = 1.2, linetype = 2, colour = 2, fill = 4, alpha = 0.25) +
-      labs(title = "Original Sample") + ylab("Density") +
-      xlab(substitute(va, list(va = "X")))
+      labs(title = labels_title[1]) + ylab(labels_y[1]) + xlab(substitute(va, list(va = "X")))
     if (r_boostrap != 0) {
       hist_boot_mean = ggplot(as.data.frame(boots_mean), aes(x = boots_mean)) + 
         geom_histogram(aes(y = ..density..), colour = 1, fill = "white") +
         geom_density(lwd = 1.2, linetype = 2, colour = 2, fill = 4, alpha = 0.25) +
-        labs(title = "Bootstrap for the Mean") + ylab("Density") +
-        xlab(substitute(va, list(va = "Mean of X")))
+        labs(title = labels_title[3]) + ylab("") + xlab(substitute(va, list(va = labels_x[3])))
       
       hist_boot_cv = ggplot(as.data.frame(boots_cv), aes(x = boots_cv)) + 
         geom_histogram(aes(y = ..density..), colour = 1, fill = "white") +
         geom_density(lwd = 1.2, linetype = 2, colour = 2, fill = 4, alpha = 0.25) +
-        labs(title = "Bootstrap for the CV") + ylab("Density") +
-        xlab(substitute(va, list(va = "CV of X")))
+        labs(title = labels_title[2]) + ylab(labels_y[1]) + xlab(substitute(va, list(va = labels_x[2])))
       
       grid.arrange(hist_orig, hist_boot_cv, hist_boot_mean, 
                    ncol = 2, nrow = 2, widths = c(2, 2), heights = c(2, 2), layout_matrix = rbind(c(1, 1), c(2, 3)))
@@ -721,9 +1056,9 @@ Est_Post = function(ssample, N, N_FC, Precision, a, b, c, d, thin1, thin2, burni
   x0 = prod(ssample)
   y0 = prod(1 - ssample)
   
-  zeta=exp((sample_alpha-1)*log(x0)+(sample_beta-1)*log(y0)-(length(ssample))*log(beta(sample_alpha,sample_beta)))
+  zeta=exp((sample_alpha-1)*log(x0)+(sample_beta-1)*log(y0)-(length(ssample))*lbeta(sample_alpha,sample_beta))
   
-  marginalike=sum(zeta)/length(sample_beta)
+  marginalike=sum(zeta)
   
   meanpalpha=sum(zeta*exp(log(sample_alpha)-log(marginalike)))
   varpalpha=sum(zeta*exp(2*log(sample_alpha)-log(marginalike)))-meanpalpha^2
@@ -737,7 +1072,7 @@ Est_Post = function(ssample, N, N_FC, Precision, a, b, c, d, thin1, thin2, burni
                                    digits = 4, burnin, thin = thin2, a, b, c, d)
   return(list(EstPost=data.frame(Prior_Lik=marginalike,P_A=meanpalpha,P_B=meanpbeta,VP_A=varpalpha,VP_B=varpbeta,CP_AB=covalphabeta),
               Descriptivo=Descriptivo,
-              SA=sample_alpha,SB=sample_beta,SX1=Example_Joint_Dist$X1,SX2=Example_Joint_Dist$X2))
+              SA=sample_alpha,SB=sample_beta,SX1=Example_Joint_Dist$X1,SX2=Example_Joint_Dist$X2,Zeta=zeta))
 }
 
 
@@ -950,7 +1285,7 @@ Comparison_Hyper = function(data, value_real, lim_x, title_text, y_Text) {
     geom_line() +
     geom_point() +
     labs(title = " ",
-         x = "n", #"Sample Size",
+         x = "Sample Size",
          y = "Length") +
     scale_x_continuous(breaks = lim_x) +
     theme_minimal() + 
@@ -977,4 +1312,3 @@ Comparison_Hyper = function(data, value_real, lim_x, title_text, y_Text) {
     widths = c(7, 1)
   )
 }
-
